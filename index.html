@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Velerity Sales OS</title>
+<style>
+:root {
+  --bg: #000922; --surface: #000D30; --card: #001040; --border: #1E3A5F;
+  --accent: #4AD0FA; --accent-dim: rgba(74,208,250,0.10);
+  --text: #F1F5F9; --text-muted: #64748B; --text-dim: #94A3B8;
+  --success: #22C55E; --warning: #F59E0B; --danger: #EF4444;
+  --sidebar-w: 220px; --topbar-h: 56px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; min-height: 100vh; }
+#app { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+#sidebar { width: var(--sidebar-w); background: #000513; border-right: 1px solid var(--border); position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100; display: flex; flex-direction: column; }
+.sidebar-brand { padding: 18px 16px 14px; border-bottom: 1px solid var(--border); }
+.sidebar-brand-name { font-size: 15px; font-weight: 700; letter-spacing: 3px; color: var(--accent); }
+.sidebar-brand-sub { font-size: 10px; color: var(--text-muted); letter-spacing: 1.5px; margin-top: 2px; }
+.nav-group { padding: 14px 0 6px; }
+.nav-group-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); padding: 0 16px 6px; }
+.nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 16px; cursor: pointer; color: var(--text-dim); font-size: 13px; border-left: 2px solid transparent; transition: all .15s; user-select: none; }
+.nav-item:hover { color: var(--text); background: rgba(255,255,255,.03); }
+.nav-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-dim); }
+.nav-item svg { width: 15px; height: 15px; opacity: .7; flex-shrink: 0; }
+.nav-item.active svg { opacity: 1; }
+
+/* Main */
+#main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
+#topbar { height: var(--topbar-h); background: #000513; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 28px; gap: 16px; position: sticky; top: 0; z-index: 50; }
+.topbar-logo { font-size: 17px; font-weight: 700; letter-spacing: 3px; color: var(--accent); flex: 1; }
+.topbar-logo span { color: var(--text-muted); font-size: 11px; font-weight: 400; letter-spacing: 1px; margin-left: 10px; }
+.btn-copilot { background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent); padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; letter-spacing: .3px; }
+.btn-copilot:hover { background: rgba(74,208,250,0.18); }
+#content { flex: 1; padding: 28px 32px; }
+
+/* Sections */
+.section { display: none; }
+.section.active { display: block; }
+.section-header { margin-bottom: 24px; }
+.section-title { font-size: 22px; font-weight: 600; }
+.section-sub { font-size: 13px; color: var(--text-dim); margin-top: 5px; }
+
+/* Cards */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+.card-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.card-title { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+.card-sub { font-size: 12px; color: var(--text-dim); }
+
+/* Buttons */
+.btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; transition: all .15s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--accent); color: #000922; }
+.btn-primary:hover { background: #6DDDFB; }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+
+/* Badges */
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; letter-spacing: .3px; }
+.badge-verified { background: rgba(34,197,94,.13); color: #22C55E; border: 1px solid rgba(34,197,94,.3); }
+.badge-unverified { background: rgba(245,158,11,.13); color: #F59E0B; border: 1px solid rgba(245,158,11,.3); }
+.badge-demo { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(74,208,250,.3); }
+.badge-gen { background: rgba(74,208,250,.08); color: var(--accent); border: 1px solid var(--border); font-size: 10px; padding: 1px 6px; }
+
+/* Tables */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--text-muted); padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.tbl td { padding: 10px 14px; border-bottom: 1px solid rgba(30,58,95,.4); font-size: 13px; vertical-align: middle; }
+.tbl tr:hover td { background: rgba(74,208,250,.03); }
+.tbl-wrap { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; overflow-x: auto; }
+
+/* Forms */
+.form-row { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-dim); margin-bottom: 6px; }
+.form-input, .form-select, .form-textarea { width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 13px; font-family: inherit; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(74,208,250,.1); }
+.form-select option { background: #000D30; }
+.form-textarea { resize: vertical; min-height: 80px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
+.tab { padding: 9px 18px; cursor: pointer; font-size: 13px; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .15s; }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
+.tab:hover:not(.active) { color: var(--text-dim); }
+
+/* Stat bar */
+.stat-row { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); margin-bottom: 24px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.stat-label { font-size: 11px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--text-muted); }
+.stat-value { font-size: 22px; font-weight: 700; margin-top: 6px; }
+.stat-sub { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+
+/* Info blocks */
+.info-block { background: rgba(74,208,250,.06); border: 1px solid rgba(74,208,250,.2); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+.warn-block { background: rgba(245,158,11,.06); border: 1px solid rgba(245,158,11,.2); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; color: #F59E0B; }
+.danger-block { background: rgba(239,68,68,.06); border: 1px solid rgba(239,68,68,.2); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; color: #FCA5A5; }
+
+/* Spec detail panel */
+.spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.spec-item { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; }
+.spec-key { font-size: 10px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+.spec-val { font-size: 14px; font-weight: 500; }
+.spec-src { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+
+/* Comparison table */
+.compare-hdr { background: var(--surface); position: sticky; top: 0; }
+.compare-tbl { border-collapse: collapse; width: 100%; }
+.compare-tbl th { background: var(--surface); padding: 14px 16px; text-align: center; border: 1px solid var(--border); font-size: 13px; font-weight: 600; min-width: 160px; }
+.compare-tbl th:first-child { text-align: left; min-width: 200px; }
+.compare-tbl td { padding: 10px 16px; border: 1px solid rgba(30,58,95,.4); font-size: 13px; text-align: center; }
+.compare-tbl td:first-child { text-align: left; font-weight: 500; color: var(--text-dim); background: var(--surface); }
+.compare-tbl tr:hover td { background: rgba(74,208,250,.03); }
+.compare-tbl tr:hover td:first-child { background: rgba(74,208,250,.05); }
+.compare-best { color: var(--accent); font-weight: 600; }
+
+/* Flashcard */
+.flashcard-wrap { perspective: 1000px; width: 520px; max-width: 100%; margin: 0 auto; }
+.flashcard { width: 100%; height: 240px; position: relative; transform-style: preserve-3d; transition: transform .5s; cursor: pointer; }
+.flashcard.flipped { transform: rotateY(180deg); }
+.fc-face { position: absolute; inset: 0; background: var(--card); border: 1px solid var(--border); border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px; text-align: center; backface-visibility: hidden; }
+.fc-back { transform: rotateY(180deg); background: #001830; border-color: var(--accent); }
+.fc-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+.fc-text { font-size: 18px; font-weight: 500; line-height: 1.5; }
+.fc-answer { font-size: 15px; line-height: 1.6; color: var(--text-dim); }
+.fc-nav { display: flex; align-items: center; justify-content: center; gap: 20px; margin-top: 20px; }
+.fc-counter { font-size: 13px; color: var(--text-muted); }
+
+/* Quiz */
+.quiz-q { font-size: 16px; font-weight: 500; line-height: 1.5; margin-bottom: 20px; }
+.quiz-options { display: flex; flex-direction: column; gap: 10px; }
+.quiz-opt { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; cursor: pointer; font-size: 14px; transition: all .15s; }
+.quiz-opt:hover { border-color: var(--accent); color: var(--accent); }
+.quiz-opt.correct { background: rgba(34,197,94,.1); border-color: var(--success); color: var(--success); }
+.quiz-opt.wrong { background: rgba(239,68,68,.08); border-color: var(--danger); color: var(--danger); }
+.quiz-progress-bar { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 24px; }
+.quiz-progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .3s; }
+
+/* Calculator results */
+.calc-result { background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; padding: 20px; margin-top: 20px; }
+.calc-result-title { font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 14px; }
+.calc-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(30,58,95,.4); font-size: 13px; }
+.calc-row:last-child { border-bottom: none; }
+.calc-label { color: var(--text-dim); }
+.calc-val { font-weight: 600; }
+.calc-highlight { color: var(--accent); font-size: 18px; font-weight: 700; }
+
+/* Objection cards */
+.obj-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 14px; }
+.obj-objection { font-size: 14px; font-weight: 600; color: var(--warning); margin-bottom: 10px; }
+.obj-response { font-size: 13px; line-height: 1.65; color: var(--text-dim); }
+.obj-tag { display: inline-flex; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; letter-spacing: .5px; background: rgba(245,158,11,.1); color: var(--warning); border: 1px solid rgba(245,158,11,.25); margin-bottom: 10px; }
+
+/* DC checklist */
+.check-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(30,58,95,.4); }
+.check-item:last-child { border-bottom: none; }
+.check-box { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 4px; flex-shrink: 0; cursor: pointer; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.check-box.checked { background: var(--accent); border-color: var(--accent); }
+.check-box.checked::after { content: '✓'; font-size: 11px; color: #000; font-weight: 700; }
+.check-label { font-size: 13px; font-weight: 500; }
+.check-desc { font-size: 12px; color: var(--text-dim); margin-top: 3px; line-height: 1.5; }
+
+/* Copilot panel */
+#copilot-panel { position: fixed; right: 0; top: 0; width: 380px; height: 100vh; background: #000513; border-left: 1px solid var(--border); z-index: 300; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .25s; }
+#copilot-panel.open { transform: translateX(0); }
+.copilot-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.copilot-title { font-size: 14px; font-weight: 700; letter-spacing: 1px; color: var(--accent); }
+.copilot-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.copilot-input-row { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+.copilot-input { flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 13px; resize: none; font-family: inherit; }
+.copilot-input:focus { outline: none; border-color: var(--accent); }
+.msg { padding: 10px 13px; border-radius: 8px; font-size: 13px; line-height: 1.55; }
+.msg-user { background: var(--accent-dim); border: 1px solid rgba(74,208,250,.2); align-self: flex-end; max-width: 90%; }
+.msg-ai { background: var(--surface); border: 1px solid var(--border); white-space: pre-wrap; }
+
+/* Search bar */
+.search-bar { width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 9px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 18px; }
+.search-bar:focus { outline: none; border-color: var(--accent); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  #sidebar { transform: translateX(-220px); }
+  #sidebar.open { transform: translateX(0); }
+  #main { margin-left: 0; }
+  #content { padding: 16px; }
+  .form-row { grid-template-columns: 1fr; }
+  #copilot-panel { width: 100%; }
+  .spec-grid { grid-template-columns: 1fr; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #2E5A8F; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- Sidebar -->
+<nav id="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-name">VELERITY</div>
+    <div class="sidebar-brand-sub">SALES OS</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Academy</div>
+    <div class="nav-item active" onclick="nav('academy-gpus')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>GPU Reference
+    </div>
+    <div class="nav-item" onclick="nav('academy-platforms')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="1"/><rect x="2" y="14" width="20" height="8" rx="1"/><circle cx="6" cy="6" r="1" fill="currentColor"/><circle cx="6" cy="18" r="1" fill="currentColor"/></svg>Platforms
+    </div>
+    <div class="nav-item" onclick="nav('academy-compare')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>Compare
+    </div>
+    <div class="nav-item" onclick="nav('academy-cert')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Certification
+    </div>
+    <div class="nav-item" onclick="nav('academy-export')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Export Control
+    </div>
+    <div class="nav-item" onclick="nav('academy-admin')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Spec Admin
+    </div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Tools</div>
+    <div class="nav-item" onclick="nav('tools-workload')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Workload Fit
+    </div>
+    <div class="nav-item" onclick="nav('tools-tco')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>TCO Calculator
+    </div>
+    <div class="nav-item" onclick="nav('tools-dc')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>DC Readiness
+    </div>
+    <div class="nav-item" onclick="nav('tools-objections')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Objections
+    </div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Training</div>
+    <div class="nav-item" onclick="nav('training-flashcards')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Flashcards
+    </div>
+    <div class="nav-item" onclick="nav('training-quizzes')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Quizzes
+    </div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">System</div>
+    <div class="nav-item" onclick="nav('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings
+    </div>
+  </div>
+</nav>
+
+<!-- Main -->
+<div id="main">
+  <div id="topbar">
+    <div class="topbar-logo">VELERITY <span>SALES OS</span></div>
+    <button class="btn-copilot" onclick="toggleCopilot()">&#9733; Rep Copilot</button>
+  </div>
+  <div id="content">
+    <div id="s-academy-gpus" class="section active"><div class="section-header"><div class="section-title">GPU Reference</div><div class="section-sub">A100 · H100 · H200 — specifications, capabilities, and sales positioning</div></div><div id="gpu-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
+    <div id="s-academy-platforms" class="section"><div class="section-header"><div class="section-title">Platform Catalog</div><div class="section-sub">DGX, HGX, and OEM AI server platforms — certified for resale</div></div><div id="platform-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
+    <div id="s-academy-compare" class="section"><div class="section-header"><div class="section-title">Compare</div><div class="section-sub">Side-by-side GPU and platform comparison</div></div><div id="compare-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
+    <div id="s-academy-cert" class="section"><div class="section-header"><div class="section-title">Certification &amp; Refurbishment</div><div class="section-sub">How Velerity certifies and warranties AI hardware</div></div><div id="cert-content"></div></div>
+    <div id="s-academy-export" class="section"><div class="section-header"><div class="section-title">Export Control Primer</div><div class="section-sub">EAR/BIS overview for sales reps — not legal advice. Always escalate edge cases.</div></div><div id="export-content"></div></div>
+    <div id="s-academy-admin" class="section"><div class="section-header"><div class="section-title">Spec Admin</div><div class="section-sub">Review, edit, and verify GPU and platform specifications</div></div><div id="admin-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
+    <div id="s-tools-workload" class="section"><div class="section-header"><div class="section-title">Workload-Fit Calculator</div><div class="section-sub">Estimate VRAM requirements and get GPU recommendations for any AI workload</div></div><div id="workload-content"></div></div>
+    <div id="s-tools-tco" class="section"><div class="section-header"><div class="section-title">TCO Calculator</div><div class="section-sub">Compare total cost: certified refurbished vs. cloud vs. new OEM</div></div><div id="tco-content"></div></div>
+    <div id="s-tools-dc" class="section"><div class="section-header"><div class="section-title">Data Center Readiness</div><div class="section-sub">Qualify whether a buyer's facility can host the gear before the deal closes</div></div><div id="dc-content"></div></div>
+    <div id="s-tools-objections" class="section"><div class="section-header"><div class="section-title">Objection Library</div><div class="section-sub">Ready responses to the most common AI server sales objections</div></div><div id="objections-content"></div></div>
+    <div id="s-training-flashcards" class="section"><div class="section-header"><div class="section-title">Flashcards</div><div class="section-sub">Master GPU specs, sales positioning, and key concepts</div></div><div id="flashcards-content"></div></div>
+    <div id="s-training-quizzes" class="section"><div class="section-header"><div class="section-title">Quizzes</div><div class="section-sub">Test your knowledge and earn your Velerity Rep Certification</div></div><div id="quizzes-content"></div></div>
+    <div id="s-settings" class="section"><div class="section-header"><div class="section-title">Settings</div><div class="section-sub">API keys and preferences</div></div><div id="settings-content"></div></div>
+  </div>
+</div>
+
+<!-- Rep Copilot Panel -->
+<div id="copilot-panel">
+  <div class="copilot-header">
+    <span class="copilot-title">REP COPILOT</span>
+    <button class="btn btn-ghost btn-sm" onclick="toggleCopilot()">Close</button>
+  </div>
+  <div class="copilot-messages" id="copilot-messages">
+    <div class="msg msg-ai">Hi! I'm your Rep Copilot, powered by Claude. Ask me about GPU specs, objections, workload sizing, competitive positioning, or draft a follow-up email — I'm grounded in Velerity's knowledge base.</div>
+  </div>
+  <div class="copilot-input-row">
+    <textarea class="copilot-input" id="copilot-input" rows="2" placeholder="Ask anything..." onkeydown="copilotKey(event)"></textarea>
+    <button class="btn btn-primary" onclick="sendCopilot()">Send</button>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+// ── Storage keys ─────────────────────────────────────────────────────────────
+const K = { data: 'velerity_data_v1', settings: 'velerity_settings_v1', apiKey: 'velerity_anthropic_key_v1', progress: 'velerity_progress_v1' };
+
+// ── State ─────────────────────────────────────────────────────────────────────
+const S = {
+  apiKey: '',
+  gpus: [],
+  platforms: [],
+  quizProgress: { completed: [], scores: {} },
+  dcChecks: {},
+  currentSection: 'academy-gpus'
+};
+
+function loadState() {
+  S.apiKey = localStorage.getItem(K.apiKey) || '';
+  try { const p = localStorage.getItem(K.progress); if (p) Object.assign(S.quizProgress, JSON.parse(p)); } catch(e) {}
+  try { const d = localStorage.getItem(K.data); if (d) { const o = JSON.parse(d); if (o.dcChecks) S.dcChecks = o.dcChecks; } } catch(e) {}
+}
+
+function saveProgress() { localStorage.setItem(K.progress, JSON.stringify(S.quizProgress)); }
+function saveData() { localStorage.setItem(K.data, JSON.stringify({ dcChecks: S.dcChecks })); }
+
+// ── Router ────────────────────────────────────────────────────────────────────
+function nav(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const sec = document.getElementById('s-' + id);
+  if (sec) sec.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if ((n.getAttribute('onclick') || '').includes("'" + id + "'")) n.classList.add('active');
+  });
+  S.currentSection = id;
+  render(id);
+}
+
+function render(id) {
+  switch(id) {
+    case 'academy-gpus':       renderGPUs(); break;
+    case 'academy-platforms':  renderPlatforms(); break;
+    case 'academy-compare':    renderCompare(); break;
+    case 'academy-cert':       renderCert(); break;
+    case 'academy-export':     renderExport(); break;
+    case 'academy-admin':      renderAdmin(); break;
+    case 'tools-workload':     renderWorkload(); break;
+    case 'tools-tco':          renderTCO(); break;
+    case 'tools-dc':           renderDC(); break;
+    case 'tools-objections':   renderObjections(); break;
+    case 'training-flashcards':renderFlashcards(); break;
+    case 'training-quizzes':   renderQuizzes(); break;
+    case 'settings':           renderSettings(); break;
+  }
+}
+
+// ── Copilot ───────────────────────────────────────────────────────────────────
+function toggleCopilot() { document.getElementById('copilot-panel').classList.toggle('open'); }
+function copilotKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendCopilot(); } }
+
+async function sendCopilot() {
+  const inp = document.getElementById('copilot-input');
+  const msg = inp.value.trim(); if (!msg) return;
+  if (!S.apiKey) { addMsg('ai', 'Please add your Anthropic API key in Settings first.'); return; }
+  inp.value = '';
+  addMsg('user', msg);
+  const thinking = addMsg('ai', 'Thinking...');
+  try {
+    const sys = `You are Rep Copilot, an expert sales assistant for Velerity Compute — a company that sells certified-refurbished NVIDIA AI servers (A100, H100, H200, DGX systems). Help sales reps with: GPU specs and comparisons, workload recommendations, objection handling, competitive positioning against the four paths (new OEM, cloud GPU rental, uncertified gray-market, Velerity certified refurbished), export control red flags, email drafts, and deal coaching. Be concise, confident, and sales-focused. When quoting specs, be specific (e.g., H100 SXM5 = 80GB HBM3, 3.35 TB/s bandwidth, 700W TDP).`;
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json','x-api-key':S.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1024, system:sys, messages:[{role:'user',content:msg}] })
+    });
+    const d = await r.json();
+    thinking.textContent = d.content?.[0]?.text || 'No response.';
+  } catch(e) { thinking.textContent = 'Error: ' + e.message; }
+}
+
+function addMsg(role, text) {
+  const wrap = document.getElementById('copilot-messages');
+  const d = document.createElement('div');
+  d.className = 'msg msg-' + (role === 'user' ? 'user' : 'ai');
+  d.textContent = text;
+  wrap.appendChild(d);
+  wrap.scrollTop = wrap.scrollHeight;
+  return d;
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+function renderSettings() {
+  document.getElementById('settings-content').innerHTML = `
+  <div style="max-width:500px;display:flex;flex-direction:column;gap:20px">
+    <div class="card">
+      <div class="card-title">Anthropic API Key</div>
+      <div class="card-sub" style="margin-bottom:16px">Required for Rep Copilot. Your key is stored locally and never sent anywhere except Anthropic.</div>
+      <div class="form-group">
+        <label class="form-label">API Key</label>
+        <input type="password" class="form-input" id="inp-api-key" value="${S.apiKey}" placeholder="sk-ant-...">
+      </div>
+      <button class="btn btn-primary" onclick="saveKey()">Save Key</button>
+    </div>
+    <div class="card">
+      <div class="card-title">About</div>
+      <div class="card-sub">Velerity Sales OS &mdash; GPU Server Sales Enablement Platform<br>Built for Velerity Compute, a Sprout Company.<br><br><span style="color:var(--text-muted);font-size:11px">All data stored locally in your browser. No cloud sync.</span></div>
+    </div>
+  </div>`;
+}
+
+function saveKey() {
+  const k = document.getElementById('inp-api-key').value.trim();
+  S.apiKey = k; localStorage.setItem(K.apiKey, k);
+  alert('API key saved.');
+}
+
+// ── GPU Data ──────────────────────────────────────────────────────────────────
+const GPU_DATA = [
+  // ── A100 ──
+  { id:'a100-40-pcie', gen:'A100', name:'A100 40GB PCIe', badge:'A100',
+    memory:'40 GB HBM2', memBW:'1,555 GB/s', tdp:'250 W', mig:true, te:false,
+    nvlink:'N/A (PCIe)',
+    perf:{ fp64:'9.7 TFLOPS', fp32:'19.5 TFLOPS', tf32:'156 TFLOPS (312 w/ sparsity)', bf16:'312 TFLOPS (624 w/ sparsity)', fp16:'312 TFLOPS (624 w/ sparsity)', fp8:'Not supported', int8:'624 TOPS (1,248 w/ sparsity)' },
+    bestFor:'Cost-effective training and inference for models up to ~20B params; workloads that fit in 40 GB VRAM; MIG for multi-tenant inference.',
+    notes:'PCIe form factor — fits standard GPU servers without NVLink fabric. Lower FP64 than SXM4; good for HPC-light workloads.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/a100/', verified:true },
+
+  { id:'a100-80-pcie', gen:'A100', name:'A100 80GB PCIe', badge:'A100',
+    memory:'80 GB HBM2e', memBW:'1,935 GB/s', tdp:'300 W', mig:true, te:false,
+    nvlink:'N/A (PCIe)',
+    perf:{ fp64:'9.7 TFLOPS', fp32:'19.5 TFLOPS', tf32:'156 TFLOPS (312 w/ sparsity)', bf16:'312 TFLOPS (624 w/ sparsity)', fp16:'312 TFLOPS (624 w/ sparsity)', fp8:'Not supported', int8:'624 TOPS (1,248 w/ sparsity)' },
+    bestFor:'Large model inference (LLaMA 70B single-GPU); fine-tuning up to ~40B params; memory-constrained workloads needing 80 GB.',
+    notes:'Same compute as 40GB PCIe but with double the VRAM. Memory bandwidth slightly higher due to HBM2e.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/a100/', verified:true },
+
+  { id:'a100-80-sxm4', gen:'A100', name:'A100 80GB SXM4', badge:'A100',
+    memory:'80 GB HBM2e', memBW:'2,000 GB/s', tdp:'400 W', mig:true, te:false,
+    nvlink:'600 GB/s (NVLink 3.0)',
+    perf:{ fp64:'19.5 TFLOPS', fp32:'19.5 TFLOPS', tf32:'312 TFLOPS (624 w/ sparsity)', bf16:'624 TFLOPS (1,248 w/ sparsity)', fp16:'624 TFLOPS (1,248 w/ sparsity)', fp8:'Not supported', int8:'1,248 TOPS (2,496 w/ sparsity)' },
+    bestFor:'Multi-GPU training (GPT-3 scale, diffusion models); clusters requiring high NVLink bandwidth; DGX A100 systems.',
+    notes:'2× the FP64 and BF16 throughput vs. PCIe variant due to higher TDP and NVLink fabric. The workhorse of the 2021–2023 AI boom.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/a100/', verified:true },
+
+  // ── H100 ──
+  { id:'h100-80-pcie', gen:'H100', name:'H100 80GB PCIe', badge:'H100',
+    memory:'80 GB HBM2e', memBW:'2,000 GB/s', tdp:'350 W', mig:true, te:true,
+    nvlink:'N/A (PCIe)',
+    perf:{ fp64:'25.6 TFLOPS', fp32:'51.2 TFLOPS', tf32:'756 TFLOPS (1,513 w/ sparsity)', bf16:'1,513 TFLOPS (3,026 w/ sparsity)', fp16:'1,513 TFLOPS (3,026 w/ sparsity)', fp8:'3,026 TOPS (6,051 w/ sparsity)', int8:'3,026 TOPS (6,051 w/ sparsity)' },
+    bestFor:'High-throughput inference; fine-tuning in PCIe-only environments; drop-in H100 upgrade for A100 PCIe servers.',
+    notes:'Hopper architecture with Transformer Engine (FP8). ~2.4× BF16 throughput vs. A100 80GB PCIe. Lower memory bandwidth than SXM5 due to HBM2e vs. HBM3.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/h100/', verified:true },
+
+  { id:'h100-80-sxm5', gen:'H100', name:'H100 80GB SXM5', badge:'H100',
+    memory:'80 GB HBM3', memBW:'3,350 GB/s', tdp:'700 W', mig:true, te:true,
+    nvlink:'900 GB/s (NVLink 4.0)',
+    perf:{ fp64:'33.5 TFLOPS', fp32:'66.9 TFLOPS', tf32:'989 TFLOPS (1,979 w/ sparsity)', bf16:'1,979 TFLOPS (3,958 w/ sparsity)', fp16:'1,979 TFLOPS (3,958 w/ sparsity)', fp8:'3,958 TOPS (7,916 w/ sparsity)', int8:'3,958 TOPS (7,916 w/ sparsity)' },
+    bestFor:'Large-scale LLM training (100B+ parameter models); high-throughput inference serving; DGX H100 and HGX H100 clusters.',
+    notes:'The flagship AI training GPU. HBM3 delivers 68% more memory bandwidth vs. A100 SXM4. NVLink 4.0 at 900 GB/s enables tight 8-GPU coupling. Transformer Engine accelerates FP8 training.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/h100/', verified:true },
+
+  { id:'h100-nvl', gen:'H100', name:'H100 NVL 94GB', badge:'H100',
+    memory:'94 GB HBM3 (per GPU; 188 GB per NVL pair)', memBW:'3,350 GB/s', tdp:'400 W', mig:true, te:true,
+    nvlink:'600 GB/s (NVLink 4.0, paired)',
+    perf:{ fp64:'33.5 TFLOPS', fp32:'66.9 TFLOPS', tf32:'989 TFLOPS (1,979 w/ sparsity)', bf16:'1,979 TFLOPS (3,958 w/ sparsity)', fp16:'1,979 TFLOPS (3,958 w/ sparsity)', fp8:'3,958 TOPS (7,916 w/ sparsity)', int8:'3,958 TOPS (7,916 w/ sparsity)' },
+    bestFor:'Large context inference (long documents, video); models requiring >80 GB VRAM; PCIe server environments needing extra memory.',
+    notes:'Two H100 dies connected via NVLink on a single PCIe card. 94 GB per die (188 GB total addressable). Lower NVLink BW than SXM5. Good for memory-constrained inference.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/h100/', verified:false },
+
+  // ── H200 ──
+  { id:'h200-sxm', gen:'H200', name:'H200 141GB SXM', badge:'H200',
+    memory:'141 GB HBM3e', memBW:'4,800 GB/s', tdp:'700 W', mig:true, te:true,
+    nvlink:'900 GB/s (NVLink 4.0)',
+    perf:{ fp64:'33.5 TFLOPS', fp32:'66.9 TFLOPS', tf32:'989 TFLOPS (1,979 w/ sparsity)', bf16:'1,979 TFLOPS (3,958 w/ sparsity)', fp16:'1,979 TFLOPS (3,958 w/ sparsity)', fp8:'3,958 TOPS (7,916 w/ sparsity)', int8:'3,958 TOPS (7,916 w/ sparsity)' },
+    bestFor:'Frontier LLM training and inference; models >80B parameters; memory-bandwidth-bound workloads (large-batch inference, MoE models).',
+    notes:'Same Hopper compute die as H100 SXM5 — the upgrade is memory: 141 GB HBM3e at 4,800 GB/s (43% more BW vs. H100). Memory-bandwidth-bound workloads see the biggest gains.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/h200/', verified:true },
+
+  { id:'h200-nvl', gen:'H200', name:'H200 NVL 141GB', badge:'H200',
+    memory:'141 GB HBM3e (per GPU; 282 GB per NVL pair)', memBW:'4,800 GB/s', tdp:'700 W', mig:true, te:true,
+    nvlink:'900 GB/s (NVLink 4.0, paired)',
+    perf:{ fp64:'33.5 TFLOPS', fp32:'66.9 TFLOPS', tf32:'989 TFLOPS (1,979 w/ sparsity)', bf16:'1,979 TFLOPS (3,958 w/ sparsity)', fp16:'1,979 TFLOPS (3,958 w/ sparsity)', fp8:'3,958 TOPS (7,916 w/ sparsity)', int8:'3,958 TOPS (7,916 w/ sparsity)' },
+    bestFor:'Extremely large models (400B+ MoE); production inference requiring maximum GPU memory; rack-scale AI deployments.',
+    notes:'NVL variant pairs two H200 dies for 282 GB addressable memory. Premium option for the most memory-constrained use cases.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/h200/', verified:false },
+];
+
+let gpuGenFilter = 'A100';
+let selectedGPU = null;
+
+function renderGPUs() {
+  const el = document.getElementById('gpu-content');
+  const gens = ['A100','H100','H200'];
+  const filtered = GPU_DATA.filter(g => g.gen === gpuGenFilter);
+
+  const tabs = gens.map(g => `<div class="tab${g===gpuGenFilter?' active':''}" onclick="gpuGenFilter='${g}';renderGPUs()">${g}</div>`).join('');
+
+  const cards = filtered.map(g => `
+    <div class="card" style="cursor:pointer;border-color:${selectedGPU===g.id?'var(--accent)':'var(--border)'}" onclick="selectedGPU='${g.id}';renderGPUs()">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:15px;font-weight:600">${g.name}</span>
+        <span class="badge ${g.verified?'badge-verified':'badge-unverified'}">${g.verified?'Verified':'Unverified'}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.6">
+        <div><b style="color:var(--text-muted)">Memory:</b> ${g.memory}</div>
+        <div><b style="color:var(--text-muted)">BW:</b> ${g.memBW}</div>
+        <div><b style="color:var(--text-muted)">TDP:</b> ${g.tdp}</div>
+        <div><b style="color:var(--text-muted)">MIG:</b> ${g.mig?'Yes':'No'} &nbsp; <b style="color:var(--text-muted)">Transformer Engine:</b> ${g.te?'Yes':'No'}</div>
+      </div>
+    </div>`).join('');
+
+  const gpu = GPU_DATA.find(g => g.id === selectedGPU);
+  const detail = gpu ? `
+    <div class="card" style="margin-top:24px;border-color:var(--accent)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div style="font-size:18px;font-weight:700">${gpu.name}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px">NVLink: ${gpu.nvlink}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="badge ${gpu.verified?'badge-verified':'badge-unverified'}">${gpu.verified?'Verified':'Unverified'}</span>
+          <button class="btn btn-ghost btn-sm" onclick="selectedGPU=null;renderGPUs()">Close</button>
+        </div>
+      </div>
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Performance</div>
+        <div class="spec-grid">
+          ${Object.entries(gpu.perf).map(([k,v])=>`<div class="spec-item"><div class="spec-key">${k.toUpperCase()}</div><div class="spec-val">${v}</div></div>`).join('')}
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Best For</div>
+        <div style="font-size:13px;line-height:1.6;color:var(--text-dim)">${gpu.bestFor}</div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Notes</div>
+        <div style="font-size:13px;line-height:1.6;color:var(--text-dim)">${gpu.notes}</div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted)">Source: <a href="${gpu.sourceUrl}" target="_blank" style="color:var(--accent)">${gpu.sourceUrl}</a></div>
+    </div>` : '';
+
+  el.innerHTML = `<div class="tabs">${tabs}</div><div class="card-grid">${cards}</div>${detail}`;
+}
+// ── Platform Data ─────────────────────────────────────────────────────────────
+const PLATFORM_DATA = [
+  { id:'dgx-a100', oem:'NVIDIA', name:'DGX A100', gpuType:'A100 80GB SXM4', gpuCount:8, formFactor:'6U', category:'DGX',
+    cpu:'2× AMD EPYC 7742 (64-core)', ram:'1 TB DDR4', storage:'15 TB NVMe (8× 1.92 TB)',
+    networking:'8× 200Gb HDR InfiniBand, 2× 10GbE mgmt', power:'6,500 W', cooling:'Air', weight:'~227 kg',
+    nvlink:'NVLink 3.0 (600 GB/s)', notes:'Reference DGX platform for A100 era. Ships with NVIDIA Base Command software. 5× NVLink switches inside.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/dgx-a100/', verified:true },
+
+  { id:'dgx-h100', oem:'NVIDIA', name:'DGX H100', gpuType:'H100 80GB SXM5', gpuCount:8, formFactor:'10U', category:'DGX',
+    cpu:'2× Intel Xeon Platinum 8480C (60-core)', ram:'2 TB DDR5', storage:'30 TB NVMe (8× 3.84 TB)',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-7), 2× 10GbE mgmt', power:'10,200 W', cooling:'Air (liquid-ready)',
+    weight:'~320 kg', nvlink:'NVLink 4.0 (900 GB/s)', notes:'NVIDIA flagship training server. NVSwitch 3.0 for all-to-all GPU connectivity. Ships with DGX OS.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/dgx-h100/', verified:true },
+
+  { id:'dgx-h200', oem:'NVIDIA', name:'DGX H200', gpuType:'H200 141GB SXM', gpuCount:8, formFactor:'10U', category:'DGX',
+    cpu:'2× Intel Xeon Platinum 8480C (60-core)', ram:'2 TB DDR5', storage:'30 TB NVMe',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-7), 2× 10GbE mgmt', power:'10,200 W', cooling:'Air (liquid-ready)',
+    weight:'~320 kg', nvlink:'NVLink 4.0 (900 GB/s)', notes:'Drop-in H200 upgrade on same chassis as DGX H100. 141 GB HBM3e per GPU = 1,128 GB total GPU memory per node.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/dgx-h200/', verified:false },
+
+  { id:'dell-xe8545', oem:'Dell', name:'PowerEdge XE8545', gpuType:'A100 80GB SXM4', gpuCount:4, formFactor:'4U', category:'HGX',
+    cpu:'2× AMD EPYC 7003 series (up to 64-core)', ram:'Up to 4 TB DDR4', storage:'Up to 12× NVMe U.2',
+    networking:'2× 200Gb HDR InfiniBand or 2× 100GbE (ConnectX-6)', power:'~5,600 W (4× GPU)', cooling:'Air',
+    weight:'~65 kg', nvlink:'NVLink 3.0 (600 GB/s, 4-GPU)', notes:'4-GPU A100 SXM4 platform. Popular for workloads requiring high memory bandwidth without full 8-GPU node cost. Common in Velerity certified inventory.',
+    sourceUrl:'https://www.dell.com/en-us/shop/povw/poweredge-xe8545', verified:true },
+
+  { id:'dell-xe9680', oem:'Dell', name:'PowerEdge XE9680', gpuType:'H100/H200 SXM', gpuCount:8, formFactor:'8U', category:'HGX',
+    cpu:'2× Intel Xeon Scalable (Sapphire Rapids, up to 60-core)', ram:'Up to 8 TB DDR5', storage:'Up to 12× NVMe E3.S',
+    networking:'Up to 8× 400Gb NDR InfiniBand (ConnectX-7) or 400GbE', power:'~12,000 W', cooling:'Air or liquid',
+    weight:'~250 kg', nvlink:'NVLink 4.0 (900 GB/s)', notes:'Dell flagship 8-GPU HGX server for H100/H200. Designed for dense GPU clusters. Liquid cooling option for high-density racks.',
+    sourceUrl:'https://www.dell.com/en-us/shop/povw/poweredge-xe9680', verified:true },
+
+  { id:'hpe-xl675d', oem:'HPE', name:'ProLiant XL675d Gen10+', gpuType:'A100 80GB SXM4', gpuCount:8, formFactor:'4U', category:'HGX',
+    cpu:'2× AMD EPYC 7003 series', ram:'Up to 4 TB DDR4', storage:'Up to 12× NVMe',
+    networking:'Up to 8× 200Gb HDR InfiniBand (ConnectX-6)', power:'~7,200 W', cooling:'Air',
+    weight:'~150 kg', nvlink:'NVLink 3.0 (600 GB/s)', notes:'HPE OEM HGX A100 8-GPU platform. Apollo 6500 chassis. Common in enterprise HPC deployments.',
+    sourceUrl:'https://www.hpe.com/us/en/servers/proliant-xl.html', verified:false },
+
+  { id:'hpe-cray-xd670', oem:'HPE', name:'Cray XD670', gpuType:'H100/H200 SXM', gpuCount:8, formFactor:'6U', category:'HGX',
+    cpu:'2× Intel Xeon Scalable (Sapphire Rapids)', ram:'Up to 4 TB DDR5', storage:'Up to 8× NVMe',
+    networking:'Up to 8× 400Gb NDR InfiniBand (ConnectX-7)', power:'~10,000 W', cooling:'Air or direct liquid',
+    weight:'~180 kg', nvlink:'NVLink 4.0 (900 GB/s)', notes:'HPE Cray high-density GPU platform. Used in national labs and tier-1 HPC centers. Liquid cooling option supports extremely dense GPU racks.',
+    sourceUrl:'https://www.hpe.com/us/en/compute/hpc/supercomputing/cray-xd-series.html', verified:false },
+
+  { id:'supermicro-hgx-h100', oem:'Supermicro', name:'SYS-821GE-TNHR', gpuType:'H100 80GB SXM5', gpuCount:8, formFactor:'8U', category:'HGX',
+    cpu:'2× Intel Xeon Scalable (Sapphire Rapids)', ram:'Up to 8 TB DDR5', storage:'Up to 24× NVMe',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-7)', power:'~12,000 W', cooling:'Air',
+    weight:'~230 kg', nvlink:'NVLink 4.0 (900 GB/s)', notes:'Supermicro 8-GPU HGX H100 platform. NVIDIA HGX H100 baseboard. Popular with neoclouds and hyperscalers.',
+    sourceUrl:'https://www.supermicro.com/en/solutions/nvidia-hgx-h100', verified:false },
+
+  { id:'lenovo-sr670v2', oem:'Lenovo', name:'ThinkSystem SR670 V2', gpuType:'A100 80GB SXM4', gpuCount:8, formFactor:'4U', category:'HGX',
+    cpu:'2× Intel Xeon Scalable (Ice Lake, up to 40-core)', ram:'Up to 6 TB DDR4', storage:'Up to 8× NVMe',
+    networking:'Up to 4× 200Gb HDR InfiniBand or 2× 100GbE', power:'~7,200 W', cooling:'Air',
+    weight:'~130 kg', nvlink:'NVLink 3.0 (600 GB/s)', notes:'Lenovo OEM HGX A100 platform. Used heavily in enterprise and research. Tight integration with Lenovo XClarity management.',
+    sourceUrl:'https://www.lenovo.com/us/en/servers-storage/servers/gpu-servers/ThinkSystem-SR670-V2/', verified:false },
+
+  { id:'lenovo-sr675v3', oem:'Lenovo', name:'ThinkSystem SR675 V3', gpuType:'H100 80GB SXM5', gpuCount:8, formFactor:'5U', category:'HGX',
+    cpu:'2× AMD EPYC 9004 series (up to 96-core)', ram:'Up to 6 TB DDR5', storage:'Up to 12× NVMe',
+    networking:'Up to 8× 400Gb NDR InfiniBand (ConnectX-7)', power:'~10,000 W', cooling:'Air or liquid',
+    weight:'~170 kg', nvlink:'NVLink 4.0 (900 GB/s)', notes:'Lenovo flagship H100 platform. EPYC CPU option differentiates from Intel-based HGX servers. Strong memory capacity.',
+    sourceUrl:'https://www.lenovo.com/us/en/servers-storage/servers/gpu-servers/ThinkSystem-SR675-V3/', verified:false },
+
+  { id:'lenovo-sr680av3', oem:'Lenovo', name:'ThinkSystem SR680a V3', gpuType:'H200 141GB SXM', gpuCount:8, formFactor:'6U', category:'HGX',
+    cpu:'2× Intel Xeon Scalable (Granite Rapids)', ram:'Up to 8 TB DDR5', storage:'Up to 12× NVMe',
+    networking:'Up to 8× 400Gb NDR InfiniBand (ConnectX-7)', power:'~10,200 W', cooling:'Air or direct liquid',
+    weight:'~200 kg', nvlink:'NVLink 4.0 (900 GB/s)', notes:'Lenovo H200 platform. Updated chassis for H200 thermal envelope. Liquid cooling option for ultra-dense deployment.',
+    sourceUrl:'https://www.lenovo.com/us/en/servers-storage/servers/gpu-servers/', verified:false },
+
+  { id:'gigabyte-g492', oem:'Gigabyte', name:'G492-ZD0', gpuType:'A100 80GB SXM4', gpuCount:8, formFactor:'4U', category:'HGX',
+    cpu:'2× AMD EPYC 7003 series', ram:'Up to 2 TB DDR4', storage:'8× NVMe',
+    networking:'4× 200Gb HDR InfiniBand (ConnectX-6 Dx)', power:'~7,000 W', cooling:'Air',
+    weight:'~120 kg', nvlink:'NVLink 3.0 (600 GB/s)', notes:'Gigabyte OEM HGX A100 platform. Compact 4U design. Popular with value-focused cloud builders.',
+    sourceUrl:'https://www.gigabyte.com/Enterprise/GPU-Server', verified:false },
+];
+
+let platformFilter = 'All';
+let selectedPlatform = null;
+
+function renderPlatforms() {
+  const el = document.getElementById('platform-content');
+  const oems = ['All','NVIDIA','Dell','HPE','Supermicro','Lenovo','Gigabyte'];
+  const filtered = platformFilter === 'All' ? PLATFORM_DATA : PLATFORM_DATA.filter(p => p.oem === platformFilter);
+
+  const tabs = oems.map(o => `<div class="tab${o===platformFilter?' active':''}" onclick="platformFilter='${o}';renderPlatforms()">${o}</div>`).join('');
+
+  const cards = filtered.map(p => `
+    <div class="card" style="cursor:pointer;border-color:${selectedPlatform===p.id?'var(--accent)':'var(--border)'}" onclick="selectedPlatform='${p.id}';renderPlatforms()">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <div style="font-size:13px;color:var(--text-muted);font-weight:500">${p.oem}</div>
+          <div style="font-size:15px;font-weight:600;margin-top:2px">${p.name}</div>
+        </div>
+        <span class="badge ${p.verified?'badge-verified':'badge-unverified'}">${p.verified?'Verified':'Unverified'}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.7">
+        <div><b style="color:var(--text-muted)">GPU:</b> ${p.gpuCount}× ${p.gpuType}</div>
+        <div><b style="color:var(--text-muted)">Form:</b> ${p.formFactor} &nbsp; <b style="color:var(--text-muted)">Cooling:</b> ${p.cooling}</div>
+        <div><b style="color:var(--text-muted)">Power:</b> ${p.power}</div>
+      </div>
+    </div>`).join('');
+
+  const plat = PLATFORM_DATA.find(p => p.id === selectedPlatform);
+  const detail = plat ? `
+    <div class="card" style="margin-top:24px;border-color:var(--accent)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div style="font-size:12px;color:var(--text-muted)">${plat.oem} &bull; ${plat.category}</div>
+          <div style="font-size:18px;font-weight:700">${plat.name}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <span class="badge ${plat.verified?'badge-verified':'badge-unverified'}">${plat.verified?'Verified':'Unverified'}</span>
+          <button class="btn btn-ghost btn-sm" onclick="selectedPlatform=null;renderPlatforms()">Close</button>
+        </div>
+      </div>
+      <div class="spec-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+        <div class="spec-item"><div class="spec-key">GPU</div><div class="spec-val">${plat.gpuCount}× ${plat.gpuType}</div></div>
+        <div class="spec-item"><div class="spec-key">Form Factor</div><div class="spec-val">${plat.formFactor}</div></div>
+        <div class="spec-item"><div class="spec-key">Power Draw</div><div class="spec-val">${plat.power}</div></div>
+        <div class="spec-item"><div class="spec-key">CPU</div><div class="spec-val">${plat.cpu}</div></div>
+        <div class="spec-item"><div class="spec-key">RAM</div><div class="spec-val">${plat.ram}</div></div>
+        <div class="spec-item"><div class="spec-key">Storage</div><div class="spec-val">${plat.storage}</div></div>
+        <div class="spec-item"><div class="spec-key">Networking</div><div class="spec-val">${plat.networking}</div></div>
+        <div class="spec-item"><div class="spec-key">NVLink</div><div class="spec-val">${plat.nvlink}</div></div>
+        <div class="spec-item"><div class="spec-key">Cooling</div><div class="spec-val">${plat.cooling}</div></div>
+        <div class="spec-item"><div class="spec-key">Weight</div><div class="spec-val">${plat.weight}</div></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Notes</div>
+        <div style="font-size:13px;line-height:1.6;color:var(--text-dim)">${plat.notes}</div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted)">Source: <a href="${plat.sourceUrl}" target="_blank" style="color:var(--accent)">${plat.sourceUrl}</a></div>
+    </div>` : '';
+
+  el.innerHTML = `<div class="tabs" style="flex-wrap:wrap">${tabs}</div><div class="card-grid">${cards}</div>${detail}`;
+}
+// ── Compare ───────────────────────────────────────────────────────────────────
+let compareType = 'gpu';
+let compareSelected = [];
+
+function renderCompare() {
+  const el = document.getElementById('compare-content');
+  const pool = compareType === 'gpu' ? GPU_DATA : PLATFORM_DATA;
+
+  const typeTabs = `<div class="tabs">
+    <div class="tab${compareType==='gpu'?' active':''}" onclick="compareType='gpu';compareSelected=[];renderCompare()">GPUs</div>
+    <div class="tab${compareType==='platform'?' active':''}" onclick="compareType='platform';compareSelected=[];renderCompare()">Platforms</div>
+  </div>`;
+
+  const pickCards = pool.map(item => {
+    const sel = compareSelected.includes(item.id);
+    const label = compareType === 'gpu' ? item.name : `${item.oem} ${item.name}`;
+    return `<div class="card" style="cursor:pointer;border-color:${sel?'var(--accent)':'var(--border)'};padding:12px 16px" onclick="toggleCompare('${item.id}')">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:13px;font-weight:${sel?'600':'400'};color:${sel?'var(--accent)':'var(--text-dim)'}">${label}</span>
+        ${sel?'<span style="color:var(--accent);font-size:18px">&#10003;</span>':''}
+      </div>
+    </div>`;
+  }).join('');
+
+  let table = '';
+  if (compareSelected.length >= 2) {
+    const items = pool.filter(i => compareSelected.includes(i.id));
+    if (compareType === 'gpu') {
+      const rows = [
+        ['Memory', i => i.memory],
+        ['Mem Bandwidth', i => i.memBW],
+        ['TDP', i => i.tdp],
+        ['NVLink', i => i.nvlink],
+        ['MIG', i => i.mig ? 'Yes' : 'No'],
+        ['Transformer Engine', i => i.te ? 'Yes' : 'No'],
+        ['FP64', i => i.perf.fp64],
+        ['FP32', i => i.perf.fp32],
+        ['TF32', i => i.perf.tf32],
+        ['BF16', i => i.perf.bf16],
+        ['FP16', i => i.perf.fp16],
+        ['FP8', i => i.perf.fp8],
+        ['INT8', i => i.perf.int8],
+        ['Best For', i => i.bestFor],
+      ];
+      const hdrs = items.map(i => `<th>${i.name}</th>`).join('');
+      const trs = rows.map(([label, fn]) => {
+        const vals = items.map(i => fn(i));
+        return `<tr><td>${label}</td>${vals.map(v=>`<td>${v}</td>`).join('')}</tr>`;
+      }).join('');
+      table = `<div style="overflow-x:auto;margin-top:24px"><table class="compare-tbl"><thead><tr><th>Spec</th>${hdrs}</tr></thead><tbody>${trs}</tbody></table></div>`;
+    } else {
+      const rows = [
+        ['GPU', p => `${p.gpuCount}× ${p.gpuType}`],
+        ['Form Factor', p => p.formFactor],
+        ['CPU', p => p.cpu],
+        ['RAM', p => p.ram],
+        ['Storage', p => p.storage],
+        ['Networking', p => p.networking],
+        ['NVLink', p => p.nvlink],
+        ['Power', p => p.power],
+        ['Cooling', p => p.cooling],
+        ['Weight', p => p.weight],
+      ];
+      const hdrs = items.map(p => `<th>${p.oem}<br>${p.name}</th>`).join('');
+      const trs = rows.map(([label, fn]) => `<tr><td>${label}</td>${items.map(p=>`<td>${fn(p)}</td>`).join('')}</tr>`).join('');
+      table = `<div style="overflow-x:auto;margin-top:24px"><table class="compare-tbl"><thead><tr><th>Spec</th>${hdrs}</tr></thead><tbody>${trs}</tbody></table></div>`;
+    }
+  }
+
+  const hint = compareSelected.length < 2 ? `<div class="info-block" style="margin-top:16px">Select 2–4 ${compareType === 'gpu' ? 'GPUs' : 'platforms'} above to compare side-by-side.</div>` : '';
+
+  el.innerHTML = `${typeTabs}
+    <div style="margin-bottom:6px;font-size:12px;color:var(--text-muted)">${compareSelected.length}/4 selected</div>
+    <div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">${pickCards}</div>
+    ${hint}${table}`;
+}
+
+function toggleCompare(id) {
+  if (compareSelected.includes(id)) { compareSelected = compareSelected.filter(x => x !== id); }
+  else if (compareSelected.length < 4) { compareSelected.push(id); }
+  renderCompare();
+}
+
+// ── Certification ─────────────────────────────────────────────────────────────
+function renderCert() {
+  document.getElementById('cert-content').innerHTML = `
+  <div style="max-width:780px;display:flex;flex-direction:column;gap:18px">
+    <div class="info-block">Velerity's certification process means every system a customer receives has been tested, documented, and warranted — not just inspected and resold. This is the core trust argument against gray-market alternatives.</div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:14px">The Four-Step Certification Workflow</div>
+      ${[
+        ['1. Intake &amp; Supplier Qualification','Suppliers are qualified before any hardware is accepted. Velerity verifies provenance, chain of custody, and export history. Systems with red-flag sourcing are rejected at intake.'],
+        ['2. NVIDIA DGX Health Workflow','Every eligible system runs NVIDIA&apos;s own DGX health diagnostic suite — the same tooling NVIDIA uses internally. This tests GPU compute, memory integrity, NVLink fabric, and firmware.'],
+        ['3. 30-Minute Stress Test','Full-load burn-in across all GPUs simultaneously. Validates thermal performance, power delivery stability, and sustained throughput. Systems that fail or throttle are quarantined for remediation.'],
+        ['4. Serialized Health Report','A documented output is generated for every system: GPU serial numbers, diagnostic results, stress test pass/fail, firmware versions, and condition grade. This report ships with the hardware and can be shared with the buyer before purchase.'],
+      ].map(([t,d]) => `<div style="margin-bottom:16px"><div style="font-size:14px;font-weight:600;color:var(--accent);margin-bottom:6px">${t}</div><div style="font-size:13px;color:var(--text-dim);line-height:1.65">${d}</div></div>`).join('')}
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:14px">Condition Grades</div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Grade</th><th>Condition</th><th>Typical Use</th></tr></thead>
+        <tbody>
+          <tr><td><span style="color:var(--success);font-weight:700">Grade A</span></td><td>Like new; minimal cosmetic wear; full diagnostics pass</td><td>Production AI training and inference</td></tr>
+          <tr><td><span style="color:var(--accent);font-weight:700">Grade B</span></td><td>Visible cosmetic wear; all components functional; diagnostics pass</td><td>Dev/test environments; cost-sensitive deployments</td></tr>
+          <tr><td><span style="color:var(--warning);font-weight:700">Grade C</span></td><td>Heavy wear or minor component variance; passes core diagnostics</td><td>Internal tooling; research environments</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:14px">Warranty Tiers</div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Tier</th><th>Coverage</th><th>Term</th></tr></thead>
+        <tbody>
+          <tr><td><b>NVIDIA Limited Warranty</b></td><td>Qualifying re-certified GPUs covered under NVIDIA&apos;s own warranty program</td><td>Varies by program eligibility</td></tr>
+          <tr><td><b>Velerity Warranty</b></td><td>Seller warranty on all systems; covers defects identified post-delivery</td><td>Standard: 90 days; Extended available</td></tr>
+          <tr><td><b>No Warranty</b></td><td>As-is sale for deeply discounted units; disclosed at quote</td><td>N/A</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:12px">Sales Talking Points</div>
+      ${[
+        '"We ship a serialized health report with every system — you know exactly what you\'re getting before it arrives."',
+        '"The same NVIDIA diagnostic tooling used internally validates every GPU. This isn\'t a visual inspection — it\'s a full compute and memory test."',
+        '"Gray-market resellers skip this. Our documentation shows buyers exactly which serial numbers passed which tests on which date."',
+        '"Warranty eligibility is determined at intake, disclosed upfront, and reflected in the price — no surprises."',
+      ].map(q=>`<div style="font-size:13px;font-style:italic;color:var(--text-dim);background:var(--surface);border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:10px">${q}</div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ── Export Control ────────────────────────────────────────────────────────────
+function renderExport() {
+  document.getElementById('export-content').innerHTML = `
+  <div style="max-width:780px;display:flex;flex-direction:column;gap:18px">
+    <div class="warn-block"><b>Important:</b> This is a high-level primer for sales reps only — not legal advice. Always escalate borderline situations to your compliance team before advancing a deal past Compliance Screening.</div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:14px">Why Advanced GPUs Are Controlled</div>
+      <div style="font-size:13px;color:var(--text-dim);line-height:1.7">
+        <p>High-performance GPUs — including the A100, H100, and H200 — are subject to US Export Administration Regulations (EAR) administered by the Bureau of Industry and Security (BIS). These regulations exist because advanced AI compute can have military and national security applications.</p>
+        <p style="margin-top:10px">Since October 2022, BIS has enacted multiple rounds of controls restricting export of chips above certain compute thresholds to specific countries and end-users. Penalties for violations include fines, denial orders, and criminal prosecution.</p>
+        <p style="margin-top:10px"><b>This applies to physical shipment, re-export, transfer within a country, and sometimes deemed exports (sharing with foreign nationals on US soil).</b></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:14px">What Reps Need to Know</div>
+      ${[
+        ['Buyers are screened before orders close','Velerity\'s compliance program screens every buyer — company, country, end-use, and UBO — before a deal advances past Compliance Screening. This is mandatory, not optional.'],
+        ['Country matters','Some countries are subject to export restrictions or require a license. The rep\'s job is to record the deployment country accurately on the deal. Do not proceed if the buyer will re-ship to a third country without disclosing that.'],
+        ['End-use matters','AI research at a university is different from military AI development. The rep should record the stated workload and flag anything that sounds like it could involve weapons, surveillance of civilian populations, or military end-use.'],
+        ['Red flags to escalate','Buyer refuses to state end-use. Buyer asks about removing serial numbers or health reports. Payment routing through unfamiliar third parties. Requests to ship to a freight forwarder in a third country. Any mention of government military or intelligence agencies.'],
+      ].map(([t,d]) => `<div style="margin-bottom:16px"><div style="font-size:14px;font-weight:600;color:var(--accent);margin-bottom:6px">${t}</div><div style="font-size:13px;color:var(--text-dim);line-height:1.65">${d}</div></div>`).join('')}
+    </div>
+
+    <div class="danger-block">
+      <b>Red Flags — Escalate Immediately:</b><br>
+      Buyer won't disclose end-use &bull; Request to alter or omit serial numbers &bull; Payment through unknown third parties &bull; Ship-to address is a freight forwarder in a different country &bull; Buyer mentions military, intelligence, or government weapons programs &bull; Buyer is on or affiliated with a BIS Entity List company
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px">Official Resources</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+        <a href="https://www.bis.doc.gov/" target="_blank" style="color:var(--accent)">BIS Official Website — bis.doc.gov</a>
+        <a href="https://www.bis.doc.gov/index.php/regulations/export-administration-regulations-ear" target="_blank" style="color:var(--accent)">Export Administration Regulations (EAR)</a>
+        <a href="https://www.bis.doc.gov/index.php/policy-guidance/lists-of-parties-of-concern" target="_blank" style="color:var(--accent)">BIS Lists of Parties of Concern (Entity List, Denied Persons, etc.)</a>
+      </div>
+    </div>
+  </div>`;
+}
+// ── Admin ──────────────────────────────────────────────────────────────────────
+let adminTab = 'gpu';
+let adminEdit = null; // id of item being edited
+
+function renderAdmin() {
+  const el = document.getElementById('admin-content');
+  const pool = adminTab === 'gpu' ? GPU_DATA : PLATFORM_DATA;
+
+  const tabs = `<div class="tabs">
+    <div class="tab${adminTab==='gpu'?' active':''}" onclick="adminTab='gpu';adminEdit=null;renderAdmin()">GPUs (${GPU_DATA.length})</div>
+    <div class="tab${adminTab==='platform'?' active':''}" onclick="adminTab='platform';adminEdit=null;renderAdmin()">Platforms (${PLATFORM_DATA.length})</div>
+  </div>`;
+
+  const unverifiedCount = pool.filter(i => !i.verified).length;
+  const summary = unverifiedCount > 0
+    ? `<div class="warn-block" style="margin-bottom:18px">${unverifiedCount} record${unverifiedCount>1?'s':''} marked <b>Unverified</b> — review and confirm against source before using in customer conversations.</div>`
+    : `<div class="info-block" style="margin-bottom:18px">All records verified.</div>`;
+
+  const rows = pool.map(item => {
+    const isEditing = adminEdit === item.id;
+    if (isEditing) {
+      return `<tr style="background:rgba(74,208,250,.05)">
+        <td><b>${adminTab==='gpu'?item.name:item.oem+' '+item.name}</b></td>
+        <td><input type="text" class="form-input" style="width:100%;font-size:12px" id="admin-src-${item.id}" value="${item.sourceUrl}"></td>
+        <td style="text-align:center">
+          <label style="display:flex;align-items:center;gap:6px;justify-content:center;cursor:pointer">
+            <input type="checkbox" id="admin-ver-${item.id}" ${item.verified?'checked':''}> Verified
+          </label>
+        </td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="saveAdminEdit('${item.id}')">Save</button>
+          <button class="btn btn-ghost btn-sm" style="margin-left:4px" onclick="adminEdit=null;renderAdmin()">Cancel</button>
+        </td>
+      </tr>`;
+    }
+    return `<tr>
+      <td>${adminTab==='gpu'?item.name:item.oem+' '+item.name}</td>
+      <td style="font-size:12px"><a href="${item.sourceUrl}" target="_blank" style="color:var(--accent)">${item.sourceUrl.replace('https://','')}</a></td>
+      <td style="text-align:center"><span class="badge ${item.verified?'badge-verified':'badge-unverified'}">${item.verified?'Verified':'Unverified'}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="adminEdit='${item.id}';renderAdmin()">Edit</button></td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `${tabs}${summary}
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Name</th><th>Source URL</th><th style="text-align:center">Status</th><th>Action</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function saveAdminEdit(id) {
+  const pool = adminTab === 'gpu' ? GPU_DATA : PLATFORM_DATA;
+  const item = pool.find(i => i.id === id);
+  if (!item) return;
+  item.sourceUrl = document.getElementById('admin-src-' + id).value.trim();
+  item.verified = document.getElementById('admin-ver-' + id).checked;
+  adminEdit = null;
+  renderAdmin();
+}
+// ── Workload-Fit Calculator ───────────────────────────────────────────────────
+function renderWorkload() {
+  document.getElementById('workload-content').innerHTML = `
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px">
+    <div>
+      <div class="card">
+        <div class="card-title" style="font-size:16px;margin-bottom:18px">Workload Parameters</div>
+        <div class="form-group"><label class="form-label">Model Size (parameters)</label>
+          <select class="form-select" id="wl-params">
+            <option value="7">7B (e.g. Mistral 7B, Llama 3 8B)</option>
+            <option value="13">13B (e.g. Llama 2 13B)</option>
+            <option value="34">34B (e.g. CodeLlama 34B)</option>
+            <option value="70" selected>70B (e.g. Llama 3 70B)</option>
+            <option value="180">180B (e.g. Falcon 180B)</option>
+            <option value="405">405B (e.g. Llama 3.1 405B)</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="form-group" id="wl-custom-group" style="display:none"><label class="form-label">Custom Parameter Count (billions)</label>
+          <input type="number" class="form-input" id="wl-custom-params" placeholder="e.g. 100" min="1" max="2000">
+        </div>
+        <div class="form-group"><label class="form-label">Numerical Precision</label>
+          <select class="form-select" id="wl-precision">
+            <option value="fp32">FP32 (4 bytes/param)</option>
+            <option value="bf16" selected>BF16 (2 bytes/param)</option>
+            <option value="fp16">FP16 (2 bytes/param)</option>
+            <option value="fp8">FP8 (1 byte/param)</option>
+            <option value="int4">INT4 / GPTQ (0.5 bytes/param)</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Workload Type</label>
+          <select class="form-select" id="wl-type">
+            <option value="inference">Inference (production serving)</option>
+            <option value="finetune" selected>Fine-tuning (LoRA / QLoRA)</option>
+            <option value="train">Full Training (pre-training)</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Context Length (tokens)</label>
+          <select class="form-select" id="wl-ctx">
+            <option value="2048">2K tokens (short context)</option>
+            <option value="8192" selected>8K tokens (standard)</option>
+            <option value="32768">32K tokens (long context)</option>
+            <option value="128000">128K tokens (very long context)</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Throughput Target (req/sec) — optional</label>
+          <input type="number" class="form-input" id="wl-throughput" placeholder="e.g. 10" min="1">
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="calcWorkload()">Calculate</button>
+      </div>
+    </div>
+    <div id="wl-result">
+      <div class="card" style="border-color:var(--border)">
+        <div style="font-size:13px;color:var(--text-muted);text-align:center;padding:20px 0">Fill in the parameters and click Calculate.</div>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('wl-params').addEventListener('change', e => {
+    document.getElementById('wl-custom-group').style.display = e.target.value === 'custom' ? 'block' : 'none';
+  });
+}
+
+function calcWorkload() {
+  const paramSel = document.getElementById('wl-params').value;
+  const params = paramSel === 'custom' ? parseFloat(document.getElementById('wl-custom-params').value) || 0 : parseFloat(paramSel);
+  const precision = document.getElementById('wl-precision').value;
+  const type = document.getElementById('wl-type').value;
+  const ctx = parseInt(document.getElementById('wl-ctx').value);
+  const throughput = parseInt(document.getElementById('wl-throughput').value) || 0;
+  if (!params) { alert('Enter a custom parameter count.'); return; }
+
+  const bytesPerParam = { fp32:4, bf16:2, fp16:2, fp8:1, int4:0.5 }[precision];
+  const modelVRAM = params * bytesPerParam; // GB (1B params × bytes = 1 GB approx)
+
+  // Overhead multipliers
+  const typeMultiplier = { inference:1.2, finetune:2.5, train:4.0 }[type];
+  const ctxOverhead = ctx > 8192 ? 1 + (ctx / 8192 - 1) * 0.3 : 1.0;
+  const totalVRAM = modelVRAM * typeMultiplier * ctxOverhead;
+
+  // GPU VRAM options
+  const gpuOptions = [
+    { name:'A100 40GB PCIe', vram:40, gen:'A100', bandwidth:'1,555 GB/s' },
+    { name:'A100 80GB PCIe/SXM4', vram:80, gen:'A100', bandwidth:'2,000 GB/s' },
+    { name:'H100 80GB PCIe', vram:80, gen:'H100', bandwidth:'2,000 GB/s' },
+    { name:'H100 80GB SXM5', vram:80, gen:'H100', bandwidth:'3,350 GB/s' },
+    { name:'H100 NVL 94GB', vram:94, gen:'H100', bandwidth:'3,350 GB/s' },
+    { name:'H200 141GB SXM/NVL', vram:141, gen:'H200', bandwidth:'4,800 GB/s' },
+  ];
+
+  // Find minimum GPUs needed
+  const recs = gpuOptions.map(g => {
+    const gpusNeeded = Math.ceil(totalVRAM / g.vram);
+    return { ...g, gpusNeeded };
+  }).filter(g => g.gpusNeeded <= 64);
+
+  const bestFit = recs[0];
+  const recommended = recs.filter(g => g.gpusNeeded <= 8);
+
+  const recRows = recommended.map(g => `
+    <div class="calc-row">
+      <span class="calc-label">${g.name}</span>
+      <span class="calc-val">${g.gpusNeeded} GPU${g.gpusNeeded>1?'s':''}</span>
+    </div>`).join('');
+
+  const typeLabel = { inference:'Inference', finetune:'Fine-tuning', train:'Full Training' }[type];
+  const ctxLabel = ctx >= 128000 ? '128K' : ctx >= 32768 ? '32K' : ctx >= 8192 ? '8K' : '2K';
+  const precisionLabel = { fp32:'FP32', bf16:'BF16', fp16:'FP16', fp8:'FP8', int4:'INT4/GPTQ' }[precision];
+
+  document.getElementById('wl-result').innerHTML = `
+    <div class="calc-result" style="margin-top:0">
+      <div class="calc-result-title">VRAM Estimate</div>
+      <div class="calc-row"><span class="calc-label">Model weights (${params}B @ ${precisionLabel})</span><span class="calc-val">${modelVRAM.toFixed(1)} GB</span></div>
+      <div class="calc-row"><span class="calc-label">Overhead (${typeLabel}, ${ctxLabel} context)</span><span class="calc-val">${(totalVRAM - modelVRAM).toFixed(1)} GB</span></div>
+      <div class="calc-row" style="border-top:1px solid var(--accent);padding-top:10px;margin-top:4px"><span class="calc-label" style="font-weight:600">Total VRAM Needed</span><span class="calc-highlight">${totalVRAM.toFixed(1)} GB</span></div>
+    </div>
+    <div class="calc-result" style="margin-top:14px;border-color:var(--border)">
+      <div class="calc-result-title">GPU Recommendations</div>
+      ${recRows || '<div style="color:var(--text-muted);font-size:13px">Workload exceeds 8-GPU configurations. Consider model parallelism across multiple nodes.</div>'}
+    </div>
+    <div class="card" style="margin-top:14px;background:rgba(74,208,250,.04)">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Plain English</div>
+      <div style="font-size:13px;line-height:1.7;color:var(--text-dim)">
+        A <b>${params}B parameter</b> model at <b>${precisionLabel}</b> requires roughly <b>${modelVRAM.toFixed(0)} GB</b> just for weights.
+        ${type === 'train' ? 'Full training adds optimizer states and gradients (~4× model size total).' : ''}
+        ${type === 'finetune' ? 'LoRA fine-tuning adds adapter weights and activations (~2.5× model size total).' : ''}
+        ${type === 'inference' ? 'Inference adds KV cache and activation memory (~1.2× model size total).' : ''}
+        ${ctx > 8192 ? ` Long context (${ctxLabel}) increases KV cache proportionally.` : ''}
+        ${bestFit ? ` The most cost-effective single-node option is <b>${bestFit.gpusNeeded}× ${bestFit.name}</b>.` : ''}
+        ${throughput > 0 ? ` For ${throughput} req/sec, consider higher-bandwidth GPUs (H100 SXM5 or H200) to maximize token throughput.` : ''}
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:10px;padding:0 4px">Note: Estimates are approximate. Actual VRAM usage varies by framework, batch size, and inference engine. Always validate with a proof-of-concept before committing to a configuration.</div>`;
+}
+// ── TCO Calculator ────────────────────────────────────────────────────────────
+function renderTCO() {
+  document.getElementById('tco-content').innerHTML = `
+  <div style="max-width:900px">
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-title" style="font-size:16px;margin-bottom:18px">Configuration</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">GPU Count</label><input type="number" class="form-input" id="tco-gpu-count" value="8" min="1" max="512"></div>
+        <div class="form-group"><label class="form-label">GPU Type</label>
+          <select class="form-select" id="tco-gpu-type">
+            <option value="a100-80">A100 80GB SXM4</option>
+            <option value="h100-pcie">H100 80GB PCIe</option>
+            <option value="h100-sxm" selected>H100 80GB SXM5</option>
+            <option value="h200-sxm">H200 141GB SXM</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Utilization %</label><input type="number" class="form-input" id="tco-util" value="70" min="1" max="100"></div>
+        <div class="form-group"><label class="form-label">Power Cost ($/kWh)</label><input type="number" class="form-input" id="tco-power" value="0.08" step="0.01"></div>
+        <div class="form-group"><label class="form-label">Colocation Cost ($/rack/month)</label><input type="number" class="form-input" id="tco-colo" value="1500"></div>
+        <div class="form-group"><label class="form-label">Depreciation Period (years)</label><input type="number" class="form-input" id="tco-depre" value="3" min="1" max="7"></div>
+      </div>
+      <div class="form-row" style="margin-top:4px">
+        <div class="form-group"><label class="form-label">Certified Refurb Price (per GPU, $)</label><input type="number" class="form-input" id="tco-refurb-price" value="25000"></div>
+        <div class="form-group"><label class="form-label">New OEM Price (per GPU, $)</label><input type="number" class="form-input" id="tco-oem-price" value="40000"></div>
+        <div class="form-group"><label class="form-label">Cloud On-Demand ($/GPU/hr)</label><input type="number" class="form-input" id="tco-cloud-od" value="3.00" step="0.10"></div>
+        <div class="form-group"><label class="form-label">Cloud Reserved 1yr ($/GPU/hr)</label><input type="number" class="form-input" id="tco-cloud-ri" value="2.00" step="0.10"></div>
+      </div>
+      <button class="btn btn-primary" onclick="calcTCO()">Calculate TCO</button>
+    </div>
+    <div id="tco-result"></div>
+  </div>`;
+}
+
+function calcTCO() {
+  const gpuCount = parseInt(document.getElementById('tco-gpu-count').value) || 8;
+  const gpuType = document.getElementById('tco-gpu-type').value;
+  const util = parseInt(document.getElementById('tco-util').value) / 100;
+  const powerCost = parseFloat(document.getElementById('tco-power').value);
+  const coloCost = parseFloat(document.getElementById('tco-colo').value);
+  const depreYears = parseInt(document.getElementById('tco-depre').value);
+  const refurbPrice = parseFloat(document.getElementById('tco-refurb-price').value);
+  const oemPrice = parseFloat(document.getElementById('tco-oem-price').value);
+  const cloudOD = parseFloat(document.getElementById('tco-cloud-od').value);
+  const cloudRI = parseFloat(document.getElementById('tco-cloud-ri').value);
+
+  const tdpMap = { 'a100-80':400, 'h100-pcie':350, 'h100-sxm':700, 'h200-sxm':700 };
+  const tdpW = tdpMap[gpuType] || 700;
+  const totalPowerKW = (tdpW * gpuCount) / 1000;
+  const racksNeeded = Math.ceil(gpuCount / 8);
+  const hoursPerMonth = 730;
+
+  // Monthly power cost
+  const powerMonthly = totalPowerKW * hoursPerMonth * powerCost;
+  // Monthly colo
+  const coloMonthly = coloCost * racksNeeded;
+  // Amortized hardware per month
+  const refurbAmortized = (refurbPrice * gpuCount) / (depreYears * 12);
+  const oemAmortized = (oemPrice * gpuCount) / (depreYears * 12);
+  // Cloud costs (hourly × util × hours × GPUs)
+  const cloudODMonthly = cloudOD * util * hoursPerMonth * gpuCount;
+  const cloudRIMonthly = cloudRI * util * hoursPerMonth * gpuCount;
+
+  const scenarios = [
+    { label:'Certified Refurbished', color:'var(--success)', monthly: refurbAmortized + powerMonthly + coloMonthly, hw: refurbPrice * gpuCount, note:'Amortized hardware + power + colo' },
+    { label:'Cloud On-Demand', color:'var(--warning)', monthly: cloudODMonthly, hw:0, note:`${util*100}% utilization × $${cloudOD}/GPU/hr` },
+    { label:'Cloud Reserved (1yr)', color:'var(--accent)', monthly: cloudRIMonthly, hw:0, note:`${util*100}% utilization × $${cloudRI}/GPU/hr` },
+    { label:'New OEM', color:'var(--text-dim)', monthly: oemAmortized + powerMonthly + coloMonthly, hw: oemPrice * gpuCount, note:'Amortized hardware + power + colo' },
+  ];
+
+  const fmt = n => '$' + Math.round(n).toLocaleString();
+  const years = [1,2,3];
+
+  const cols = scenarios.map(s => {
+    const annual = s.monthly * 12;
+    return `<th style="color:${s.color};font-size:13px">${s.label}<br><span style="font-size:11px;color:var(--text-muted);font-weight:400">${s.note}</span></th>`;
+  }).join('');
+
+  const monthRow = `<tr><td><b>Monthly Cost</b></td>${scenarios.map(s=>`<td style="font-weight:700;font-size:15px">${fmt(s.monthly)}</td>`).join('')}</tr>`;
+  const hwRow = `<tr><td>Hardware Investment</td>${scenarios.map(s=>`<td>${s.hw>0?fmt(s.hw):'—'}</td>`).join('')}</tr>`;
+  const yearRows = years.map(y => `<tr><td>${y}-Year Total</td>${scenarios.map(s=>`<td>${fmt(s.monthly*12*y + (y===1?s.hw:0))}</td>`).join('')}</tr>`).join('');
+  const savingsVsOD = scenarios.map(s => {
+    const odMonthly = scenarios[1].monthly;
+    if (s.monthly === odMonthly) return '<td>Baseline</td>';
+    const pct = ((odMonthly - s.monthly) / odMonthly * 100).toFixed(0);
+    const better = s.monthly < odMonthly;
+    return `<td style="color:${better?'var(--success)':'var(--danger)'}">${better?'':'+'}${better?pct+'% cheaper':Math.abs(pct)+'% more expensive'}</td>`;
+  }).join('');
+
+  document.getElementById('tco-result').innerHTML = `
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:18px">TCO Comparison — ${gpuCount} GPU${gpuCount>1?'s':''} (${util*100}% utilization)</div>
+      <div style="overflow-x:auto"><table class="tbl" style="min-width:600px">
+        <thead><tr><th></th>${cols}</tr></thead>
+        <tbody>${monthRow}${hwRow}${yearRows}<tr style="background:rgba(74,208,250,.04)"><td><b>vs. Cloud On-Demand</b></td>${savingsVsOD}</tr></tbody>
+      </table></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:14px">Assumptions: ${totalPowerKW.toFixed(1)} kW total draw, ${racksNeeded} rack${racksNeeded>1?'s':''}, $${powerCost}/kWh, $${coloCost.toLocaleString()}/rack/mo colo, ${depreYears}-yr depreciation. Cloud costs use stated $/GPU/hr at ${util*100}% utilization. Figures are estimates — actual costs vary by provider, region, and contract terms.</div>
+    </div>`;
+}
+
+// ── DC Readiness ──────────────────────────────────────────────────────────────
+const DC_CHECKS = [
+  { id:'power-capacity', category:'Power', label:'Rack power capacity confirmed', desc:'8-GPU H100/H200 nodes draw 10–12 kW/rack. Confirm available kVA per rack with the facility. Standard racks are often 10–20 kW; dense AI racks may need 40 kW+.' },
+  { id:'power-redundancy', category:'Power', label:'Power redundancy (A+B feeds)', desc:'AI training clusters should have redundant power feeds. Confirm the facility offers N+1 or 2N power distribution to the rack.' },
+  { id:'pdu-config', category:'Power', label:'PDU configuration supports GPU server', desc:'DGX H100 requires dual 30A/208V circuits per server. Confirm rack PDUs match. Some OEM servers need C13/C19 PDU outlets at specific amperage.' },
+  { id:'cooling-type', category:'Cooling', desc:'Air-cooled racks need 10–15 kW of cooling per rack. Liquid-cooled systems (e.g., HPE Cray XD670, Dell XE9680) require facility liquid cooling infrastructure. Confirm cooling type matches hardware.', label:'Cooling type matches hardware requirements' },
+  { id:'cooling-capacity', category:'Cooling', label:'Cooling capacity sufficient for full load', desc:'Total BTU requirement: 1 kW = ~3,412 BTU/hr. A 10 kW rack needs ~34,000 BTU/hr of cooling. Confirm facility CRAC/CRAH or liquid cooling capacity.' },
+  { id:'floor-loading', category:'Physical', label:'Floor loading supports hardware weight', desc:'DGX H100 weighs ~320 kg (700 lbs). Full rack can exceed 1,500 kg. Standard data center floor loading is 1,000–2,000 lbs/ft². Verify for dense deployments.' },
+  { id:'rack-space', category:'Physical', label:'Sufficient rack U-space available', desc:'8-GPU platforms range from 4U (Supermicro HGX) to 10U (DGX H100). Confirm how many U are available per rack and across the deployment footprint.' },
+  { id:'network-fabric', category:'Networking', label:'InfiniBand or high-speed Ethernet fabric available', desc:'GPU clusters for training require low-latency interconnect. InfiniBand NDR (400Gb) or RoCE (400GbE) preferred. Confirm switch availability, cable runs, and topology (fat-tree, spine-leaf).' },
+  { id:'network-uplink', category:'Networking', label:'Sufficient WAN/uplink bandwidth for data ingestion', desc:'Training clusters ingest large datasets. Confirm uplink bandwidth and latency to data storage or object storage systems.' },
+  { id:'mgmt-network', category:'Networking', label:'Out-of-band management network in place', desc:'BMC/iDRAC/iLO access for remote management. GPU servers should be accessible via out-of-band network independent of the data plane.' },
+  { id:'staging-area', category:'Logistics', label:'Staging area available for delivery and installation', desc:'DGX/HGX systems are large and heavy. Confirm loading dock access, freight elevator capacity, and staging space near the rack room.' },
+  { id:'timeline', category:'Logistics', label:'Facility timeline aligns with hardware availability', desc:'Velerity can ship certified systems in ~5 weeks. Confirm the facility build-out, power, and cooling will be ready to receive hardware by that date.' },
+];
+
+function renderDC() {
+  const grouped = {};
+  DC_CHECKS.forEach(c => { if (!grouped[c.category]) grouped[c.category] = []; grouped[c.category].push(c); });
+
+  const checkedCount = DC_CHECKS.filter(c => S.dcChecks[c.id]).length;
+  const total = DC_CHECKS.length;
+  const pct = Math.round(checkedCount / total * 100);
+
+  let html = `<div style="max-width:760px">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+      <div style="flex:1">
+        <div style="font-size:13px;color:var(--text-dim);margin-bottom:6px">${checkedCount} of ${total} items confirmed</div>
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${pct}%"></div></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="S.dcChecks={};saveData();renderDC()">Reset</button>
+    </div>`;
+
+  Object.entries(grouped).forEach(([cat, items]) => {
+    html += `<div style="margin-bottom:22px"><div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">${cat}</div><div class="card" style="padding:12px 16px">`;
+    items.forEach(c => {
+      html += `<div class="check-item">
+        <div class="check-box${S.dcChecks[c.id]?' checked':''}" onclick="toggleDC('${c.id}')"></div>
+        <div>
+          <div class="check-label">${c.label}</div>
+          <div class="check-desc">${c.desc}</div>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+  html += '</div>';
+  document.getElementById('dc-content').innerHTML = html;
+}
+
+function toggleDC(id) {
+  S.dcChecks[id] = !S.dcChecks[id];
+  saveData();
+  renderDC();
+}
+
+// ── Objection Library ─────────────────────────────────────────────────────────
+const OBJECTIONS = [
+  { tag:'vs. OEM (Path 1)', obj:'We\'ll just buy new from NVIDIA/Dell/HPE.', response:'New OEM lead times for H100/H200 are currently 6–9 months for most configurations. If your workload needs to launch in the next quarter, certified refurbished is the only path to hardware today. We can ship a tested, fully warranted H100 node in under 5 weeks — same compute, lower cost, ready to deploy.' },
+  { tag:'vs. OEM (Path 1)', obj:'We\'d rather wait for Blackwell than buy H100/H200.', response:'Blackwell is shipping to major hyperscalers first — enterprise allocation and pricing won\'t be clear for 12–18 months. Meanwhile, your competitors are standing up capacity today. An H100/H200 node pays for itself in production workloads while you wait. You can always upgrade when Blackwell becomes accessible.' },
+  { tag:'vs. Cloud (Path 2)', obj:'We\'ll just use cloud GPU instances — no CapEx.', response:'For sustained workloads, cloud GPU costs are typically 3–5× higher per unit of compute than owning certified refurbished hardware. Cloud on-demand H100 instances run $3–4/GPU/hr. At 70% utilization, 8× H100s cost $150K/year on cloud vs. roughly $30–50K/year owning. The crossover for most AI teams is 3–6 months of sustained use. I can run your specific numbers with our TCO calculator.' },
+  { tag:'vs. Cloud (Path 2)', obj:'Cloud is more flexible — we don\'t know our long-term needs.', response:'Fair point for truly variable workloads. But most AI teams that\'ve been running for 6+ months have a predictable base load. We often recommend a hybrid approach: own your base compute, burst to cloud for peaks. That gives you cost efficiency on the baseline and flexibility for spikes.' },
+  { tag:'vs. Cloud (Path 2)', obj:'Our data can\'t leave our network — we need on-prem anyway.', response:'Exactly why certified refurbished makes sense. You get air-gapped, on-premises compute with full data sovereignty — no egress charges, no shared infrastructure, no cloud vendor lock-in. And you own the hardware.' },
+  { tag:'vs. Gray Market (Path 3)', obj:'A broker quoted us lower — it\'s the same hardware.', response:'The question isn\'t the list price — it\'s what you\'re getting for it. A lower-cost broker likely has no health report, no stress test, and no warranty. When that GPU fails 60 days in, you\'re down for weeks with no recourse. Velerity ships every system with a serialized NVIDIA diagnostic report and a seller warranty. The price difference is the cost of knowing exactly what you\'re getting.' },
+  { tag:'vs. Gray Market (Path 3)', obj:'Refurbished hardware is risky — we can\'t have downtime.', response:'The risk with refurbished hardware is unknown provenance and untested components — that\'s the gray-market problem, not ours. Every Velerity system runs NVIDIA\'s own DGX health workflow and a 30-minute full-load stress test before it ships. You receive the diagnostic output. If something fails that test, it doesn\'t ship. If it passes and fails in deployment within warranty, we cover it.' },
+  { tag:'vs. Gray Market (Path 3)', obj:'How do we know these GPUs aren\'t export-restricted or stolen?', response:'Our compliance program qualifies suppliers before we accept hardware at intake — we verify provenance, chain of custody, and export history. Every unit is traceable by serial number. If a supplier\'s records don\'t check out, we don\'t buy. That documentation travels with the hardware to you.' },
+  { tag:'General', obj:'We\'re not ready to make a decision this quarter.', response:'Understood. What I\'d ask is: what does the roadmap look like, and when do you expect to need capacity? Certified inventory moves — the specific configurations available today may not be available in Q2. I\'m not trying to manufacture urgency, but I\'d rather let you know the lead time risk now than have you disappointed in 90 days.' },
+  { tag:'General', obj:'Our team needs to evaluate this internally.', response:'Of course. Can I ask what the key decision criteria are for your team? I\'d like to make sure you have the right materials — health reports, warranty terms, TCO comparison, or reference customers — whatever makes the internal case easier to close.' },
+  { tag:'General', obj:'We\'re concerned about export compliance on our end.', response:'That\'s exactly the right question to ask, and it\'s one we take seriously. Our compliance program screens buyers — country of deployment, end-use, and beneficial ownership — before any order closes. We\'ll document that screening for your records. If there\'s a specific concern about your organization\'s use case, let\'s talk through it with our compliance team directly.' },
+  { tag:'General', obj:'What happens if something fails after delivery?', response:'You\'re covered under our seller warranty — standard 90 days with extended options available. NVIDIA limited warranty applies to qualifying re-certified GPUs. The health report we ship with every system establishes a documented baseline. If there\'s a failure that wasn\'t present at the time of testing, we make it right.' },
+];
+
+let objSearch = '';
+
+function renderObjections() {
+  const filtered = OBJECTIONS.filter(o =>
+    !objSearch || o.obj.toLowerCase().includes(objSearch.toLowerCase()) || o.response.toLowerCase().includes(objSearch.toLowerCase()) || o.tag.toLowerCase().includes(objSearch.toLowerCase())
+  );
+
+  const tags = [...new Set(OBJECTIONS.map(o => o.tag))];
+  const tagCounts = tags.map(t => `<span style="font-size:12px;color:var(--text-muted)">${t}: ${OBJECTIONS.filter(o=>o.tag===t).length}</span>`).join(' &bull; ');
+
+  const cards = filtered.map(o => `
+    <div class="obj-card">
+      <div class="obj-tag">${o.tag}</div>
+      <div class="obj-objection">"${o.obj}"</div>
+      <div class="obj-response">${o.response}</div>
+    </div>`).join('');
+
+  document.getElementById('objections-content').innerHTML = `
+    <div style="max-width:760px">
+      <div style="margin-bottom:6px;font-size:12px">${tagCounts}</div>
+      <input class="search-bar" placeholder="Search objections..." value="${objSearch}" oninput="objSearch=this.value;renderObjections()">
+      ${filtered.length === 0 ? '<div style="color:var(--text-muted);font-size:13px">No matching objections.</div>' : cards}
+    </div>`;
+}
+// ── Flashcards ────────────────────────────────────────────────────────────────
+const FLASHCARDS = [
+  { q:'What is the memory capacity and type of the H100 SXM5?', a:'80 GB HBM3 with 3,350 GB/s bandwidth — 68% more bandwidth than the A100 SXM4.' },
+  { q:'What is the memory capacity and type of the H200 SXM?', a:'141 GB HBM3e with 4,800 GB/s bandwidth — 76% more bandwidth than H100 SXM5.' },
+  { q:'What does MIG stand for, and which GPUs support it?', a:'Multi-Instance GPU. Supported on A100, H100, and H200. Allows one GPU to be partitioned into up to 7 isolated instances for multi-tenant inference.' },
+  { q:'What is the Transformer Engine, and which GPU generation introduced it?', a:'Hardware in Hopper (H100/H200) that accelerates FP8 mixed-precision training. Introduced with H100 — not present on A100.' },
+  { q:'What is the TDP of the H100 SXM5?', a:'700 W per GPU. An 8-GPU HGX H100 system draws approximately 10,200 W total.' },
+  { q:'What is NVLink 4.0 bandwidth on H100/H200 SXM?', a:'900 GB/s per GPU (bidirectional). Connects all 8 GPUs in a node via NVSwitch for all-to-all communication.' },
+  { q:'What are the four competitive paths reps must address?', a:'(1) New from OEM — long lead times, full price. (2) Cloud GPU rental — flexible but expensive at scale. (3) Uncertified gray-market — low price, high risk. (4) Velerity certified refurbished — available now, discounted, tested and warranted.' },
+  { q:'What is Velerity\'s typical lead time vs. OEM lead time for H100/H200?', a:'Velerity: under 5 weeks for in-stock certified systems. OEM: 6–9 months for H100/H200 configurations.' },
+  { q:'What four things come with every Velerity system?', a:'(1) NVIDIA DGX health workflow results. (2) 30-minute stress test pass. (3) Serialized health report. (4) Seller warranty (and NVIDIA limited warranty where eligible).' },
+  { q:'When does a cloud GPU rental become more expensive than certified refurbished ownership?', a:'Typically 3–6 months of sustained utilization. At 70% utilization, cloud H100 on-demand (~$3/GPU/hr) costs ~$150K/year for 8 GPUs vs. ~$30–50K/year owning certified refurbished.' },
+  { q:'What is the key difference between A100 SXM4 and A100 PCIe performance?', a:'SXM4 has 2× the FP64 (19.5 vs. 9.7 TFLOPS), 2× the BF16 throughput, and NVLink 3.0 (600 GB/s). PCIe variant has no NVLink and lower TDP (250–300W vs. 400W).' },
+  { q:'What does EAR stand for, and who enforces it?', a:'Export Administration Regulations. Enforced by the Bureau of Industry and Security (BIS) within the US Department of Commerce.' },
+  { q:'Name three red flags that require compliance escalation.', a:'(1) Buyer refuses to state end-use. (2) Request to alter or omit serial numbers. (3) Ship-to address is a freight forwarder in a different country. Also: payment through unknown third parties; buyer mentions military/intelligence applications.' },
+  { q:'What is the FP8 throughput of the H100 SXM5?', a:'3,958 TOPS (7,916 with sparsity). FP8 requires the Transformer Engine — not available on A100.' },
+  { q:'What is the DGX H100 form factor, power draw, and GPU count?', a:'10U rack, 10,200 W, 8× H100 80GB SXM5 with NVSwitch 3.0 and 8× 400Gb NDR InfiniBand.' },
+  { q:'What is the minimum VRAM for running a 70B model at BF16 for inference?', a:'~140 GB (70B × 2 bytes + ~20% inference overhead ≈ 168 GB). Minimum: 2× H100/H200 80GB, or 1× H200 NVL (141 GB per die × 2 = 282 GB).' },
+  { q:'What condition grades does Velerity use, and what does Grade A mean?', a:'Grade A: like new, minimal cosmetic wear, full diagnostics pass. Grade B: visible cosmetic wear, all components functional. Grade C: heavy wear or minor variance, passes core diagnostics.' },
+  { q:'What is the NVLink bandwidth on the A100 SXM4?', a:'600 GB/s (NVLink 3.0). The H100/H200 SXM5 doubles this to 900 GB/s with NVLink 4.0.' },
+];
+
+let fcIndex = 0;
+let fcFlipped = false;
+let fcDeck = [];
+
+function renderFlashcards() {
+  if (!fcDeck.length) fcDeck = [...FLASHCARDS].sort(() => Math.random() - 0.5);
+  const card = fcDeck[fcIndex];
+  const pct = Math.round((fcIndex + 1) / fcDeck.length * 100);
+
+  document.getElementById('flashcards-content').innerHTML = `
+    <div style="max-width:600px;margin:0 auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <span class="fc-counter">Card ${fcIndex + 1} of ${fcDeck.length}</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="fcDeck=[...FLASHCARDS].sort(()=>Math.random()-.5);fcIndex=0;fcFlipped=false;renderFlashcards()">Shuffle</button>
+        </div>
+      </div>
+      <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${pct}%"></div></div>
+      <div style="margin-top:16px">
+        <div class="flashcard-wrap">
+          <div class="flashcard${fcFlipped?' flipped':''}" onclick="fcFlipped=!fcFlipped;renderFlashcards()">
+            <div class="fc-face">
+              <div class="fc-label">Question — click to flip</div>
+              <div class="fc-text">${card.q}</div>
+            </div>
+            <div class="fc-face fc-back">
+              <div class="fc-label">Answer</div>
+              <div class="fc-answer">${card.a}</div>
+            </div>
+          </div>
+        </div>
+        <div class="fc-nav" style="margin-top:20px">
+          <button class="btn btn-ghost" onclick="fcPrev()">&#8592; Prev</button>
+          <span class="fc-counter" style="font-size:14px">${fcFlipped?'&#10003; Revealed':'Click card to reveal'}</span>
+          <button class="btn btn-primary" onclick="fcNext()">Next &#8594;</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function fcNext() { fcFlipped = false; fcIndex = (fcIndex + 1) % fcDeck.length; renderFlashcards(); }
+function fcPrev() { fcFlipped = false; fcIndex = (fcIndex - 1 + fcDeck.length) % fcDeck.length; renderFlashcards(); }
+
+// ── Quizzes ───────────────────────────────────────────────────────────────────
+const QUIZ_TRACKS = {
+  gpu: {
+    title: 'GPU Specs', description: 'Test your knowledge of A100, H100, and H200 specifications.',
+    questions: [
+      { q:'What is the memory bandwidth of the H200 SXM?', opts:['3,350 GB/s','2,000 GB/s','4,800 GB/s','5,200 GB/s'], correct:2 },
+      { q:'Which GPU first introduced the Transformer Engine and FP8 support?', opts:['A100 SXM4','H100 PCIe','H200 SXM','H100 SXM5'], correct:3 },
+      { q:'How many MIG instances can a single A100 or H100 be partitioned into?', opts:['4','7','8','16'], correct:1 },
+      { q:'What is the TDP of the H100 SXM5?', opts:['400 W','500 W','600 W','700 W'], correct:3 },
+      { q:'What memory type does the H100 SXM5 use?', opts:['HBM2','HBM2e','HBM3','HBM3e'], correct:2 },
+      { q:'What is the NVLink bandwidth per GPU on H100/H200 SXM (NVLink 4.0)?', opts:['400 GB/s','600 GB/s','900 GB/s','1,200 GB/s'], correct:2 },
+      { q:'How much VRAM does the H200 SXM have?', opts:['80 GB','94 GB','120 GB','141 GB'], correct:3 },
+      { q:'What is the FP64 throughput of the A100 PCIe (40GB or 80GB)?', opts:['9.7 TFLOPS','19.5 TFLOPS','25.6 TFLOPS','33.5 TFLOPS'], correct:0 },
+    ]
+  },
+  sales: {
+    title: 'Sales Positioning', description: 'Master the competitive positioning and deal dynamics.',
+    questions: [
+      { q:'What is Velerity\'s typical lead time for certified in-stock hardware?', opts:['1–2 weeks','Under 5 weeks','8–10 weeks','6–9 months'], correct:1 },
+      { q:'What is a typical OEM lead time for H100/H200 systems?', opts:['2–4 weeks','4–6 weeks','6–9 months','1–2 months'], correct:2 },
+      { q:'At what point does certified refurbished typically become cheaper than cloud on-demand?', opts:['Immediately','After 1 month','After 3–6 months sustained use','After 2 years'], correct:2 },
+      { q:'What four items ship with every Velerity certified system?', opts:['Invoice, spec sheet, driver disc, power cables','Health report, stress test results, serial numbers, warranty','Health workflow results, stress test pass, serialized health report, warranty','Diagnostic log, burn-in cert, insurance docs, SLA'], correct:2 },
+      { q:'Which competitive path involves unknown provenance and no warranty?', opts:['Path 1 — New OEM','Path 2 — Cloud GPU','Path 3 — Gray market','Path 4 — Certified refurbished'], correct:2 },
+      { q:'What is the best response when a prospect says "we\'ll just wait for Blackwell"?', opts:['Agree and follow up in 12 months','Blackwell enterprise availability is 12–18 months out; competitors are building capacity now on H100/H200','Tell them Blackwell won\'t be significantly better','Offer a large discount to close now'], correct:1 },
+      { q:'What condition grade indicates "like new, minimal cosmetic wear, full diagnostics pass"?', opts:['Grade S','Grade A','Grade B','Grade 1'], correct:1 },
+    ]
+  },
+  compliance: {
+    title: 'Compliance & Export Control', description: 'Know the red flags and compliance requirements.',
+    questions: [
+      { q:'What does BIS stand for?', opts:['Bureau of International Standards','Bureau of Industry and Security','Board of Import Screening','Business Intelligence Services'], correct:1 },
+      { q:'Which of these is a red flag requiring compliance escalation?', opts:['Buyer is a US university','Buyer asks to ship to a freight forwarder in a third country','Buyer requests a 90-day warranty','Buyer wants a TCO comparison'], correct:1 },
+      { q:'At what deal stage must compliance screening be completed before advancing?', opts:['After Discovery','Before any quote','Between Buyer Compliance Screening and Configuration & Quote','At PO signing'], correct:2 },
+      { q:'What should a rep do if a buyer refuses to state their end-use for the GPUs?', opts:['Proceed with the sale if the price is agreed','Offer a discount to close','Escalate immediately to the compliance team','Document "general AI research" and move forward'], correct:2 },
+      { q:'Which regulation governs US export controls on advanced GPUs?', opts:['ITAR','EAR (Export Administration Regulations)','FCPA','OFAC sanctions'], correct:1 },
+    ]
+  }
+};
+
+let quizState = { track: null, qIndex: 0, answers: [], done: false };
+
+function renderQuizzes() {
+  if (!quizState.track) {
+    const tracks = Object.entries(QUIZ_TRACKS);
+    const cards = tracks.map(([id, t]) => {
+      const prog = S.quizProgress.scores[id];
+      const progStr = prog ? `Last score: ${prog.score}/${prog.total} (${Math.round(prog.score/prog.total*100)}%)` : 'Not attempted';
+      return `<div class="card" style="cursor:pointer" onclick="startQuiz('${id}')">
+        <div class="card-title" style="font-size:15px;margin-bottom:6px">${t.title}</div>
+        <div class="card-sub" style="margin-bottom:12px">${t.description}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:12px;color:var(--text-muted)">${t.questions.length} questions</span>
+          <span style="font-size:12px;color:${prog?'var(--success)':'var(--text-muted)'}">${progStr}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    const certified = Object.values(S.quizProgress.scores || {}).filter(s => s.score/s.total >= 0.8).length;
+    const badge = certified === 3 ? `<div class="info-block" style="margin-bottom:18px"><b>&#10022; Certified Velerity Rep</b> — You\'ve passed all three quiz tracks with 80%+. You\'re ready to represent Velerity in any customer conversation.</div>` : '';
+
+    document.getElementById('quizzes-content').innerHTML = `${badge}<div class="card-grid">${cards}</div>`;
+    return;
+  }
+
+  const track = QUIZ_TRACKS[quizState.track];
+  if (quizState.done) {
+    const score = quizState.answers.filter((a, i) => a === track.questions[i].correct).length;
+    const pct = Math.round(score / track.questions.length * 100);
+    const passed = pct >= 80;
+    S.quizProgress.scores[quizState.track] = { score, total: track.questions.length, pct };
+    saveProgress();
+    document.getElementById('quizzes-content').innerHTML = `
+      <div style="max-width:520px;margin:0 auto">
+        <div class="card" style="text-align:center;border-color:${passed?'var(--success)':'var(--warning)'}">
+          <div style="font-size:40px;margin-bottom:12px">${passed?'&#10022;':'&#128218;'}</div>
+          <div style="font-size:22px;font-weight:700;margin-bottom:6px">${score}/${track.questions.length} — ${pct}%</div>
+          <div style="font-size:14px;color:${passed?'var(--success)':'var(--warning)'};">${passed?'Passed — great work!':'Keep studying and try again.'}</div>
+          <div style="margin-top:20px;display:flex;gap:10px;justify-content:center">
+            <button class="btn btn-primary" onclick="startQuiz('${quizState.track}')">Retake</button>
+            <button class="btn btn-ghost" onclick="quizState.track=null;renderQuizzes()">All Quizzes</button>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const q = track.questions[quizState.qIndex];
+  const answered = quizState.answers[quizState.qIndex] !== undefined;
+  const pct = Math.round(quizState.qIndex / track.questions.length * 100);
+  const opts = q.opts.map((o, i) => {
+    let cls = 'quiz-opt';
+    if (answered) { if (i === q.correct) cls += ' correct'; else if (i === quizState.answers[quizState.qIndex] && i !== q.correct) cls += ' wrong'; }
+    return `<div class="${cls}" onclick="answerQuiz(${i})">${o}</div>`;
+  }).join('');
+
+  document.getElementById('quizzes-content').innerHTML = `
+    <div style="max-width:580px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:12px;color:var(--text-muted)">${track.title} — Question ${quizState.qIndex+1} of ${track.questions.length}</span>
+        <button class="btn btn-ghost btn-sm" onclick="quizState.track=null;renderQuizzes()">Exit</button>
+      </div>
+      <div class="quiz-progress-bar" style="margin-bottom:24px"><div class="quiz-progress-fill" style="width:${pct}%"></div></div>
+      <div class="quiz-q">${q.q}</div>
+      <div class="quiz-options">${opts}</div>
+      ${answered ? `<div style="margin-top:18px"><button class="btn btn-primary" onclick="quizNext()">Next &#8594;</button></div>` : ''}
+    </div>`;
+}
+
+function startQuiz(trackId) {
+  quizState = { track: trackId, qIndex: 0, answers: [], done: false };
+  renderQuizzes();
+}
+
+function answerQuiz(optIndex) {
+  if (quizState.answers[quizState.qIndex] !== undefined) return;
+  quizState.answers[quizState.qIndex] = optIndex;
+  renderQuizzes();
+}
+
+function quizNext() {
+  quizState.qIndex++;
+  if (quizState.qIndex >= QUIZ_TRACKS[quizState.track].questions.length) quizState.done = true;
+  renderQuizzes();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadState();
+render('academy-gpus');
+</script>
+</body>
+</html>
