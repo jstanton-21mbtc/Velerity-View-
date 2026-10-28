@@ -941,21 +941,35 @@ function renderMarketPrices() {
     <td style="color:var(--text-dim);font-size:12px">${o.trend}</td>
   </tr>`).join('');
 
-  const vel40 = parseFloat(document.getElementById('vel-price-40')?.value) || 72000;
-  const vel80 = parseFloat(document.getElementById('vel-price-80')?.value) || 110000;
+  const vel40  = parseFloat(document.getElementById('vel-price-40')?.value)  || 72000;
+  const vel80  = parseFloat(document.getElementById('vel-price-80')?.value)  || 110000;
+  const velH1  = parseFloat(document.getElementById('vel-price-h1')?.value)  || 215000;
+  const velH2  = parseFloat(document.getElementById('vel-price-h2')?.value)  || 360000;
 
   const pricingTiers = [
     {
       label: 'HGX A100 8×40GB Node',
-      newOEM: { price: 'N/A (discontinued)', note: 'No longer available new from OEM' },
-      used:   { price: 59100, note: 'Secondary market median — Rack Report Oct 2026' },
-      velerity: { price: vel40, inputId: 'vel-price-40', note: 'Certified refurbished · health report · seller warranty' },
+      newOEM:   { price: 'N/A (discontinued)', note: 'No longer available new from OEM' },
+      used:     { price: 59100,  note: 'Secondary market median — Rack Report Oct 2026' },
+      velerity: { price: vel40,  inputId: 'vel-price-40', note: 'Certified refurbished · health report · seller warranty' },
     },
     {
       label: 'HGX A100 8×80GB Node',
-      newOEM: { price: 199000, note: 'Approx. original MSRP at launch (2021) — unverified' },
-      used:   { price: 95200, note: 'Secondary market median — Rack Report Oct 2026' },
-      velerity: { price: vel80, inputId: 'vel-price-80', note: 'Certified refurbished · health report · seller warranty' },
+      newOEM:   { price: 199000, note: 'Approx. original MSRP at launch (2021) — unverified' },
+      used:     { price: 95200,  note: 'Secondary market median — Rack Report Oct 2026' },
+      velerity: { price: vel80,  inputId: 'vel-price-80', note: 'Certified refurbished · health report · seller warranty' },
+    },
+    {
+      label: 'HGX H100 8×80GB Node',
+      newOEM:   { price: 'N/A (discontinued)', note: 'Superseded by H200/B200 — no longer available new from OEM' },
+      used:     { price: 195000, note: 'Secondary market median — Rack Report Oct 2026' },
+      velerity: { price: velH1,  inputId: 'vel-price-h1', note: 'Certified refurbished · health report · seller warranty' },
+    },
+    {
+      label: 'HGX H200 8×141GB Node',
+      newOEM:   { price: 340000, note: 'Volume-order new price (indicative) — Rack Report Oct 2026' },
+      used:     { price: 348500, note: 'Secondary market median — Rack Report Oct 2026 ⚠ above new volume price due to supply scarcity' },
+      velerity: { price: velH2,  inputId: 'vel-price-h2', note: 'Certified refurbished · health report · seller warranty' },
     },
   ];
 
