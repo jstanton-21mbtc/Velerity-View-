@@ -229,6 +229,9 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div class="nav-item" onclick="nav('academy-admin')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Spec Admin
     </div>
+    <div class="nav-item" onclick="nav('academy-prices')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Market Prices
+    </div>
   </div>
   <div class="nav-group">
     <div class="nav-group-label">Tools</div>
@@ -274,6 +277,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div id="s-academy-compare" class="section"><div class="section-header"><div class="section-title">Compare</div><div class="section-sub">Side-by-side GPU and platform comparison</div></div><div id="compare-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-academy-cert" class="section"><div class="section-header"><div class="section-title">Certification &amp; Refurbishment</div><div class="section-sub">How Velerity certifies and warranties AI hardware</div></div><div id="cert-content"></div></div>
     <div id="s-academy-export" class="section"><div class="section-header"><div class="section-title">Export Control Primer</div><div class="section-sub">EAR/BIS overview for sales reps — not legal advice. Always escalate edge cases.</div></div><div id="export-content"></div></div>
+    <div id="s-academy-prices" class="section"><div class="section-header"><div class="section-title">Market Prices</div><div class="section-sub">Secondary market GPU and system pricing — American Compute Rack Report, October 2026</div></div><div id="prices-content"></div></div>
     <div id="s-academy-admin" class="section"><div class="section-header"><div class="section-title">Spec Admin</div><div class="section-sub">Review, edit, and verify GPU and platform specifications</div></div><div id="admin-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-tools-workload" class="section"><div class="section-header"><div class="section-title">Workload-Fit Calculator</div><div class="section-sub">Estimate VRAM requirements and get GPU recommendations for any AI workload</div></div><div id="workload-content"></div></div>
     <div id="s-tools-tco" class="section"><div class="section-header"><div class="section-title">TCO Calculator</div><div class="section-sub">Compare total cost: certified refurbished vs. cloud vs. new OEM</div></div><div id="tco-content"></div></div>
@@ -345,6 +349,7 @@ function render(id) {
     case 'academy-compare':    renderCompare(); break;
     case 'academy-cert':       renderCert(); break;
     case 'academy-export':     renderExport(); break;
+    case 'academy-prices':     renderMarketPrices(); break;
     case 'academy-admin':      renderAdmin(); break;
     case 'tools-workload':     renderWorkload(); break;
     case 'tools-tco':          renderTCO(); break;
@@ -850,6 +855,145 @@ function renderExport() {
     </div>
   </div>`;
 }
+// ── Market Prices ─────────────────────────────────────────────────────────────
+// Source: American Compute Rack Report, October 2026 (data through August 2026)
+const RACK_REPORT = {
+  source: 'American Compute Rack Report',
+  issue: 'October 2026',
+  dataThrough: 'August 2026',
+  url: 'https://www.amcompute.com/',
+  gpuPrices: [
+    { asset:'A100 80GB SXM', typical:5400, bulk:5260, low:4875, mom:'+8.0%', yoy:'(33.5%)', dealerAsk:9445, liq:'B', limited:true },
+    { asset:'A100 40GB', typical:3207, bulk:3130, low:2200, mom:'(26.3%)', yoy:'(32.2%)', dealerAsk:9445, liq:'C', limited:true },
+    { asset:'H100 SXM 80GB', typical:14250, bulk:13890, low:13200, mom:'+8.0%', yoy:'+16.3%', dealerAsk:16576, liq:'C', limited:true },
+    { asset:'V100 32GB', typical:630, bulk:610, low:610, mom:'(2.7%)', yoy:'(21.2%)', dealerAsk:1503, liq:'B', limited:false },
+  ],
+  systems: [
+    { platform:'DGX/HGX V100 8-GPU (32GB)', nodeValue:12200, perGPU:1500, vsPartOut:'+14%', limited:true },
+    { platform:'HGX A100 8×40GB', nodeValue:59100, perGPU:7400, vsPartOut:'+43%', limited:false },
+    { platform:'HGX A100 8×80GB', nodeValue:95200, perGPU:11900, vsPartOut:'+40%', limited:false },
+    { platform:'HGX H100 8×80GB', nodeValue:195000, perGPU:24400, vsPartOut:'+4%', limited:false },
+    { platform:'HGX H200 8×141GB', nodeValue:348500, perGPU:43600, vsPartOut:'—', limited:true },
+  ],
+  newEquipment: [
+    { config:'HGX B300 8-GPU node (single-unit)', price:'$490,000 – $520,000' },
+    { config:'HGX B300 8-GPU node (volume order)', price:'$400,000 – $450,000' },
+    { config:'HGX B200 8-GPU node', price:'$360,000 – $470,000' },
+    { config:'HGX H200 8-GPU node (volume order)', price:'≈ $340,000' },
+  ],
+  rentalImplied: [
+    { asset:'A100 SXM', rentPerGPUHr:1.82, netAnnualRent:70854, rentalImpliedValue:63263, realNodeValue:95200, impliedVsReal:'0.66×', paybackYears:1.3, limited:true },
+    { asset:'H100 SXM', rentPerGPUHr:3.19, netAnnualRent:127572, rentalImpliedValue:215865, realNodeValue:195000, impliedVsReal:'1.11×', paybackYears:1.5, limited:true },
+    { asset:'H200', rentPerGPUHr:4.67, netAnnualRent:199608, rentalImpliedValue:586246, realNodeValue:348500, impliedVsReal:'1.68×', paybackYears:1.7, limited:true },
+  ],
+  marketOverview: [
+    { component:'Memory', index:491, mom:'+19.3%', yoy:'+224.7%', volume:'5.5×', premium:'+492%', trend:'down (stalling)', liq:'B', conf:'A' },
+    { component:'Enterprise SSD', index:214, mom:'(4.3%)', yoy:'+116.8%', volume:'1.8×', premium:'+123%', trend:'up', liq:'B', conf:'A' },
+    { component:'GPU', index:75, mom:'(12.3%)', yoy:'(22.1%)', volume:'3.3×', premium:'(14%)', trend:'flat/slight decline', liq:'B', conf:'A' },
+    { component:'Server CPU', index:48, mom:'(1.0%)', yoy:'(36.1%)', volume:'1.7×', premium:'(52%)', trend:'declining', liq:'B', conf:'A' },
+    { component:'Network Cards / DPU', index:100, mom:'+2.4%', yoy:'(0.5%)', volume:'2.1×', premium:'(9%)', trend:'slight rise', liq:'B', conf:'A' },
+  ]
+};
+
+function renderMarketPrices() {
+  const R = RACK_REPORT;
+  const fmt = n => '$' + n.toLocaleString();
+  const mom = v => `<span style="color:${v.startsWith('+')?'var(--success)':'var(--danger)'}">${v}</span>`;
+  const yoy = v => `<span style="color:${v.startsWith('+')?'var(--success)':'var(--danger)'}">${v}</span>`;
+
+  const gpuRows = R.gpuPrices.map(g => `<tr>
+    <td>${g.asset}${g.limited?' <span style="color:var(--text-muted);font-size:10px">*</span>':''}</td>
+    <td style="font-weight:600">${fmt(g.typical)}</td>
+    <td style="color:var(--text-dim)">${fmt(g.bulk)}</td>
+    <td style="color:var(--text-muted)">${fmt(g.low)}</td>
+    <td>${mom(g.mom)}</td>
+    <td>${yoy(g.yoy)}</td>
+    <td style="color:var(--text-muted)">${fmt(g.dealerAsk)}</td>
+    <td><span class="badge" style="background:rgba(74,208,250,.08);color:var(--text-dim);border:1px solid var(--border)">${g.liq}</span></td>
+  </tr>`).join('');
+
+  const sysRows = R.systems.map(s => `<tr>
+    <td>${s.platform}${s.limited?' <span style="color:var(--text-muted);font-size:10px">*</span>':''}</td>
+    <td style="font-weight:600">${fmt(s.nodeValue)}</td>
+    <td>${fmt(s.perGPU)}</td>
+    <td style="color:${s.vsPartOut.startsWith('+')?'var(--success)':'var(--text-dim)'}">${s.vsPartOut}</td>
+  </tr>`).join('');
+
+  const newRows = R.newEquipment.map(n => `<tr><td>${n.config}</td><td style="font-weight:600;color:var(--text-dim)">${n.price}</td></tr>`).join('');
+
+  const rentalRows = R.rentalImplied.map(r => `<tr>
+    <td>${r.asset}${r.limited?' <span style="color:var(--text-muted);font-size:10px">*</span>':''}</td>
+    <td>$${r.rentPerGPUHr.toFixed(2)}</td>
+    <td>${fmt(r.netAnnualRent)}</td>
+    <td>${fmt(r.rentalImpliedValue)}</td>
+    <td style="font-weight:600">${fmt(r.realNodeValue)}</td>
+    <td>${r.impliedVsReal}</td>
+    <td style="color:var(--accent)">${r.paybackYears} yrs</td>
+  </tr>`).join('');
+
+  const ovRows = R.marketOverview.map(o => `<tr>
+    <td><b>${o.component}</b></td>
+    <td style="font-weight:600">${o.index}</td>
+    <td>${mom(o.mom)}</td>
+    <td>${o.yoy.startsWith('+')?`<span style="color:var(--success)">${o.yoy}</span>`:`<span style="color:var(--danger)">${o.yoy}</span>`}</td>
+    <td>${o.volume}</td>
+    <td style="color:${o.premium.startsWith('+')?'var(--success)':'var(--danger)'}">${o.premium}</td>
+    <td style="color:var(--text-dim);font-size:12px">${o.trend}</td>
+  </tr>`).join('');
+
+  document.getElementById('prices-content').innerHTML = `
+  <div style="max-width:900px;display:flex;flex-direction:column;gap:24px">
+    <div class="info-block">
+      Data from <b>${R.source}, ${R.issue}</b> (through ${R.dataThrough}). All values are realized secondary-market transaction prices unless noted. <a href="${R.url}" target="_blank" style="color:var(--accent)">amcompute.com</a> — for informational purposes only; not investment advice. * = limited sample, read direction not level.
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:14px">Market Overview — Index (H1 2025 = 100)</div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Component</th><th>Index</th><th>MoM</th><th>YoY</th><th>Volume</th><th>Premium vs Depreciation</th><th>90-Day Trend</th></tr></thead>
+        <tbody>${ovRows}</tbody>
+      </table></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:10px">GPU segment sits 14% below the depreciation baseline. Hopper systems (H100/H200) held; older inference cards (T4, V100) led the decline.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:14px">GPU Benchmark Values (per card)</div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Asset</th><th>Typical</th><th>Bulk</th><th>Low</th><th>MoM</th><th>YoY</th><th>Dealer Ask</th><th>Liq</th></tr></thead>
+        <tbody>${gpuRows}</tbody>
+      </table></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:8px">Typical = latest-month median. Bulk = per-unit median in lots of 4+. Low = 25th percentile. Dealer Ask = asking price, not realized sale.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:14px">Complete System Values (8-GPU nodes)</div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Platform</th><th>Node Value</th><th>Per GPU</th><th>vs Part-Out</th></tr></thead>
+        <tbody>${sysRows}</tbody>
+      </table></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:8px">Includes CPUs, memory, storage, and node NICs. Excludes fabric switches, racks, installation, support.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:14px">New Equipment Price Benchmarks</div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Configuration</th><th>Indicative New Price</th></tr></thead>
+        <tbody>${newRows}</tbody>
+      </table></div>
+      <div class="warn-block" style="margin-top:12px;margin-bottom:0">Used H200 nodes ($348,500) currently price <i>above</i> new volume-order H200 (≈$340,000), reflecting scarce new supply — not depreciation reversal.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:14px">Rental-Implied GPU Values (per 8-GPU node)</div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Asset</th><th>$/GPU/hr</th><th>Net Annual Rent</th><th>Rental-Implied Value</th><th>Real Node Value</th><th>Implied ÷ Real</th><th>Payback</th></tr></thead>
+        <tbody>${rentalRows}</tbody>
+      </table></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:8px">Assumptions: 70% utilization, 12% discount rate, 6-year life, $175/kW-month colo, PUE 1.35. Treat with caution — rental rates swing widely. H200 implied value (1.68×) reflects high demand relative to current node prices.</div>
+    </div>
+  </div>`;
+}
+
 // ── Admin ──────────────────────────────────────────────────────────────────────
 let adminTab = 'gpu';
 let adminEdit = null; // id of item being edited
