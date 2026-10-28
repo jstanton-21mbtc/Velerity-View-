@@ -941,8 +941,73 @@ function renderMarketPrices() {
     <td style="color:var(--text-dim);font-size:12px">${o.trend}</td>
   </tr>`).join('');
 
+  const vel40 = parseFloat(document.getElementById('vel-price-40')?.value) || 72000;
+  const vel80 = parseFloat(document.getElementById('vel-price-80')?.value) || 110000;
+
+  const pricingTiers = [
+    {
+      label: 'HGX A100 8×40GB Node',
+      newOEM: { price: 'N/A (discontinued)', note: 'No longer available new from OEM' },
+      used:   { price: 59100, note: 'Secondary market median — Rack Report Oct 2026' },
+      velerity: { price: vel40, inputId: 'vel-price-40', note: 'Certified refurbished · health report · seller warranty' },
+    },
+    {
+      label: 'HGX A100 8×80GB Node',
+      newOEM: { price: 199000, note: 'Approx. original MSRP at launch (2021) — unverified' },
+      used:   { price: 95200, note: 'Secondary market median — Rack Report Oct 2026' },
+      velerity: { price: vel80, inputId: 'vel-price-80', note: 'Certified refurbished · health report · seller warranty' },
+    },
+  ];
+
+  const tierCard = (t) => {
+    const usedSavings = t.newOEM.price !== 'N/A (discontinued)' ? Math.round((1 - t.used.price / t.newOEM.price) * 100) : null;
+    const velSavings = t.newOEM.price !== 'N/A (discontinued)' ? Math.round((1 - t.velerity.price / t.newOEM.price) * 100) : null;
+    const velVsUsed = Math.round((t.velerity.price / t.used.price - 1) * 100);
+    const newDisplay = t.newOEM.price === 'N/A (discontinued)' ? t.newOEM.price : '$' + t.newOEM.price.toLocaleString();
+
+    return `<div class="card" style="margin-bottom:0">
+      <div class="card-title" style="font-size:16px;margin-bottom:18px">${t.label}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px">
+          <div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">New OEM</div>
+          <div style="font-size:20px;font-weight:700;color:var(--text-dim)">${newDisplay}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.5">${t.newOEM.note}</div>
+          ${usedSavings ? `<div style="margin-top:10px;font-size:11px;color:var(--text-muted)">Baseline</div>` : ''}
+        </div>
+        <div style="background:var(--surface);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:16px">
+          <div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--warning);margin-bottom:8px">Used (Secondary Market)</div>
+          <div style="font-size:20px;font-weight:700">$${t.used.price.toLocaleString()}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.5">${t.used.note}</div>
+          ${usedSavings ? `<div style="margin-top:10px;font-size:12px;color:var(--success);font-weight:600">${usedSavings}% below new OEM</div>` : ''}
+          <div style="margin-top:6px;font-size:11px;color:var(--danger)">No certification · No health report · No warranty</div>
+        </div>
+        <div style="background:rgba(74,208,250,.05);border:1px solid var(--accent);border-radius:8px;padding:16px">
+          <div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:8px">Velerity Certified Refurb</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="font-size:13px;color:var(--text-muted)">$</span>
+            <input type="number" id="${t.velerity.inputId}" value="${t.velerity.price}" style="background:transparent;border:none;border-bottom:1px solid var(--accent);color:var(--text);font-size:20px;font-weight:700;width:130px;outline:none" onchange="renderMarketPrices()">
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;line-height:1.5">${t.velerity.note}</div>
+          ${velSavings ? `<div style="margin-top:10px;font-size:12px;color:var(--success);font-weight:600">${velSavings}% below new OEM</div>` : ''}
+          <div style="margin-top:6px;font-size:11px;color:var(--accent)">+${velVsUsed}% vs. bare used · certified &amp; warranted</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:12px;color:var(--text-muted);line-height:1.6">
+        <b style="color:var(--text-dim)">The Velerity value proposition:</b> Priced above bare secondary market to reflect certification cost and reduced buyer risk — but significantly below original OEM pricing and available in weeks, not months. The premium over used = NVIDIA health workflow + stress test + serialized health report + seller warranty.
+      </div>
+    </div>`;
+  };
+
   document.getElementById('prices-content').innerHTML = `
   <div style="max-width:900px;display:flex;flex-direction:column;gap:24px">
+    <div class="card" style="border-color:var(--accent)">
+      <div class="card-title" style="font-size:17px;margin-bottom:6px">DGX A100 — New vs. Used vs. Velerity Certified Refurbished</div>
+      <div class="card-sub" style="margin-bottom:20px">Edit the Velerity price fields to reflect current inventory pricing. Used prices from American Compute Rack Report, October 2026.</div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        ${pricingTiers.map(tierCard).join('')}
+      </div>
+    </div>
+
     <div class="info-block">
       Data from <b>${R.source}, ${R.issue}</b> (through ${R.dataThrough}). All values are realized secondary-market transaction prices unless noted. <a href="${R.url}" target="_blank" style="color:var(--accent)">amcompute.com</a> — for informational purposes only; not investment advice. * = limited sample, read direction not level.
     </div>
