@@ -277,7 +277,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div id="s-academy-compare" class="section"><div class="section-header"><div class="section-title">Compare</div><div class="section-sub">Side-by-side GPU and platform comparison</div></div><div id="compare-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-academy-cert" class="section"><div class="section-header"><div class="section-title">Certification &amp; Refurbishment</div><div class="section-sub">How Velerity certifies and warranties AI hardware</div></div><div id="cert-content"></div></div>
     <div id="s-academy-export" class="section"><div class="section-header"><div class="section-title">Export Control Primer</div><div class="section-sub">EAR/BIS overview for sales reps — not legal advice. Always escalate edge cases.</div></div><div id="export-content"></div></div>
-    <div id="s-academy-prices" class="section"><div class="section-header"><div class="section-title">Market Prices</div><div class="section-sub">Secondary market GPU and system pricing — American Compute Rack Report, October 2026</div></div><div id="prices-content"></div></div>
+    <div id="s-academy-prices" class="section"><div class="section-header"><div class="section-title">Market Prices</div><div class="section-sub">Secondary market GPU and system pricing — American Compute Rack Report, November 2026</div></div><div id="prices-content"></div></div>
     <div id="s-academy-admin" class="section"><div class="section-header"><div class="section-title">Spec Admin</div><div class="section-sub">Review, edit, and verify GPU and platform specifications</div></div><div id="admin-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-tools-workload" class="section"><div class="section-header"><div class="section-title">Workload-Fit Calculator</div><div class="section-sub">Estimate VRAM requirements and get GPU recommendations for any AI workload</div></div><div id="workload-content"></div></div>
     <div id="s-tools-tco" class="section"><div class="section-header"><div class="section-title">TCO Calculator</div><div class="section-sub">Compare total cost: certified refurbished vs. cloud vs. new OEM</div></div><div id="tco-content"></div></div>
@@ -856,11 +856,11 @@ function renderExport() {
   </div>`;
 }
 // ── Market Prices ─────────────────────────────────────────────────────────────
-// Source: American Compute Rack Report, October 2026 (data through August 2026)
+// Source: American Compute Rack Report, November 2026 (data through September 2026)
 const RACK_REPORT = {
   source: 'American Compute Rack Report',
-  issue: 'October 2026',
-  dataThrough: 'August 2026',
+  issue: 'November 2026',
+  dataThrough: 'September 2026',
   url: 'https://www.amcompute.com/',
   gpuPrices: [
     { asset:'A100 80GB SXM', typical:5400, bulk:5260, low:4875, mom:'+8.0%', yoy:'(33.5%)', dealerAsk:9445, liq:'B', limited:true },
@@ -887,11 +887,11 @@ const RACK_REPORT = {
     { asset:'H200', rentPerGPUHr:4.67, netAnnualRent:199608, rentalImpliedValue:586246, realNodeValue:348500, impliedVsReal:'1.68×', paybackYears:1.7, limited:true },
   ],
   marketOverview: [
-    { component:'Memory', index:491, mom:'+19.3%', yoy:'+224.7%', volume:'5.5×', premium:'+492%', trend:'down (stalling)', liq:'B', conf:'A' },
-    { component:'Enterprise SSD', index:214, mom:'(4.3%)', yoy:'+116.8%', volume:'1.8×', premium:'+123%', trend:'up', liq:'B', conf:'A' },
-    { component:'GPU', index:75, mom:'(12.3%)', yoy:'(22.1%)', volume:'3.3×', premium:'(14%)', trend:'flat/slight decline', liq:'B', conf:'A' },
-    { component:'Server CPU', index:48, mom:'(1.0%)', yoy:'(36.1%)', volume:'1.7×', premium:'(52%)', trend:'declining', liq:'B', conf:'A' },
-    { component:'Network Cards / DPU', index:100, mom:'+2.4%', yoy:'(0.5%)', volume:'2.1×', premium:'(9%)', trend:'slight rise', liq:'B', conf:'A' },
+    { component:'Memory', index:null, mom:'+29.0%', yoy:null, volume:null, premium:'+562%', trend:'up (DDR5 sub-index: 759)', liq:null, conf:null },
+    { component:'Enterprise SSD', index:240, mom:'+11.0%', yoy:null, volume:null, premium:'+133%', trend:'up', liq:null, conf:null },
+    { component:'GPU', index:83, mom:'(4.3%)', yoy:'(13.3%)', volume:'3.7×', premium:'+10%', trend:'declining', liq:'B', conf:'A' },
+    { component:'Server CPU', index:52, mom:'+13.9%', yoy:'(29.1%)', volume:'2.7×', premium:'(24%)', trend:'declining', liq:'B', conf:'A' },
+    { component:'Network Cards / DPU', index:null, mom:null, yoy:null, volume:null, premium:null, trend:'full report only', liq:null, conf:null },
   ]
 };
 
@@ -931,13 +931,17 @@ function renderMarketPrices() {
     <td style="color:var(--accent)">${r.paybackYears} yrs</td>
   </tr>`).join('');
 
+  const dash = '<span style="color:var(--text-muted)">—</span>';
+  const fmtMom = v => v == null ? dash : mom(v);
+  const fmtYoy = v => v == null ? dash : (v.startsWith('+')?`<span style="color:var(--success)">${v}</span>`:`<span style="color:var(--danger)">${v}</span>`);
+  const fmtPremium = v => v == null ? dash : `<span style="color:${v.startsWith('+')?'var(--success)':'var(--danger)'}">${v}</span>`;
   const ovRows = R.marketOverview.map(o => `<tr>
     <td><b>${o.component}</b></td>
-    <td style="font-weight:600">${o.index}</td>
-    <td>${mom(o.mom)}</td>
-    <td>${o.yoy.startsWith('+')?`<span style="color:var(--success)">${o.yoy}</span>`:`<span style="color:var(--danger)">${o.yoy}</span>`}</td>
-    <td>${o.volume}</td>
-    <td style="color:${o.premium.startsWith('+')?'var(--success)':'var(--danger)'}">${o.premium}</td>
+    <td style="font-weight:600">${o.index ?? dash}</td>
+    <td>${fmtMom(o.mom)}</td>
+    <td>${fmtYoy(o.yoy)}</td>
+    <td>${o.volume ?? dash}</td>
+    <td>${fmtPremium(o.premium)}</td>
     <td style="color:var(--text-dim);font-size:12px">${o.trend}</td>
   </tr>`).join('');
 
@@ -950,25 +954,25 @@ function renderMarketPrices() {
     {
       label: 'HGX A100 8×40GB Node',
       newOEM:   { price: 'N/A (discontinued)', note: 'No longer available new from OEM' },
-      used:     { price: 59100,  note: 'Secondary market median — Rack Report Oct 2026' },
+      used:     { price: 59100,  note: 'Secondary market median — Rack Report Nov 2026' },
       velerity: { price: vel40,  inputId: 'vel-price-40', note: 'Certified refurbished · health report · seller warranty' },
     },
     {
       label: 'HGX A100 8×80GB Node',
       newOEM:   { price: 199000, note: 'Approx. original MSRP at launch (2021) — unverified' },
-      used:     { price: 95200,  note: 'Secondary market median — Rack Report Oct 2026' },
+      used:     { price: 95200,  note: 'Secondary market median — Rack Report Nov 2026' },
       velerity: { price: vel80,  inputId: 'vel-price-80', note: 'Certified refurbished · health report · seller warranty' },
     },
     {
       label: 'HGX H100 8×80GB Node',
       newOEM:   { price: 'N/A (discontinued)', note: 'Superseded by H200/B200 — no longer available new from OEM' },
-      used:     { price: 195000, note: 'Secondary market median — Rack Report Oct 2026' },
+      used:     { price: 195000, note: 'Secondary market median — Rack Report Nov 2026' },
       velerity: { price: velH1,  inputId: 'vel-price-h1', note: 'Certified refurbished · health report · seller warranty' },
     },
     {
       label: 'HGX H200 8×141GB Node',
-      newOEM:   { price: 340000, note: 'Volume-order new price (indicative) — Rack Report Oct 2026' },
-      used:     { price: 348500, note: 'Secondary market median — Rack Report Oct 2026 ⚠ above new volume price due to supply scarcity' },
+      newOEM:   { price: 340000, note: 'Volume-order new price (indicative) — Rack Report Nov 2026' },
+      used:     { price: 348500, note: 'Secondary market median — Rack Report Nov 2026 ⚠ above new volume price due to supply scarcity' },
       velerity: { price: velH2,  inputId: 'vel-price-h2', note: 'Certified refurbished · health report · seller warranty' },
     },
   ];
@@ -1016,7 +1020,7 @@ function renderMarketPrices() {
   <div style="max-width:900px;display:flex;flex-direction:column;gap:24px">
     <div class="card" style="border-color:var(--accent)">
       <div class="card-title" style="font-size:17px;margin-bottom:6px">DGX A100 — New vs. Used vs. Velerity Certified Refurbished</div>
-      <div class="card-sub" style="margin-bottom:20px">Edit the Velerity price fields to reflect current inventory pricing. Used prices from American Compute Rack Report, October 2026.</div>
+      <div class="card-sub" style="margin-bottom:20px">Edit the Velerity price fields to reflect current inventory pricing. Used prices from American Compute Rack Report, November 2026.</div>
       <div style="display:flex;flex-direction:column;gap:16px">
         ${pricingTiers.map(tierCard).join('')}
       </div>
