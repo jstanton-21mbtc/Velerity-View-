@@ -198,6 +198,27 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #2E5A8F; }
+
+/* CRM Pipeline */
+.pipeline-board { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 16px; align-items: flex-start; }
+.pipeline-col { flex: 0 0 210px; display: flex; flex-direction: column; gap: 10px; }
+.pipeline-col-hdr { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; }
+.pipeline-col-name { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+.pipeline-col-count { font-size: 11px; color: var(--text-dim); }
+.deal-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; cursor: pointer; transition: border-color .15s; }
+.deal-card:hover { border-color: var(--accent); }
+.deal-company { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.deal-contact { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+.deal-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.deal-gpu { font-size: 10px; color: var(--accent); background: var(--accent-dim); padding: 2px 6px; border-radius: 4px; }
+.deal-value { font-size: 13px; font-weight: 700; color: var(--success); }
+.deal-next { font-size: 11px; color: var(--text-dim); margin-top: 8px; border-top: 1px solid rgba(30,58,95,.4); padding-top: 7px; line-height: 1.4; }
+/* CRM Stage badges */
+.stage-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,9,34,.78); z-index: 400; display: flex; align-items: center; justify-content: center; }
+.modal-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; width: 540px; max-width: calc(100vw - 32px); max-height: 90vh; overflow-y: auto; }
+.modal-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
 </style>
 </head>
 <body>
@@ -249,6 +270,15 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     </div>
   </div>
   <div class="nav-group">
+    <div class="nav-group-label">CRM</div>
+    <div class="nav-item" onclick="nav('crm-accounts')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Accounts
+    </div>
+    <div class="nav-item" onclick="nav('crm-pipeline')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="4" height="18" rx="1"/><rect x="10" y="8" width="4" height="13" rx="1"/><rect x="17" y="5" width="4" height="16" rx="1"/></svg>Pipeline
+    </div>
+  </div>
+  <div class="nav-group">
     <div class="nav-group-label">Training</div>
     <div class="nav-item" onclick="nav('training-flashcards')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Flashcards
@@ -283,6 +313,8 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div id="s-tools-tco" class="section"><div class="section-header"><div class="section-title">TCO Calculator</div><div class="section-sub">Compare total cost: certified refurbished vs. cloud vs. new OEM</div></div><div id="tco-content"></div></div>
     <div id="s-tools-dc" class="section"><div class="section-header"><div class="section-title">Data Center Readiness</div><div class="section-sub">Qualify whether a buyer's facility can host the gear before the deal closes</div></div><div id="dc-content"></div></div>
     <div id="s-tools-objections" class="section"><div class="section-header"><div class="section-title">Objection Library</div><div class="section-sub">Ready responses to the most common AI server sales objections</div></div><div id="objections-content"></div></div>
+    <div id="s-crm-accounts" class="section"><div class="section-header"><div class="section-title">Accounts</div><div class="section-sub">Prospect and customer account records — companies, contacts, GPU interests</div></div><div id="crm-accounts-content"></div></div>
+    <div id="s-crm-pipeline" class="section"><div class="section-header"><div class="section-title">Pipeline</div><div class="section-sub">Opportunity pipeline — track deals from first contact to closed won</div></div><div id="crm-pipeline-content"></div></div>
     <div id="s-training-flashcards" class="section"><div class="section-header"><div class="section-title">Flashcards</div><div class="section-sub">Master GPU specs, sales positioning, and key concepts</div></div><div id="flashcards-content"></div></div>
     <div id="s-training-quizzes" class="section"><div class="section-header"><div class="section-title">Quizzes</div><div class="section-sub">Test your knowledge and earn your Velerity Rep Certification</div></div><div id="quizzes-content"></div></div>
     <div id="s-settings" class="section"><div class="section-header"><div class="section-title">Settings</div><div class="section-sub">API keys and preferences</div></div><div id="settings-content"></div></div>
@@ -317,17 +349,27 @@ const S = {
   platforms: [],
   quizProgress: { completed: [], scores: {} },
   dcChecks: {},
+  accounts: [],
+  deals: [],
   currentSection: 'academy-gpus'
 };
 
 function loadState() {
   S.apiKey = localStorage.getItem(K.apiKey) || '';
   try { const p = localStorage.getItem(K.progress); if (p) Object.assign(S.quizProgress, JSON.parse(p)); } catch(e) {}
-  try { const d = localStorage.getItem(K.data); if (d) { const o = JSON.parse(d); if (o.dcChecks) S.dcChecks = o.dcChecks; } } catch(e) {}
+  try {
+    const d = localStorage.getItem(K.data);
+    if (d) {
+      const o = JSON.parse(d);
+      if (o.dcChecks) S.dcChecks = o.dcChecks;
+      if (o.accounts) S.accounts = o.accounts;
+      if (o.deals) S.deals = o.deals;
+    }
+  } catch(e) {}
 }
 
 function saveProgress() { localStorage.setItem(K.progress, JSON.stringify(S.quizProgress)); }
-function saveData() { localStorage.setItem(K.data, JSON.stringify({ dcChecks: S.dcChecks })); }
+function saveData() { localStorage.setItem(K.data, JSON.stringify({ dcChecks: S.dcChecks, accounts: S.accounts, deals: S.deals })); }
 
 // ── Router ────────────────────────────────────────────────────────────────────
 function nav(id) {
@@ -355,6 +397,8 @@ function render(id) {
     case 'tools-tco':          renderTCO(); break;
     case 'tools-dc':           renderDC(); break;
     case 'tools-objections':   renderObjections(); break;
+    case 'crm-accounts':       renderAccounts(); break;
+    case 'crm-pipeline':       renderPipeline(); break;
     case 'training-flashcards':renderFlashcards(); break;
     case 'training-quizzes':   renderQuizzes(); break;
     case 'settings':           renderSettings(); break;
@@ -1654,6 +1698,318 @@ function quizNext() {
   quizState.qIndex++;
   if (quizState.qIndex >= QUIZ_TRACKS[quizState.track].questions.length) quizState.done = true;
   renderQuizzes();
+}
+
+// ── CRM ───────────────────────────────────────────────────────────────────────
+const DEAL_STAGES = ['Prospect','Discovery','Qualified','Proposal','Closed Won','Closed Lost'];
+const STAGE_COLORS = { 'Prospect':'#64748B','Discovery':'#4AD0FA','Qualified':'#22C55E','Proposal':'#F59E0B','Closed Won':'#22C55E','Closed Lost':'#EF4444' };
+const STAGE_BG     = { 'Prospect':'rgba(100,116,139,.12)','Discovery':'rgba(74,208,250,.1)','Qualified':'rgba(34,197,94,.1)','Proposal':'rgba(245,158,11,.1)','Closed Won':'rgba(34,197,94,.15)','Closed Lost':'rgba(239,68,68,.1)' };
+const ACCOUNT_STAGES = ['Lead','Prospect','Active','Customer','Inactive'];
+const ACCT_COLORS  = { 'Lead':'#64748B','Prospect':'#4AD0FA','Active':'#22C55E','Customer':'#22C55E','Inactive':'#EF4444' };
+const ACCT_BG      = { 'Lead':'rgba(100,116,139,.12)','Prospect':'rgba(74,208,250,.1)','Active':'rgba(34,197,94,.1)','Customer':'rgba(34,197,94,.18)','Inactive':'rgba(239,68,68,.1)' };
+
+const DEMO_ACCOUNTS = [
+  { id:'acc-1', name:'Sarah Chen', company:'CoreLogic AI', title:'VP Engineering', email:'schen@corelogicai.com', phone:'415-555-0101', gpuInterest:'H100 80GB SXM5', stage:'Active', notes:'Running Llama 3 70B fine-tuning pipeline. Budget approved for 8-GPU node.', createdAt:'2026-10-15', lastContact:'2026-11-01', _demo:true },
+  { id:'acc-2', name:'Marcus Webb', company:'Meridian Research', title:'Director of AI Infrastructure', email:'mwebb@meridianresearch.com', phone:'212-555-0202', gpuInterest:'H200 141GB SXM', stage:'Active', notes:'Academic spin-out, Series A. H200 for genomics inference workloads.', createdAt:'2026-10-20', lastContact:'2026-10-28', _demo:true },
+  { id:'acc-3', name:'James Ortega', company:'Titan Cloud Solutions', title:'CTO', email:'jortega@titancloud.com', phone:'303-555-0303', gpuInterest:'A100 80GB SXM4', stage:'Prospect', notes:'Cloud reseller building GPU cluster for end customers. Needs 3 nodes minimum.', createdAt:'2026-11-01', lastContact:'2026-11-03', _demo:true },
+];
+
+const DEMO_DEALS = [
+  { id:'deal-1', accountId:'acc-1', title:'CoreLogic AI — 8× H100 SXM5 Node', gpuType:'H100 80GB SXM5', gpuCount:8, estValue:215000, stage:'Proposal', nextAction:'Send TCO comparison + health report sample', nextActionDate:'2026-11-08', notes:'Compliance screening complete. Config finalized. Waiting on PO.', createdAt:'2026-10-16', updatedAt:'2026-11-01', _demo:true },
+  { id:'deal-2', accountId:'acc-2', title:'Meridian Research — 8× H200 Node', gpuType:'H200 141GB SXM', gpuCount:8, estValue:360000, stage:'Qualified', nextAction:'DC readiness call with their facilities team', nextActionDate:'2026-11-10', notes:'Strong interest, budget TBD pending board approval.', createdAt:'2026-10-21', updatedAt:'2026-10-28', _demo:true },
+  { id:'deal-3', accountId:'acc-3', title:'Titan Cloud — 3× A100 80GB Nodes', gpuType:'A100 80GB SXM4', gpuCount:24, estValue:285000, stage:'Discovery', nextAction:'Technical discovery call — workload types and timelines', nextActionDate:'2026-11-07', notes:'Price-sensitive. Need to walk through cert vs gray market value prop.', createdAt:'2026-11-01', updatedAt:'2026-11-03', _demo:true },
+  { id:'deal-4', accountId:'acc-1', title:'CoreLogic AI — Q1 Expansion 4× H100', gpuType:'H100 80GB SXM5', gpuCount:4, estValue:107500, stage:'Prospect', nextAction:'Follow up on Q1 expansion budget approval', nextActionDate:'2026-11-15', notes:'Initial mention during main deal call. Q1 budget not yet confirmed.', createdAt:'2026-11-02', updatedAt:'2026-11-02', _demo:true },
+  { id:'deal-5', accountId:'acc-2', title:'Meridian Research — 2× A100 Dev Nodes', gpuType:'A100 80GB SXM4', gpuCount:16, estValue:145000, stage:'Closed Won', nextAction:'Coordinate delivery and onboarding call', nextActionDate:'2026-11-12', notes:'PO signed 11/01. Ship by 11/14. Health reports sent.', createdAt:'2026-10-10', updatedAt:'2026-11-01', _demo:true },
+];
+
+function crmInit() {
+  if (!S.accounts.length) S.accounts = JSON.parse(JSON.stringify(DEMO_ACCOUNTS));
+  if (!S.deals.length) S.deals = JSON.parse(JSON.stringify(DEMO_DEALS));
+}
+
+let crmAccountSearch = '';
+
+function renderAccounts() {
+  crmInit();
+  const filtered = S.accounts.filter(a =>
+    !crmAccountSearch || [a.name, a.company, a.gpuInterest, a.stage, a.title].some(v => (v||'').toLowerCase().includes(crmAccountSearch.toLowerCase()))
+  );
+  const totalPipeline = S.deals.filter(d => !['Closed Won','Closed Lost'].includes(d.stage)).reduce((s,d) => s+d.estValue, 0);
+  const customers = S.accounts.filter(a => a.stage === 'Customer').length;
+  const active = S.accounts.filter(a => ['Active','Prospect'].includes(a.stage)).length;
+
+  const rows = filtered.map(a => {
+    const openDeals = S.deals.filter(d => d.accountId === a.id && !['Closed Won','Closed Lost'].includes(d.stage));
+    const pipeVal = openDeals.reduce((s,d) => s+d.estValue, 0);
+    return `<tr onclick="openAccountModal('${a.id}')" style="cursor:pointer">
+      <td>
+        <div style="font-weight:600">${a.company}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${a.name}${a.title?' · '+a.title:''}</div>
+      </td>
+      <td style="font-size:12px;color:var(--accent)">${a.gpuInterest||'—'}</td>
+      <td><span class="stage-badge" style="background:${ACCT_BG[a.stage]||''};color:${ACCT_COLORS[a.stage]||'var(--text-dim)'};border:1px solid ${ACCT_COLORS[a.stage]||'var(--border)'}50">${a.stage}</span></td>
+      <td style="font-size:12px;color:var(--text-dim)">${a.lastContact||'—'}</td>
+      <td style="font-size:13px;font-weight:600;color:${pipeVal>0?'var(--success)':'var(--text-muted)'}">${pipeVal>0?'$'+pipeVal.toLocaleString():'—'}</td>
+      <td onclick="event.stopPropagation()">
+        <button class="btn btn-ghost btn-sm" onclick="openDealModal(null,'${a.id}')">+ Deal</button>
+        <button class="btn btn-ghost btn-sm" style="margin-left:4px;color:var(--danger);border-color:rgba(239,68,68,.3)" onclick="deleteAccount('${a.id}')">Del</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('crm-accounts-content').innerHTML = `
+    <div class="stat-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+      <div class="stat-card"><div class="stat-label">Total Accounts</div><div class="stat-value">${S.accounts.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Active / Prospect</div><div class="stat-value" style="color:var(--success)">${active}</div></div>
+      <div class="stat-card"><div class="stat-label">Customers</div><div class="stat-value" style="color:var(--accent)">${customers}</div></div>
+      <div class="stat-card"><div class="stat-label">Open Pipeline</div><div class="stat-value" style="color:var(--success)">$${totalPipeline>=1000?(totalPipeline/1000).toFixed(0)+'K':totalPipeline}</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <input class="search-bar" style="margin-bottom:0;flex:1" placeholder="Search accounts..." value="${crmAccountSearch}" oninput="crmAccountSearch=this.value;renderAccounts()">
+      <button class="btn btn-primary" onclick="openAccountModal(null)">+ Add Account</button>
+    </div>
+    ${filtered.length===0 ? '<div style="color:var(--text-muted);font-size:13px;padding:20px 0">No accounts found.</div>' :
+    `<div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>Account</th><th>GPU Interest</th><th>Stage</th><th>Last Contact</th><th>Open Pipeline</th><th>Actions</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`}`;
+}
+
+function renderPipeline() {
+  crmInit();
+  const activeStages = ['Prospect','Discovery','Qualified','Proposal'];
+  const allStages = [...activeStages,'Closed Won','Closed Lost'];
+  const pipelineValue = S.deals.filter(d => !['Closed Won','Closed Lost'].includes(d.stage)).reduce((s,d) => s+d.estValue, 0);
+  const wonValue = S.deals.filter(d => d.stage==='Closed Won').reduce((s,d) => s+d.estValue, 0);
+  const wonCount = S.deals.filter(d => d.stage==='Closed Won').length;
+  const avgDeal = S.deals.length ? S.deals.reduce((s,d)=>s+d.estValue,0)/S.deals.length : 0;
+
+  const cols = allStages.map(stage => {
+    const stageDeals = S.deals.filter(d => d.stage===stage);
+    const stageVal = stageDeals.reduce((s,d) => s+d.estValue, 0);
+    const color = STAGE_COLORS[stage]||'#64748B';
+    const nextIdx = activeStages.indexOf(stage);
+    const nextStage = (nextIdx>=0 && nextIdx<activeStages.length-1) ? activeStages[nextIdx+1] : null;
+
+    const cards = stageDeals.map(d => {
+      const acc = S.accounts.find(a => a.id===d.accountId);
+      const gpuShort = d.gpuType.replace(' 80GB','').replace(' 141GB','').replace(' 40GB','');
+      return `<div class="deal-card" onclick="openDealModal('${d.id}')">
+        <div class="deal-company">${acc?acc.company:d.title}</div>
+        <div class="deal-contact" style="font-size:11px;color:var(--text-muted);margin-bottom:8px">${d.title}</div>
+        <div class="deal-meta">
+          <span class="deal-gpu">${d.gpuCount}× ${gpuShort}</span>
+          <span class="deal-value">$${(d.estValue/1000).toFixed(0)}K</span>
+        </div>
+        ${d.nextAction?`<div class="deal-next">&#8594; ${d.nextAction}</div>`:''}
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:10px" onclick="event.stopPropagation()">
+          ${nextStage?`<button class="btn btn-primary btn-sm" style="font-size:10px;padding:3px 8px" onclick="moveDeal('${d.id}','${nextStage}')">&#8594; ${nextStage}</button>`:''}
+          ${stage==='Proposal'?`<button class="btn btn-sm" style="background:rgba(34,197,94,.12);border:1px solid #22C55E;color:#22C55E;font-size:10px;padding:3px 8px" onclick="moveDeal('${d.id}','Closed Won')">Won &#10003;</button>`:''}
+          ${!['Closed Won','Closed Lost'].includes(stage)?`<button class="btn btn-sm" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);color:#EF4444;font-size:10px;padding:3px 8px" onclick="moveDeal('${d.id}','Closed Lost')">Lost</button>`:''}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="pipeline-col">
+      <div class="pipeline-col-hdr" style="border-color:${color}40">
+        <span class="pipeline-col-name" style="color:${color}">${stage}</span>
+        <span class="pipeline-col-count">${stageDeals.length}${stageVal>0?' · $'+(stageVal/1000).toFixed(0)+'K':''}</span>
+      </div>
+      ${cards||`<div style="font-size:12px;color:var(--text-muted);padding:12px 4px;text-align:center">Empty</div>`}
+    </div>`;
+  }).join('');
+
+  document.getElementById('crm-pipeline-content').innerHTML = `
+    <div class="stat-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+      <div class="stat-card"><div class="stat-label">Total Deals</div><div class="stat-value">${S.deals.length}</div></div>
+      <div class="stat-card"><div class="stat-label">Open Pipeline</div><div class="stat-value" style="color:var(--accent)">$${(pipelineValue/1000).toFixed(0)}K</div></div>
+      <div class="stat-card"><div class="stat-label">Closed Won</div><div class="stat-value" style="color:var(--success)">${wonCount} · $${(wonValue/1000).toFixed(0)}K</div></div>
+      <div class="stat-card"><div class="stat-label">Avg Deal Size</div><div class="stat-value" style="color:var(--text-dim)">${avgDeal?'$'+(avgDeal/1000).toFixed(0)+'K':'—'}</div></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+      <button class="btn btn-primary" onclick="openDealModal(null)">+ Add Deal</button>
+    </div>
+    <div class="pipeline-board">${cols}</div>`;
+}
+
+function openAccountModal(id) {
+  const acc = id ? S.accounts.find(a => a.id===id) : null;
+  const deals = id ? S.deals.filter(d => d.accountId===id) : [];
+  const dealsHtml = deals.length ? `
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Deals (${deals.length})</div>
+      ${deals.map(d=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(30,58,95,.3);font-size:12px;gap:8px">
+        <span style="flex:1;color:var(--text-dim)">${d.title}</span>
+        <span class="stage-badge" style="background:${STAGE_BG[d.stage]||''};color:${STAGE_COLORS[d.stage]||'var(--text-dim)'};border:1px solid ${STAGE_COLORS[d.stage]||'var(--border)'}50;font-size:10px">${d.stage}</span>
+        <span style="color:var(--success);font-weight:600;white-space:nowrap">$${d.estValue.toLocaleString()}</span>
+      </div>`).join('')}
+    </div>` : '';
+
+  const html = `<div class="modal-overlay" id="crm-modal" onclick="if(event.target===this)closeModal()">
+    <div class="modal-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div class="modal-title" style="margin-bottom:0">${acc?'Edit Account':'Add Account'}</div>
+        <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Contact Name *</label><input class="form-input" id="m-acc-name" value="${acc?.name||''}" placeholder="Sarah Chen"></div>
+        <div class="form-group"><label class="form-label">Company *</label><input class="form-input" id="m-acc-company" value="${acc?.company||''}" placeholder="CoreLogic AI"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="m-acc-title" value="${acc?.title||''}" placeholder="VP Engineering"></div>
+        <div class="form-group"><label class="form-label">GPU Interest</label>
+          <select class="form-select" id="m-acc-gpu">
+            ${['A100 40GB PCIe','A100 80GB PCIe','A100 80GB SXM4','H100 80GB PCIe','H100 80GB SXM5','H100 NVL 94GB','H200 141GB SXM','H200 141GB NVL','Multiple / TBD'].map(g=>`<option${(acc?.gpuInterest||'H100 80GB SXM5')===g?' selected':''}>${g}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="m-acc-email" value="${acc?.email||''}" placeholder="sarah@company.com"></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="m-acc-phone" value="${acc?.phone||''}" placeholder="415-555-0100"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Stage</label>
+          <select class="form-select" id="m-acc-stage">
+            ${ACCOUNT_STAGES.map(s=>`<option${(acc?.stage||'Lead')===s?' selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Last Contact</label><input class="form-input" id="m-acc-last" type="date" value="${acc?.lastContact||''}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="m-acc-notes" rows="3">${acc?.notes||''}</textarea></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveAccount('${id||''}')">Save Account</button>
+      </div>
+      ${dealsHtml}
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function openDealModal(id, preAccountId) {
+  const deal = id ? S.deals.find(d => d.id===id) : null;
+  const html = `<div class="modal-overlay" id="crm-modal" onclick="if(event.target===this)closeModal()">
+    <div class="modal-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div class="modal-title" style="margin-bottom:0">${deal?'Edit Deal':'Add Deal'}</div>
+        <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+      </div>
+      <div class="form-group"><label class="form-label">Deal Title *</label><input class="form-input" id="m-deal-title" value="${deal?.title||''}" placeholder="CoreLogic AI — 8× H100 SXM5 Node"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Account</label>
+          <select class="form-select" id="m-deal-account">
+            <option value="">— None —</option>
+            ${S.accounts.map(a=>`<option value="${a.id}"${(deal?.accountId||preAccountId||'')===a.id?' selected':''}>${a.company} (${a.name})</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Stage</label>
+          <select class="form-select" id="m-deal-stage">
+            ${DEAL_STAGES.map(s=>`<option${(deal?.stage||'Prospect')===s?' selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">GPU Type</label>
+          <select class="form-select" id="m-deal-gpu">
+            ${['A100 40GB PCIe','A100 80GB PCIe','A100 80GB SXM4','H100 80GB PCIe','H100 80GB SXM5','H100 NVL 94GB','H200 141GB SXM','H200 141GB NVL'].map(g=>`<option${(deal?.gpuType||'H100 80GB SXM5')===g?' selected':''}>${g}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">GPU Count</label><input class="form-input" id="m-deal-gpucount" type="number" value="${deal?.gpuCount||8}" min="1"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Est. Value ($)</label><input class="form-input" id="m-deal-value" type="number" value="${deal?.estValue||0}"></div>
+        <div class="form-group"><label class="form-label">Next Action Date</label><input class="form-input" id="m-deal-date" type="date" value="${deal?.nextActionDate||''}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Next Action</label><input class="form-input" id="m-deal-next" value="${deal?.nextAction||''}" placeholder="e.g. Send TCO comparison"></div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="m-deal-notes" rows="3">${deal?.notes||''}</textarea></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        ${deal?`<button class="btn btn-danger btn-sm" onclick="deleteDeal('${id}')">Delete</button>`:''}
+        <button class="btn btn-primary" onclick="saveDeal('${id||''}')">Save Deal</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function closeModal() { const m = document.getElementById('crm-modal'); if (m) m.remove(); }
+
+function saveAccount(id) {
+  const name = document.getElementById('m-acc-name').value.trim();
+  const company = document.getElementById('m-acc-company').value.trim();
+  if (!name || !company) { alert('Contact name and company are required.'); return; }
+  if (id) {
+    const acc = S.accounts.find(a => a.id===id);
+    if (acc) {
+      acc.name=name; acc.company=company;
+      acc.title=document.getElementById('m-acc-title').value.trim();
+      acc.gpuInterest=document.getElementById('m-acc-gpu').value;
+      acc.email=document.getElementById('m-acc-email').value.trim();
+      acc.phone=document.getElementById('m-acc-phone').value.trim();
+      acc.stage=document.getElementById('m-acc-stage').value;
+      acc.lastContact=document.getElementById('m-acc-last').value;
+      acc.notes=document.getElementById('m-acc-notes').value.trim();
+    }
+  } else {
+    S.accounts.push({ id:'acc-'+Date.now(), name, company,
+      title:document.getElementById('m-acc-title').value.trim(),
+      gpuInterest:document.getElementById('m-acc-gpu').value,
+      email:document.getElementById('m-acc-email').value.trim(),
+      phone:document.getElementById('m-acc-phone').value.trim(),
+      stage:document.getElementById('m-acc-stage').value,
+      lastContact:document.getElementById('m-acc-last').value,
+      notes:document.getElementById('m-acc-notes').value.trim(),
+      createdAt:new Date().toISOString().split('T')[0]
+    });
+  }
+  saveData(); closeModal(); renderAccounts();
+}
+
+function saveDeal(id) {
+  const title = document.getElementById('m-deal-title').value.trim();
+  if (!title) { alert('Deal title is required.'); return; }
+  const data = {
+    title,
+    accountId:document.getElementById('m-deal-account').value,
+    stage:document.getElementById('m-deal-stage').value,
+    gpuType:document.getElementById('m-deal-gpu').value,
+    gpuCount:parseInt(document.getElementById('m-deal-gpucount').value)||8,
+    estValue:parseFloat(document.getElementById('m-deal-value').value)||0,
+    nextActionDate:document.getElementById('m-deal-date').value,
+    nextAction:document.getElementById('m-deal-next').value.trim(),
+    notes:document.getElementById('m-deal-notes').value.trim(),
+    updatedAt:new Date().toISOString().split('T')[0]
+  };
+  if (id) {
+    const deal = S.deals.find(d => d.id===id);
+    if (deal) Object.assign(deal, data);
+  } else {
+    S.deals.push({ id:'deal-'+Date.now(), createdAt:new Date().toISOString().split('T')[0], ...data });
+  }
+  saveData(); closeModal();
+  if (S.currentSection==='crm-pipeline') renderPipeline();
+  else if (S.currentSection==='crm-accounts') renderAccounts();
+  else renderPipeline();
+}
+
+function moveDeal(id, newStage) {
+  const deal = S.deals.find(d => d.id===id);
+  if (deal) { deal.stage=newStage; deal.updatedAt=new Date().toISOString().split('T')[0]; saveData(); renderPipeline(); }
+}
+
+function deleteDeal(id) {
+  if (!confirm('Delete this deal?')) return;
+  S.deals = S.deals.filter(d => d.id!==id);
+  saveData(); closeModal();
+  if (S.currentSection==='crm-pipeline') renderPipeline();
+  else renderAccounts();
+}
+
+function deleteAccount(id) {
+  if (!confirm('Delete this account and all its deals?')) return;
+  S.accounts = S.accounts.filter(a => a.id!==id);
+  S.deals = S.deals.filter(d => d.accountId!==id);
+  saveData(); renderAccounts();
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
