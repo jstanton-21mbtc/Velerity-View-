@@ -354,6 +354,7 @@ const S = {
   quizProgress: { completed: [], scores: {} },
   dcChecks: {},
   accounts: [],
+  contacts: [],
   deals: [],
   currentSection: 'academy-gpus'
 };
@@ -365,15 +366,16 @@ function loadState() {
     const d = localStorage.getItem(K.data);
     if (d) {
       const o = JSON.parse(d);
-      if (o.dcChecks) S.dcChecks = o.dcChecks;
-      if (o.accounts) S.accounts = o.accounts;
-      if (o.deals) S.deals = o.deals;
+      if (o.dcChecks)  S.dcChecks  = o.dcChecks;
+      if (o.accounts)  S.accounts  = o.accounts;
+      if (o.contacts)  S.contacts  = o.contacts;
+      if (o.deals)     S.deals     = o.deals;
     }
   } catch(e) {}
 }
 
 function saveProgress() { localStorage.setItem(K.progress, JSON.stringify(S.quizProgress)); }
-function saveData() { localStorage.setItem(K.data, JSON.stringify({ dcChecks: S.dcChecks, accounts: S.accounts, deals: S.deals })); }
+function saveData() { localStorage.setItem(K.data, JSON.stringify({ dcChecks: S.dcChecks, accounts: S.accounts, contacts: S.contacts, deals: S.deals })); }
 
 // ── Router ────────────────────────────────────────────────────────────────────
 function nav(id) {
@@ -1892,9 +1894,18 @@ const DEMO_DEALS = [
   { id:'deal-5', accountId:'acc-2', title:'Meridian Research — 2× A100 Dev Nodes', gpuType:'A100 80GB SXM4', gpuCount:16, estValue:145000, stage:'Closed Won', nextAction:'Coordinate delivery and onboarding call', nextActionDate:'2026-11-12', notes:'PO signed 11/01. Ship by 11/14. Health reports sent.', createdAt:'2026-10-10', updatedAt:'2026-11-01', _demo:true },
 ];
 
+const CONTACT_ROLES = ['Primary Contact','Champion','Technical','Economic Buyer','Decision Maker','Influencer','Other'];
+
+const DEMO_CONTACTS = [
+  { id:'con-1', accountId:'acc-1', name:'Derek Huang', title:'ML Infrastructure Lead', email:'dhuang@corelogicai.com', phone:'415-555-0102', role:'Technical', notes:'Day-to-day infra contact. Runs the GPU cluster build-out.', createdAt:'2026-10-20', _demo:true },
+  { id:'con-2', accountId:'acc-1', name:'Patricia Voss', title:'CFO', email:'pvoss@corelogicai.com', phone:'415-555-0103', role:'Economic Buyer', notes:'Controls CapEx. Needs TCO analysis before final sign-off.', createdAt:'2026-10-22', _demo:true },
+  { id:'con-3', accountId:'acc-2', name:'Yuki Tanaka', title:'Head of AI Platform', email:'ytanaka@meridianresearch.com', phone:'212-555-0203', role:'Champion', notes:'Technical champion. PhD in ML — knows the hardware well.', createdAt:'2026-10-25', _demo:true },
+];
+
 function crmInit() {
   if (!S.accounts.length) S.accounts = JSON.parse(JSON.stringify(DEMO_ACCOUNTS));
-  if (!S.deals.length) S.deals = JSON.parse(JSON.stringify(DEMO_DEALS));
+  if (!S.contacts.length) S.contacts = JSON.parse(JSON.stringify(DEMO_CONTACTS));
+  if (!S.deals.length)    S.deals    = JSON.parse(JSON.stringify(DEMO_DEALS));
 }
 
 let crmAccountSearch = '';
@@ -1911,9 +1922,13 @@ function renderAccounts() {
   const rows = filtered.map(a => {
     const openDeals = S.deals.filter(d => d.accountId === a.id && !['Closed Won','Closed Lost'].includes(d.stage));
     const pipeVal = openDeals.reduce((s,d) => s+d.estValue, 0);
+    const extraContacts = S.contacts.filter(c => c.accountId === a.id).length;
+    const totalContacts = 1 + extraContacts; // primary + additional
     return `<tr onclick="openAccountModal('${a.id}')" style="cursor:pointer">
       <td>
-        <div style="font-weight:600">${a.company}</div>
+        <div style="font-weight:600;display:flex;align-items:center;gap:6px">${a.company}
+          ${extraContacts > 0 ? `<span style="font-size:10px;color:var(--accent);background:var(--accent-dim);border:1px solid rgba(74,208,250,.3);padding:1px 6px;border-radius:4px">${totalContacts} contacts</span>` : ''}
+        </div>
         <div style="font-size:11px;color:var(--text-muted)">${a.name}${a.title?' · '+a.title:''}</div>
       </td>
       <td style="font-size:12px;color:var(--accent)">${a.gpuInterest||'—'}</td>
@@ -1921,7 +1936,8 @@ function renderAccounts() {
       <td style="font-size:12px;color:var(--text-dim)">${a.lastContact||'—'}</td>
       <td style="font-size:13px;font-weight:600;color:${pipeVal>0?'var(--success)':'var(--text-muted)'}">${pipeVal>0?'$'+pipeVal.toLocaleString():'—'}</td>
       <td onclick="event.stopPropagation()">
-        <button class="btn btn-ghost btn-sm" onclick="openDealModal(null,'${a.id}')">+ Deal</button>
+        <button class="btn btn-ghost btn-sm" onclick="openContactModal('${a.id}',null)">+ Contact</button>
+        <button class="btn btn-ghost btn-sm" style="margin-left:4px" onclick="openDealModal(null,'${a.id}')">+ Deal</button>
         <button class="btn btn-ghost btn-sm" style="margin-left:4px;color:var(--danger);border-color:rgba(239,68,68,.3)" onclick="deleteAccount('${a.id}')">Del</button>
       </td>
     </tr>`;
@@ -2007,6 +2023,30 @@ function renderPipeline() {
 function openAccountModal(id) {
   const acc = id ? S.accounts.find(a => a.id===id) : null;
   const deals = id ? S.deals.filter(d => d.accountId===id) : [];
+  const accContacts = id ? S.contacts.filter(c => c.accountId===id) : [];
+
+  const contactsHtml = id ? `
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px">Additional Contacts (${accContacts.length})</div>
+        <button class="btn btn-ghost btn-sm" onclick="openContactModal('${id}',null)">+ Add Contact</button>
+      </div>
+      ${accContacts.length === 0 ? `<div style="font-size:12px;color:var(--text-muted);padding:6px 0">No additional contacts — primary contact is ${acc?.name||'listed above'}.</div>` :
+        accContacts.map(c => `
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(30,58,95,.3)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600">${c.name} <span style="font-size:10px;font-weight:600;color:var(--accent);background:var(--accent-dim);border:1px solid rgba(74,208,250,.3);padding:1px 6px;border-radius:4px;margin-left:4px">${c.role}</span></div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${c.title||''}${c.email?' · '+c.email:''}${c.phone?' · '+c.phone:''}</div>
+            ${c.notes?`<div style="font-size:11px;color:var(--text-dim);margin-top:2px;font-style:italic">${c.notes}</div>`:''}
+          </div>
+          <div style="display:flex;gap:4px;flex-shrink:0">
+            <button class="btn btn-ghost btn-sm" onclick="openContactModal('${id}','${c.id}')">Edit</button>
+            <button class="btn btn-ghost btn-sm" style="color:var(--danger);border-color:rgba(239,68,68,.3)" onclick="deleteContact('${c.id}','${id}')">Del</button>
+          </div>
+        </div>`).join('')
+      }
+    </div>` : '';
+
   const dealsHtml = deals.length ? `
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
       <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Deals (${deals.length})</div>
@@ -2023,6 +2063,7 @@ function openAccountModal(id) {
         <div class="modal-title" style="margin-bottom:0">${acc?'Edit Account':'Add Account'}</div>
         <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
       </div>
+      <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">Primary Contact</div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Contact Name *</label><input class="form-input" id="m-acc-name" value="${acc?.name||''}" placeholder="Sarah Chen"></div>
         <div class="form-group"><label class="form-label">Company *</label><input class="form-input" id="m-acc-company" value="${acc?.company||''}" placeholder="CoreLogic AI"></div>
@@ -2052,6 +2093,7 @@ function openAccountModal(id) {
         <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
         <button class="btn btn-primary" onclick="saveAccount('${id||''}')">Save Account</button>
       </div>
+      ${contactsHtml}
       ${dealsHtml}
     </div>
   </div>`;
@@ -2105,6 +2147,73 @@ function openDealModal(id, preAccountId) {
 }
 
 function closeModal() { const m = document.getElementById('crm-modal'); if (m) m.remove(); }
+function closeContactModal() { const m = document.getElementById('contact-modal'); if (m) m.remove(); }
+
+function openContactModal(accountId, contactId) {
+  const con = contactId ? S.contacts.find(c => c.id===contactId) : null;
+  const acc = S.accounts.find(a => a.id===accountId);
+  const html = `<div class="modal-overlay" id="contact-modal" style="z-index:500" onclick="if(event.target===this)closeContactModal()">
+    <div class="modal-box" style="max-width:460px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div class="modal-title" style="margin-bottom:0">${con?'Edit Contact':'Add Contact'}${acc?' — '+acc.company:''}</div>
+        <button class="btn btn-ghost btn-sm" onclick="closeContactModal()">Close</button>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="m-con-name" value="${con?.name||''}" placeholder="Derek Huang"></div>
+        <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="m-con-title" value="${con?.title||''}" placeholder="ML Infrastructure Lead"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="m-con-email" value="${con?.email||''}" placeholder="dhuang@company.com"></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="m-con-phone" value="${con?.phone||''}" placeholder="415-555-0102"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Role</label>
+        <select class="form-select" id="m-con-role">
+          ${CONTACT_ROLES.map(r=>`<option${(con?.role||'Technical')===r?' selected':''}>${r}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="m-con-notes" rows="2">${con?.notes||''}</textarea></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px">
+        <button class="btn btn-ghost" onclick="closeContactModal()">Cancel</button>
+        ${con?`<button class="btn btn-danger btn-sm" onclick="deleteContact('${con.id}','${accountId}')">Delete</button>`:''}
+        <button class="btn btn-primary" onclick="saveContact('${accountId}','${contactId||''}')">Save Contact</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function saveContact(accountId, contactId) {
+  const name = document.getElementById('m-con-name').value.trim();
+  if (!name) { alert('Contact name is required.'); return; }
+  const data = {
+    name,
+    title: document.getElementById('m-con-title').value.trim(),
+    email: document.getElementById('m-con-email').value.trim(),
+    phone: document.getElementById('m-con-phone').value.trim(),
+    role:  document.getElementById('m-con-role').value,
+    notes: document.getElementById('m-con-notes').value.trim(),
+  };
+  if (contactId) {
+    const con = S.contacts.find(c => c.id===contactId);
+    if (con) Object.assign(con, data);
+  } else {
+    S.contacts.push({ id:'con-'+Date.now(), accountId, createdAt: new Date().toISOString().split('T')[0], ...data });
+  }
+  saveData();
+  closeContactModal();
+  // Re-open account modal to reflect updated contacts list
+  const modal = document.getElementById('crm-modal');
+  if (modal) { modal.remove(); openAccountModal(accountId); }
+}
+
+function deleteContact(contactId, accountId) {
+  if (!confirm('Remove this contact?')) return;
+  S.contacts = S.contacts.filter(c => c.id!==contactId);
+  saveData();
+  closeContactModal();
+  const modal = document.getElementById('crm-modal');
+  if (modal) { modal.remove(); openAccountModal(accountId); }
+}
 
 function saveAccount(id) {
   const name = document.getElementById('m-acc-name').value.trim();
@@ -2178,9 +2287,10 @@ function deleteDeal(id) {
 }
 
 function deleteAccount(id) {
-  if (!confirm('Delete this account and all its deals?')) return;
-  S.accounts = S.accounts.filter(a => a.id!==id);
-  S.deals = S.deals.filter(d => d.accountId!==id);
+  if (!confirm('Delete this account and all its deals and contacts?')) return;
+  S.accounts  = S.accounts.filter(a => a.id!==id);
+  S.contacts  = S.contacts.filter(c => c.accountId!==id);
+  S.deals     = S.deals.filter(d => d.accountId!==id);
   saveData(); renderAccounts();
 }
 
