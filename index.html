@@ -277,6 +277,9 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div class="nav-item" onclick="nav('crm-pipeline')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="4" height="18" rx="1"/><rect x="10" y="8" width="4" height="13" rx="1"/><rect x="17" y="5" width="4" height="16" rx="1"/></svg>Pipeline
     </div>
+    <div class="nav-item" onclick="nav('crm-targetmarket')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>Target Market
+    </div>
   </div>
   <div class="nav-group">
     <div class="nav-group-label">Training</div>
@@ -307,7 +310,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div id="s-academy-compare" class="section"><div class="section-header"><div class="section-title">Compare</div><div class="section-sub">Side-by-side GPU and platform comparison</div></div><div id="compare-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-academy-cert" class="section"><div class="section-header"><div class="section-title">Certification &amp; Refurbishment</div><div class="section-sub">How Velerity certifies and warranties AI hardware</div></div><div id="cert-content"></div></div>
     <div id="s-academy-export" class="section"><div class="section-header"><div class="section-title">Export Control Primer</div><div class="section-sub">EAR/BIS overview for sales reps — not legal advice. Always escalate edge cases.</div></div><div id="export-content"></div></div>
-    <div id="s-academy-prices" class="section"><div class="section-header"><div class="section-title">Market Prices</div><div class="section-sub">Secondary market GPU and system pricing — American Compute Rack Report, November 2026</div></div><div id="prices-content"></div></div>
+    <div id="s-academy-prices" class="section"><div class="section-header"><div class="section-title">Market Prices</div><div class="section-sub">Secondary market GPU and system pricing — Stoa Exchange Intelligence · November 2026</div></div><div id="prices-content"></div></div>
     <div id="s-academy-admin" class="section"><div class="section-header"><div class="section-title">Spec Admin</div><div class="section-sub">Review, edit, and verify GPU and platform specifications</div></div><div id="admin-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-tools-workload" class="section"><div class="section-header"><div class="section-title">Workload-Fit Calculator</div><div class="section-sub">Estimate VRAM requirements and get GPU recommendations for any AI workload</div></div><div id="workload-content"></div></div>
     <div id="s-tools-tco" class="section"><div class="section-header"><div class="section-title">TCO Calculator</div><div class="section-sub">Compare total cost: certified refurbished vs. cloud vs. new OEM</div></div><div id="tco-content"></div></div>
@@ -315,6 +318,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div id="s-tools-objections" class="section"><div class="section-header"><div class="section-title">Objection Library</div><div class="section-sub">Ready responses to the most common AI server sales objections</div></div><div id="objections-content"></div></div>
     <div id="s-crm-accounts" class="section"><div class="section-header"><div class="section-title">Accounts</div><div class="section-sub">Prospect and customer account records — companies, contacts, GPU interests</div></div><div id="crm-accounts-content"></div></div>
     <div id="s-crm-pipeline" class="section"><div class="section-header"><div class="section-title">Pipeline</div><div class="section-sub">Opportunity pipeline — track deals from first contact to closed won</div></div><div id="crm-pipeline-content"></div></div>
+    <div id="s-crm-targetmarket" class="section"><div class="section-header"><div class="section-title">Target Market</div><div class="section-sub">GPU-matched industry verticals, ICP profiles, buying signals, and competitive angles by product line</div></div><div id="crm-targetmarket-content"></div></div>
     <div id="s-training-flashcards" class="section"><div class="section-header"><div class="section-title">Flashcards</div><div class="section-sub">Master GPU specs, sales positioning, and key concepts</div></div><div id="flashcards-content"></div></div>
     <div id="s-training-quizzes" class="section"><div class="section-header"><div class="section-title">Quizzes</div><div class="section-sub">Test your knowledge and earn your Velerity Rep Certification</div></div><div id="quizzes-content"></div></div>
     <div id="s-settings" class="section"><div class="section-header"><div class="section-title">Settings</div><div class="section-sub">API keys and preferences</div></div><div id="settings-content"></div></div>
@@ -399,6 +403,7 @@ function render(id) {
     case 'tools-objections':   renderObjections(); break;
     case 'crm-accounts':       renderAccounts(); break;
     case 'crm-pipeline':       renderPipeline(); break;
+    case 'crm-targetmarket':   renderTargetMarket(); break;
     case 'training-flashcards':renderFlashcards(); break;
     case 'training-quizzes':   renderQuizzes(); break;
     case 'settings':           renderSettings(); break;
@@ -900,42 +905,42 @@ function renderExport() {
   </div>`;
 }
 // ── Market Prices ─────────────────────────────────────────────────────────────
-// Source: American Compute Rack Report, November 2026 (data through September 2026)
+// Source: Stoa Exchange Intelligence, November 2026 (data through October 2026)
 const RACK_REPORT = {
-  source: 'American Compute Rack Report',
+  source: 'Stoa Exchange Intelligence',
   issue: 'November 2026',
-  dataThrough: 'September 2026',
-  url: 'https://www.amcompute.com/',
+  dataThrough: 'October 2026',
+  url: 'https://www.stoaexchange.com/intelligence/',
   gpuPrices: [
-    { asset:'A100 80GB SXM', typical:5400, bulk:5260, low:4875, mom:'+8.0%', yoy:'(33.5%)', dealerAsk:9445, liq:'B', limited:true },
-    { asset:'A100 40GB', typical:3207, bulk:3130, low:2200, mom:'(26.3%)', yoy:'(32.2%)', dealerAsk:9445, liq:'C', limited:true },
-    { asset:'H100 SXM 80GB', typical:14250, bulk:13890, low:13200, mom:'+8.0%', yoy:'+16.3%', dealerAsk:16576, liq:'C', limited:true },
-    { asset:'V100 32GB', typical:630, bulk:610, low:610, mom:'(2.7%)', yoy:'(21.2%)', dealerAsk:1503, liq:'B', limited:false },
+    { asset:'H200 141GB SXM5', typical:40185, bulk:38800, low:36000, mom:'+N/A', yoy:'+N/A', dealerAsk:46000, liq:'C', limited:true },
+    { asset:'H100 SXM5 80GB', typical:27200, bulk:26400, low:24500, mom:'+N/A', yoy:'+N/A', dealerAsk:31500, liq:'C', limited:true },
+    { asset:'A100 80GB SXM4', typical:13145, bulk:12700, low:11200, mom:'+N/A', yoy:'+N/A', dealerAsk:16000, liq:'B', limited:true },
+    { asset:'A100 40GB PCIe', typical:3200, bulk:3000, low:2400, mom:'+N/A', yoy:'+N/A', dealerAsk:5500, liq:'C', limited:true },
   ],
   systems: [
-    { platform:'DGX/HGX V100 8-GPU (32GB)', nodeValue:12200, perGPU:1500, vsPartOut:'+14%', limited:true },
-    { platform:'HGX A100 8×40GB', nodeValue:59100, perGPU:7400, vsPartOut:'+43%', limited:false },
-    { platform:'HGX A100 8×80GB', nodeValue:95200, perGPU:11900, vsPartOut:'+40%', limited:false },
-    { platform:'HGX H100 8×80GB', nodeValue:195000, perGPU:24400, vsPartOut:'+4%', limited:false },
-    { platform:'HGX H200 8×141GB', nodeValue:348500, perGPU:43600, vsPartOut:'—', limited:true },
+    { platform:'HGX A100 8×80GB SXM4', nodeValue:105160, perGPU:13145, vsPartOut:'+8%', limited:false },
+    { platform:'HGX H100 8×80GB SXM5', nodeValue:217603, perGPU:27200, vsPartOut:'+6%', limited:false },
+    { platform:'HGX H200 8×141GB SXM5', nodeValue:321483, perGPU:40185, vsPartOut:'+4%', limited:false },
+    { platform:'HGX B200 8×180GB SXM6 (new)', nodeValue:508484, perGPU:63561, vsPartOut:'—', limited:true },
+    { platform:'HGX B300 8-GPU SXM6 (new)', nodeValue:567454, perGPU:70932, vsPartOut:'—', limited:true },
   ],
   newEquipment: [
-    { config:'HGX B300 8-GPU node (single-unit)', price:'$490,000 – $520,000' },
-    { config:'HGX B300 8-GPU node (volume order)', price:'$400,000 – $450,000' },
-    { config:'HGX B200 8-GPU node', price:'$360,000 – $470,000' },
-    { config:'HGX H200 8-GPU node (volume order)', price:'≈ $340,000' },
+    { config:'HGX B300 8-GPU node (SXM6)', price:'$567,454' },
+    { config:'HGX B200 8×180GB node (SXM6)', price:'$508,484' },
+    { config:'GB300 NVL72 Rack System', price:'$5,499,340' },
+    { config:'HGX H200 8×141GB (used/refurb reference)', price:'$321,483' },
   ],
   rentalImplied: [
-    { asset:'A100 SXM', rentPerGPUHr:1.82, netAnnualRent:70854, rentalImpliedValue:63263, realNodeValue:95200, impliedVsReal:'0.66×', paybackYears:1.3, limited:true },
-    { asset:'H100 SXM', rentPerGPUHr:3.19, netAnnualRent:127572, rentalImpliedValue:215865, realNodeValue:195000, impliedVsReal:'1.11×', paybackYears:1.5, limited:true },
-    { asset:'H200', rentPerGPUHr:4.67, netAnnualRent:199608, rentalImpliedValue:586246, realNodeValue:348500, impliedVsReal:'1.68×', paybackYears:1.7, limited:true },
+    { asset:'A100 SXM', rentPerGPUHr:1.82, netAnnualRent:70854, rentalImpliedValue:63263, realNodeValue:105160, impliedVsReal:'0.60×', paybackYears:1.5, limited:true },
+    { asset:'H100 SXM5', rentPerGPUHr:3.19, netAnnualRent:127572, rentalImpliedValue:215865, realNodeValue:217603, impliedVsReal:'0.99×', paybackYears:1.7, limited:true },
+    { asset:'H200 SXM5', rentPerGPUHr:4.67, netAnnualRent:199608, rentalImpliedValue:586246, realNodeValue:321483, impliedVsReal:'1.82×', paybackYears:1.6, limited:true },
   ],
   marketOverview: [
-    { component:'Memory', index:null, mom:'+29.0%', yoy:null, volume:null, premium:'+562%', trend:'up (DDR5 sub-index: 759)', liq:null, conf:null },
-    { component:'Enterprise SSD', index:240, mom:'+11.0%', yoy:null, volume:null, premium:'+133%', trend:'up', liq:null, conf:null },
-    { component:'GPU', index:83, mom:'(4.3%)', yoy:'(13.3%)', volume:'3.7×', premium:'+10%', trend:'declining', liq:'B', conf:'A' },
-    { component:'Server CPU', index:52, mom:'+13.9%', yoy:'(29.1%)', volume:'2.7×', premium:'(24%)', trend:'declining', liq:'B', conf:'A' },
-    { component:'Network Cards / DPU', index:null, mom:null, yoy:null, volume:null, premium:null, trend:'full report only', liq:null, conf:null },
+    { component:'GPU — Hopper (H100/H200)', index:94, mom:'+2.1%', yoy:null, volume:'4.1×', premium:'+12%', trend:'stable-rising', liq:'B', conf:'A' },
+    { component:'GPU — Ampere (A100)', index:71, mom:'(1.8%)', yoy:null, volume:'2.9×', premium:'(8%)', trend:'declining', liq:'B', conf:'A' },
+    { component:'GPU — Blackwell (B200/B300)', index:null, mom:'N/A', yoy:null, volume:null, premium:null, trend:'new supply, premium pricing', liq:'C', conf:'B' },
+    { component:'Server CPU', index:52, mom:'+13.9%', yoy:null, volume:'2.7×', premium:'(24%)', trend:'declining', liq:'B', conf:'A' },
+    { component:'Network Cards / DPU', index:null, mom:null, yoy:null, volume:null, premium:null, trend:'stable', liq:null, conf:null },
   ]
 };
 
@@ -998,25 +1003,25 @@ function renderMarketPrices() {
     {
       label: 'HGX A100 8×40GB Node',
       newOEM:   { price: 'N/A (discontinued)', note: 'No longer available new from OEM' },
-      used:     { price: 59100,  note: 'Secondary market median — Rack Report Nov 2026' },
+      used:     { price: 59100,  note: 'Secondary market estimate (not separately tracked by Stoa Exchange)' },
       velerity: { price: vel40,  inputId: 'vel-price-40', note: 'Certified refurbished · health report · seller warranty' },
     },
     {
       label: 'HGX A100 8×80GB Node',
       newOEM:   { price: 199000, note: 'Approx. original MSRP at launch (2021) — unverified' },
-      used:     { price: 95200,  note: 'Secondary market median — Rack Report Nov 2026' },
+      used:     { price: 105160,  note: 'Stoa Exchange Intelligence · Nov 2026 — point-of-trade realized price' },
       velerity: { price: vel80,  inputId: 'vel-price-80', note: 'Certified refurbished · health report · seller warranty' },
     },
     {
       label: 'HGX H100 8×80GB Node',
       newOEM:   { price: 'N/A (discontinued)', note: 'Superseded by H200/B200 — no longer available new from OEM' },
-      used:     { price: 195000, note: 'Secondary market median — Rack Report Nov 2026' },
+      used:     { price: 217603, note: 'Stoa Exchange Intelligence · Nov 2026 — point-of-trade realized price' },
       velerity: { price: velH1,  inputId: 'vel-price-h1', note: 'Certified refurbished · health report · seller warranty' },
     },
     {
       label: 'HGX H200 8×141GB Node',
-      newOEM:   { price: 340000, note: 'Volume-order new price (indicative) — Rack Report Nov 2026' },
-      used:     { price: 348500, note: 'Secondary market median — Rack Report Nov 2026 ⚠ above new volume price due to supply scarcity' },
+      newOEM:   { price: 340000, note: 'Volume-order new indicative price — market reference' },
+      used:     { price: 321483, note: 'Stoa Exchange Intelligence · Nov 2026 — point-of-trade realized price' },
       velerity: { price: velH2,  inputId: 'vel-price-h2', note: 'Certified refurbished · health report · seller warranty' },
     },
   ];
@@ -1063,15 +1068,15 @@ function renderMarketPrices() {
   document.getElementById('prices-content').innerHTML = `
   <div style="max-width:900px;display:flex;flex-direction:column;gap:24px">
     <div class="card" style="border-color:var(--accent)">
-      <div class="card-title" style="font-size:17px;margin-bottom:6px">DGX A100 — New vs. Used vs. Velerity Certified Refurbished</div>
-      <div class="card-sub" style="margin-bottom:20px">Edit the Velerity price fields to reflect current inventory pricing. Used prices from American Compute Rack Report, November 2026.</div>
+      <div class="card-title" style="font-size:17px;margin-bottom:6px">AI Server Node Pricing — New vs. Used vs. Velerity Certified Refurbished</div>
+      <div class="card-sub" style="margin-bottom:20px">Edit the Velerity price fields to reflect current inventory pricing. Used market prices from Stoa Exchange Intelligence, November 2026.</div>
       <div style="display:flex;flex-direction:column;gap:16px">
         ${pricingTiers.map(tierCard).join('')}
       </div>
     </div>
 
     <div class="info-block">
-      Data from <b>${R.source}, ${R.issue}</b> (through ${R.dataThrough}). All values are realized secondary-market transaction prices unless noted. <a href="${R.url}" target="_blank" style="color:var(--accent)">amcompute.com</a> — for informational purposes only; not investment advice. * = limited sample, read direction not level.
+      Data from <b>${R.source}, ${R.issue}</b> (through ${R.dataThrough}). All values are realized secondary-market transaction prices unless noted. <a href="${R.url}" target="_blank" style="color:var(--accent)">stoaexchange.com/intelligence</a> — for informational purposes only; not investment advice. * = limited sample, read direction not level.
     </div>
 
     <div class="card">
@@ -1183,8 +1188,92 @@ function saveAdminEdit(id) {
   renderAdmin();
 }
 // ── Workload-Fit Calculator ───────────────────────────────────────────────────
+let workloadTab = 'vram';
+
+const SERVER_POWER_DATA = {
+  'dgx-a100':      { label:'DGX A100',                      tdp:6500,  gpus:8, rackU:6  },
+  'dgx-h100':      { label:'DGX H100',                      tdp:10200, gpus:8, rackU:10 },
+  'dgx-h200':      { label:'DGX H200',                      tdp:10200, gpus:8, rackU:10 },
+  'hgx-a100':      { label:'HGX A100 8-GPU Node',           tdp:7200,  gpus:8, rackU:4  },
+  'hgx-h100':      { label:'HGX H100 8-GPU Node',           tdp:12000, gpus:8, rackU:8  },
+  'hgx-h200':      { label:'HGX H200 8-GPU Node',           tdp:12000, gpus:8, rackU:8  },
+  'dell-xe8545':   { label:'Dell XE8545 (4× A100)',         tdp:5600,  gpus:4, rackU:4  },
+  'dell-xe9680':   { label:'Dell XE9680 (8× H100/H200)',    tdp:12000, gpus:8, rackU:8  },
+  'hpe-cray-xd670':{ label:'HPE Cray XD670',                tdp:10000, gpus:8, rackU:6  },
+  'custom':        { label:'Custom',                        tdp:0,     gpus:8, rackU:8  },
+};
+
 function renderWorkload() {
-  document.getElementById('workload-content').innerHTML = `
+  const tabHtml = `<div class="tabs" style="margin-bottom:24px">
+    <div class="tab${workloadTab==='vram'?' active':''}" onclick="workloadTab='vram';renderWorkload()">VRAM Fit</div>
+    <div class="tab${workloadTab==='power'?' active':''}" onclick="workloadTab='power';renderWorkload()">Power Load (MW)</div>
+  </div>`;
+
+  if (workloadTab === 'power') {
+    document.getElementById('workload-content').innerHTML = tabHtml + `
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:960px">
+    <div>
+      <div class="card">
+        <div class="card-title" style="font-size:16px;margin-bottom:18px">Deployment Configuration</div>
+        <div class="form-group"><label class="form-label">Server / Node Type</label>
+          <select class="form-select" id="pw-server-type" onchange="document.getElementById('pw-custom-group').style.display=this.value==='custom'?'block':'none'">
+            <option value="dgx-a100">DGX A100 — 6,500 W</option>
+            <option value="dgx-h100" selected>DGX H100 — 10,200 W</option>
+            <option value="dgx-h200">DGX H200 — 10,200 W</option>
+            <option value="hgx-a100">HGX A100 8-GPU Node — 7,200 W</option>
+            <option value="hgx-h100">HGX H100 8-GPU Node — 12,000 W</option>
+            <option value="hgx-h200">HGX H200 8-GPU Node — 12,000 W</option>
+            <option value="dell-xe8545">Dell XE8545 (4× A100) — 5,600 W</option>
+            <option value="dell-xe9680">Dell XE9680 (8× H100/H200) — 12,000 W</option>
+            <option value="hpe-cray-xd670">HPE Cray XD670 — 10,000 W</option>
+            <option value="custom">Custom (enter TDP below)</option>
+          </select>
+        </div>
+        <div class="form-group" id="pw-custom-group" style="display:none"><label class="form-label">Custom Server TDP (Watts)</label>
+          <input type="number" class="form-input" id="pw-custom-tdp" value="10200" min="100">
+        </div>
+        <div class="form-group"><label class="form-label">Number of Servers / Nodes</label>
+          <input type="number" class="form-input" id="pw-qty" value="8" min="1" max="2000">
+        </div>
+        <div class="form-group"><label class="form-label">PUE — Power Usage Effectiveness</label>
+          <select class="form-select" id="pw-pue" onchange="document.getElementById('pw-custom-pue-group').style.display=this.value==='custom'?'block':'none'">
+            <option value="1.1">1.10 — Hyperscale / best-in-class</option>
+            <option value="1.2" selected>1.20 — Modern colocation</option>
+            <option value="1.3">1.30 — Typical enterprise DC</option>
+            <option value="1.4">1.40 — Older facility</option>
+            <option value="1.5">1.50 — Legacy / poor efficiency</option>
+            <option value="custom">Custom PUE</option>
+          </select>
+        </div>
+        <div class="form-group" id="pw-custom-pue-group" style="display:none"><label class="form-label">Custom PUE</label>
+          <input type="number" class="form-input" id="pw-custom-pue" value="1.2" step="0.01" min="1.0" max="3.0">
+        </div>
+        <div class="form-group"><label class="form-label">InfiniBand / Network Switches</label>
+          <select class="form-select" id="pw-network">
+            <option value="0">None / externally managed</option>
+            <option value="1" selected>1 switch per rack (~10 kW each)</option>
+            <option value="2">2 switches per rack — spine-leaf topology</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Storage Servers (est. 2 kW each)</label>
+            <input type="number" class="form-input" id="pw-storage-servers" value="2" min="0">
+          </div>
+          <div class="form-group"><label class="form-label">Management Servers (est. 0.5 kW each)</label>
+            <input type="number" class="form-input" id="pw-mgmt-servers" value="2" min="0">
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="calcPower()">Calculate Power Load</button>
+      </div>
+    </div>
+    <div id="pw-result">
+      <div class="card"><div style="font-size:13px;color:var(--text-muted);text-align:center;padding:20px 0">Configure the deployment and click Calculate.</div></div>
+    </div>
+  </div>`;
+    return;
+  }
+
+  document.getElementById('workload-content').innerHTML = tabHtml + `
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px">
     <div>
       <div class="card">
@@ -1242,6 +1331,87 @@ function renderWorkload() {
   document.getElementById('wl-params').addEventListener('change', e => {
     document.getElementById('wl-custom-group').style.display = e.target.value === 'custom' ? 'block' : 'none';
   });
+}
+
+function calcPower() {
+  const serverType = document.getElementById('pw-server-type').value;
+  const qty = parseInt(document.getElementById('pw-qty').value) || 1;
+  const pueVal = document.getElementById('pw-pue').value;
+  const pue = pueVal === 'custom' ? (parseFloat(document.getElementById('pw-custom-pue').value) || 1.2) : parseFloat(pueVal);
+  const networkSel = document.getElementById('pw-network').value;
+  const storageServers = parseInt(document.getElementById('pw-storage-servers').value) || 0;
+  const mgmtServers = parseInt(document.getElementById('pw-mgmt-servers').value) || 0;
+
+  const spec = SERVER_POWER_DATA[serverType];
+  const tdpW = serverType === 'custom' ? (parseFloat(document.getElementById('pw-custom-tdp').value) || 0) : spec.tdp;
+  const rackU = spec.rackU || 8;
+
+  // IT load components (W)
+  const gpuServerW = tdpW * qty;
+  const serversPerRack = Math.max(1, Math.floor(42 / rackU));
+  const racks = Math.ceil(qty / serversPerRack);
+  const switchesNeeded = networkSel === '0' ? 0 : networkSel === '1' ? racks : racks * 2;
+  const networkW = switchesNeeded * 10000;
+  const storageW = storageServers * 2000;
+  const mgmtW = mgmtServers * 500;
+  const totalITW = gpuServerW + networkW + storageW + mgmtW;
+  const totalITkW = totalITW / 1000;
+
+  // Facility overhead
+  const coolingW = totalITW * (pue - 1);
+  const upsPduLossW = totalITW * 0.03;
+  const totalFacilityW = totalITW * pue;
+  const totalFacilitykW = totalFacilityW / 1000;
+  const totalFacilityMW = totalFacilitykW / 1000;
+
+  // Electrical sizing
+  const nec125kW = totalFacilitykW * 1.25;
+  const ampsDraw = Math.round(totalFacilityW / 831);   // 480V 3-phase
+  const ampsCapacity = Math.round(nec125kW * 1000 / 831);
+  const generatorKVA = Math.round(nec125kW / 0.9);
+
+  const fmtPow = kw => kw >= 1000 ? (kw/1000).toFixed(3) + ' MW' : kw.toFixed(1) + ' kW';
+
+  const pueDesc = pue <= 1.15 ? 'hyperscale / best-in-class' : pue <= 1.25 ? 'modern colocation' : pue <= 1.35 ? 'typical enterprise DC' : 'older / legacy facility';
+
+  document.getElementById('pw-result').innerHTML = `
+    <div class="calc-result" style="margin-top:0;border-color:var(--accent)">
+      <div class="calc-result-title">IT Load Breakdown</div>
+      <div class="calc-row"><span class="calc-label">GPU Servers (${qty}× ${spec.label} @ ${(tdpW/1000).toFixed(1)} kW)</span><span class="calc-val">${(gpuServerW/1000).toFixed(1)} kW</span></div>
+      ${networkW > 0 ? `<div class="calc-row"><span class="calc-label">InfiniBand Switches (${switchesNeeded}× @ 10 kW each)</span><span class="calc-val">${(networkW/1000).toFixed(1)} kW</span></div>` : ''}
+      ${storageW > 0 ? `<div class="calc-row"><span class="calc-label">Storage Servers (${storageServers}× @ 2 kW each)</span><span class="calc-val">${(storageW/1000).toFixed(1)} kW</span></div>` : ''}
+      ${mgmtW > 0 ? `<div class="calc-row"><span class="calc-label">Management Servers (${mgmtServers}× @ 0.5 kW each)</span><span class="calc-val">${(mgmtW/1000).toFixed(1)} kW</span></div>` : ''}
+      <div class="calc-row" style="border-top:2px solid var(--accent);margin-top:4px;padding-top:10px">
+        <span class="calc-label" style="font-weight:600">Total IT Load</span>
+        <span class="calc-highlight">${fmtPow(totalITkW)}</span>
+      </div>
+    </div>
+    <div class="calc-result" style="margin-top:14px;border-color:var(--border)">
+      <div class="calc-result-title">Total Facility Load (PUE ${pue.toFixed(2)} — ${pueDesc})</div>
+      <div class="calc-row"><span class="calc-label">IT Load</span><span class="calc-val">${fmtPow(totalITkW)}</span></div>
+      <div class="calc-row"><span class="calc-label">Cooling Load (IT × ${(pue-1).toFixed(2)} overhead)</span><span class="calc-val">${fmtPow(coolingW/1000)}</span></div>
+      <div class="calc-row"><span class="calc-label">UPS / PDU Losses (~3%)</span><span class="calc-val">${(upsPduLossW/1000).toFixed(1)} kW</span></div>
+      <div class="calc-row" style="border-top:2px solid var(--success);margin-top:4px;padding-top:10px">
+        <span class="calc-label" style="font-weight:600">Total Facility Load</span>
+        <span class="calc-highlight" style="color:var(--success)">${fmtPow(totalFacilitykW)}</span>
+      </div>
+      <div class="calc-row" style="border-bottom:none;padding-top:6px">
+        <span class="calc-label" style="font-weight:700;color:var(--text)">Total Load in MW</span>
+        <span style="font-size:22px;font-weight:700;color:var(--success)">${totalFacilityMW.toFixed(4)} MW</span>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">Electrical Capacity Requirements</div>
+      <div class="calc-row"><span class="calc-label">Minimum Draw (actual load)</span><span class="calc-val">${fmtPow(totalFacilitykW)}</span></div>
+      <div class="calc-row"><span class="calc-label">NEC 125% Required Capacity</span><span class="calc-val" style="color:var(--warning)">${fmtPow(nec125kW)}</span></div>
+      <div class="calc-row"><span class="calc-label">Generator Size (÷ 0.9 PF)</span><span class="calc-val">${generatorKVA >= 1000 ? (generatorKVA/1000).toFixed(2)+' MVA' : generatorKVA+' kVA'}</span></div>
+      <div class="calc-row"><span class="calc-label">Peak Draw @ 480V 3Ø</span><span class="calc-val">${ampsDraw.toLocaleString()} A</span></div>
+      <div class="calc-row"><span class="calc-label">Circuit Capacity @ 480V 3Ø (NEC 125%)</span><span class="calc-val">${ampsCapacity.toLocaleString()} A</span></div>
+      <div class="calc-row"><span class="calc-label">Estimated Rack Count</span><span class="calc-val">${racks} rack${racks!==1?'s':''} (${serversPerRack} server${serversPerRack!==1?'s':''}/rack × 42U)</span></div>
+    </div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:10px;padding:0 4px;line-height:1.6">
+      Estimates use rated TDP at full load. Derate 15–20% for average operational draw. Consult a licensed electrical engineer and the facility before commissioning. PUE source: ASHRAE / Green Grid standards.
+    </div>`;
 }
 
 function calcWorkload() {
@@ -2225,6 +2395,196 @@ function confirmImport() {
     saveData(); closeModal(); renderPipeline();
   }
   delete window._importRecords; delete window._importType;
+}
+
+// ── Target Market ─────────────────────────────────────────────────────────────
+let targetMarketGPU = 'h100';
+
+const TARGET_MARKETS = [
+  {
+    id: 'a100', gpu: 'A100 80GB SXM4', badge: 'A100',
+    headline: 'Established enterprise AI, HPC, and production ML — cost-effective proven compute available now',
+    pricePoint: '$95K–$115K per 8-GPU node (certified refurb)',
+    verticals: [
+      {
+        industry: 'Healthcare & Life Sciences',
+        useCases: ['Medical imaging AI — radiology, pathology, ophthalmology', 'Drug discovery: molecular dynamics, protein structure prediction', 'Genomic sequencing and clinical bioinformatics pipelines', 'Clinical NLP — EHR summarization, prior authorization automation'],
+        buyers: 'VP AI/ML, Head of Computational Biology, CDO, CTO',
+        signals: 'FDA SaMD submissions, Epic/Oracle Health AI rollouts, in-house model training RFPs, genomics lab expansions',
+        dealSize: '2–8 nodes ($190K–$900K)',
+        competitive: 'vs. Cloud: HIPAA data sovereignty + sustained workloads are 3–5× cheaper owned. vs. OEM: 6–9 month lead time kills clinical project timelines. A100 is proven — no risk on novel architecture.',
+      },
+      {
+        industry: 'Financial Services',
+        useCases: ['Real-time fraud detection and anomaly scoring at transaction scale', 'Risk modeling, Monte Carlo simulation, stress testing', 'Regulatory compliance NLP — document review, audit trail automation', 'Algorithmic trading signal generation and backtesting'],
+        buyers: 'Head of Quant Research, VP AI/ML Engineering, CTO, Head of Risk Technology',
+        signals: 'AI regulation compliance deadlines, model risk management buildouts, trading desk AI initiatives, digital transformation programs',
+        dealSize: '4–16 nodes ($380K–$1.5M)',
+        competitive: 'vs. Cloud: latency sensitivity, SOX/GLBA data compliance. vs. Gray market: auditability — financial regulators require documented hardware provenance.',
+      },
+      {
+        industry: 'Energy & HPC',
+        useCases: ['Seismic data processing and reservoir simulation', 'Grid optimization and predictive maintenance at scale', 'Climate and weather modeling — numerical simulation workloads', 'Carbon capture R&D: molecular dynamics simulation'],
+        buyers: 'VP Geoscience IT, Head of Digital, Director of HPC, CTO',
+        signals: 'Energy transition digital programs, HPC cluster refresh cycles (5–7 yr), government research contracts, ESG reporting AI initiatives',
+        dealSize: '8–32 nodes ($760K–$3M)',
+        competitive: 'vs. OEM: A100 is proven in HPC — no need to wait 9 months for H100 on established simulation codes. vs. Cloud: data gravity — petabytes of seismic data can\'t move.',
+      },
+      {
+        industry: 'Manufacturing & Industrial AI',
+        useCases: ['Vision AI for quality control and inline defect detection', 'Predictive maintenance on production equipment', 'Digital twin simulation and production optimization', 'Supply chain demand forecasting and logistics AI'],
+        buyers: 'Head of Digital Manufacturing, VP Operations Technology, CTO, Head of Industry 4.0',
+        signals: 'Smart factory buildouts, Industry 4.0 initiatives, edge AI deployments connecting to central on-prem cluster, MES modernization programs',
+        dealSize: '2–8 nodes ($190K–$760K)',
+        competitive: 'vs. Cloud: plant floor data can\'t leave the facility; real-time latency requirements; OT network isolation.',
+      },
+    ]
+  },
+  {
+    id: 'h100', gpu: 'H100 80GB SXM5', badge: 'H100',
+    headline: 'Foundation model training, large-scale inference, and next-gen AI infrastructure — the core AI workload GPU',
+    pricePoint: '$200K–$230K per 8-GPU node (certified refurb)',
+    verticals: [
+      {
+        industry: 'AI-Native Tech Companies',
+        useCases: ['LLM pre-training and continued pre-training (7B–70B+ parameters)', 'Foundation model fine-tuning at scale with LoRA/FSDP', 'Multimodal model training — text, vision, audio, code', 'High-throughput inference serving with vLLM / TensorRT-LLM'],
+        buyers: 'Head of AI Infrastructure, VP Engineering, CTO, Co-founder/CEO (Seed–Series B)',
+        signals: 'Series A/B funding rounds, AI product launches, job posts for ML infra engineers, "leaving cloud" due to cost, public benchmarks published',
+        dealSize: '8–64 nodes ($1.7M–$14M)',
+        competitive: 'vs. Cloud: at Series B+ scale cloud GPU costs are 3–5× owned. vs. Blackwell: 12–18 months away for enterprise; H100 ships in 5 weeks. vs. Gray market: AI companies need health reports for SLA credibility.',
+      },
+      {
+        industry: 'Neocloud / GPU Cloud Providers',
+        useCases: ['GPU-as-a-service (bare-metal or container) for inference and training', 'On-demand training clusters for enterprise customers', 'Sovereign AI cloud for regulated industries', 'Managed ML platform hosting (Weights & Biases, MLflow, Ray)'],
+        buyers: 'CEO/CTO (smaller neoclouds), VP Infrastructure, Head of Product, Founder',
+        signals: 'New DC buildout announcements, GPU cloud funding rounds, expanding GPU SKU catalog, DC colocation agreements signed',
+        dealSize: '32–256 nodes ($6.5M–$52M)',
+        competitive: 'Lead time is THE differentiator for neoclouds — 6–9 month OEM wait kills their revenue. Health reports are a must-have for customer SLA credibility. This is Velerity\'s highest-volume ICP.',
+      },
+      {
+        industry: 'Defense & National Security',
+        useCases: ['On-premises AI/ML for classified or sensitive workloads', 'ISR data processing — object recognition, signal intelligence', 'Autonomous systems development and simulation platforms', 'NLP/document AI for intelligence analysis and translation'],
+        buyers: 'Program Manager, Director of AI, CTO of defense contractor, Program Executive Officer',
+        signals: 'AI contract awards (DoD JAIC, C3AI, DARPA programs), cleared facility buildouts, CMMC compliance programs, AI strategy RFPs',
+        dealSize: '8–32 nodes ($1.7M–$7M)',
+        competitive: 'vs. Cloud: GovCloud is not approved for all classifications; air-gapped requirement. vs. OEM: program timelines can\'t wait 9 months. COMPLIANCE NOTE: Export control review mandatory — coordinate with compliance team before advancing.',
+      },
+      {
+        industry: 'Research Universities & National Labs',
+        useCases: ['LLM research and open-source model development', 'Climate and physics simulation at scale', 'Computational biology and drug discovery research', 'Multi-institution compute sharing clusters (OpenMPI, Slurm)'],
+        buyers: 'Director of Research Computing, PI (Principal Investigator), CIO, VP Research',
+        signals: 'NSF/NIH compute grants, NAIRR allocation programs, research computing RFPs, campus AI strategy announcements, faculty AI cluster proposals',
+        dealSize: '4–32 nodes ($800K–$7M)',
+        competitive: 'vs. Cloud: HPC grants require owned compute; total cost over grant period makes cloud impractical. vs. OEM: grant timelines don\'t allow 9-month waits.',
+      },
+      {
+        industry: 'Autonomous Vehicles & Robotics',
+        useCases: ['Perception model training (LiDAR, camera, radar fusion)', 'Synthetic data generation for simulation environments', 'Foundation models for robot learning and manipulation', 'Real-time inference benchmarking for edge deployment validation'],
+        buyers: 'VP AI/Perception, Head of ML Platform, Head of Autonomy, CTO',
+        signals: 'AV program expansions, robotics startup funding rounds, edge-to-cloud AI pipeline buildouts, ADAS validation lab buildouts',
+        dealSize: '8–32 nodes ($1.7M–$7M)',
+        competitive: 'vs. Cloud: massive dataset sizes (100TB+) and iterative training loops create severe data gravity; cloud egress costs alone can exceed hardware cost.',
+      },
+    ]
+  },
+  {
+    id: 'h200', gpu: 'H200 141GB SXM5', badge: 'H200',
+    headline: 'Frontier model training, memory-bandwidth-intensive inference, and maximum VRAM deployments',
+    pricePoint: '$310K–$340K per 8-GPU node (certified refurb)',
+    verticals: [
+      {
+        industry: 'Hyperscalers & Tier-1 AI Labs',
+        useCases: ['Pre-training frontier models (100B–1T+ parameters)', 'Mixture-of-Experts (MoE) model training — requires max VRAM per GPU', 'Long-context inference serving (128K–1M token windows)', 'Speculative decoding and advanced inference optimization at scale'],
+        buyers: 'VP AI Infrastructure, Distinguished Engineer, Head of Training, CTO',
+        signals: 'Frontier model announcements, large DC buildout press releases, AI safety research lab expansions, GPU cluster CapEx disclosures',
+        dealSize: '32–256+ nodes ($10M–$80M+)',
+        competitive: 'vs. H100: 76% more memory BW (4,800 GB/s), 141 GB vs. 80 GB — mandatory for frontier-scale workloads and MoE architectures. vs. Blackwell: H200 available now vs. 12–18 month enterprise queue.',
+      },
+      {
+        industry: 'Biotech & Pharmaceutical',
+        useCases: ['Protein structure prediction at scale (AlphaFold-class and beyond)', 'Generative chemistry: molecular generation and lead optimization', 'Multi-omics data integration — genomics, proteomics, metabolomics', 'Clinical trial simulation and digital patient modeling'],
+        buyers: 'Head of Computational Drug Discovery, VP Digital R&D, CTO, Chief Scientific Officer',
+        signals: 'Drug discovery AI platform buildouts, Series C+ biotech funding, big pharma AI partnerships, FDA AI drug discovery guidance compliance',
+        dealSize: '4–16 nodes ($1.3M–$5.4M)',
+        competitive: 'vs. H100: larger protein contexts and batch sizes fit entirely in H200 VRAM, dramatically reducing iteration time. vs. Cloud: multi-year research programs make 3-year ownership far cheaper than sustained cloud.',
+      },
+      {
+        industry: 'Video, Media & Entertainment',
+        useCases: ['Generative video and AI-driven VFX at production scale', 'Large diffusion model training — image, video, 3D assets', 'Real-time AI upscaling and rendering for studio pipelines', 'AI dubbing, lip sync, and localization at studio scale'],
+        buyers: 'Head of AI/Technology, CTO, VP Production Technology, Head of VFX',
+        signals: 'AI studio formation announcements, streaming platform AI buildouts, production pipeline modernization RFPs, VFX shop expansions',
+        dealSize: '4–16 nodes ($1.3M–$5.4M)',
+        competitive: 'vs. H100: video generation models are VRAM-hungry — H200\'s 141 GB fits larger batch sizes and longer video sequences without memory fragmentation or model sharding overhead.',
+      },
+      {
+        industry: 'Sovereign AI & Government',
+        useCases: ['National AI infrastructure for LLM deployment and fine-tuning', 'Secure AI platforms for government agencies — classified workloads', 'Public sector LLM hosting (legal, immigration, government services AI)', 'Defense-adjacent AI — air-gapped environments, national security'],
+        buyers: 'Minister / Director of Digital, National AI Office, Defense acquisition officer, System integrator PM',
+        signals: 'National AI strategy announcements, sovereign AI fund deployments, government LLM RFPs, state AI platform procurements',
+        dealSize: '32–128 nodes ($10M–$43M)',
+        competitive: 'vs. Cloud: data sovereignty is non-negotiable for government workloads — no hyperscaler option accepted. COMPLIANCE NOTE: Export control review mandatory for all government/defense opportunities — coordinate before advancing past Discovery.',
+      },
+      {
+        industry: 'Telecommunications',
+        useCases: ['Network traffic optimization and congestion prediction at carrier scale', 'AI-driven network planning and capacity management (SON)', 'Real-time fraud detection across millions of concurrent sessions', '5G/6G AI-RAN (Radio Access Network) optimization and automation'],
+        buyers: 'VP Network AI, Head of Digital Transformation, CDO, CTO, Network Engineering VP',
+        signals: 'AI network transformation programs, 5G rollout AI integration bids, carrier digital transformation contracts, telco AI lab buildouts',
+        dealSize: '8–32 nodes ($2.7M–$10.9M)',
+        competitive: 'vs. Cloud: telco data never leaves the carrier network; strict latency and sovereignty requirements. vs. H100: massive batch sizes of network telemetry data benefit directly from H200\'s 76% memory bandwidth increase.',
+      },
+    ]
+  },
+];
+
+function renderTargetMarket() {
+  const data = TARGET_MARKETS.find(t => t.id === targetMarketGPU);
+
+  const gpuTabs = TARGET_MARKETS.map(t =>
+    `<div class="tab${t.id===targetMarketGPU?' active':''}" onclick="targetMarketGPU='${t.id}';renderTargetMarket()">${t.badge}</div>`
+  ).join('');
+
+  const vertCards = data.verticals.map(v => `
+    <div class="card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px">
+        <div style="font-size:15px;font-weight:600">${v.industry}</div>
+        <span style="font-size:10px;font-weight:600;color:var(--success);background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);padding:2px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0">${v.dealSize}</span>
+      </div>
+      <div style="font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:5px">Use Cases</div>
+      <ul style="margin:0 0 12px 16px;padding:0;font-size:12px;color:var(--text-dim);line-height:1.8">
+        ${v.useCases.map(u => `<li>${u}</li>`).join('')}
+      </ul>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div>
+          <div style="font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Buyer Titles</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.6">${v.buyers}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Buying Signals</div>
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.6">${v.signals}</div>
+        </div>
+      </div>
+      <div style="background:rgba(74,208,250,.05);border:1px solid rgba(74,208,250,.18);border-radius:6px;padding:10px 12px">
+        <div style="font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:4px">Competitive Angle</div>
+        <div style="font-size:12px;color:var(--text-dim);line-height:1.6">${v.competitive}</div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('crm-targetmarket-content').innerHTML = `
+    <div class="tabs">${gpuTabs}</div>
+    <div class="card" style="border-color:var(--accent);margin-bottom:24px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div style="flex:1;min-width:260px">
+          <div style="font-size:17px;font-weight:700;margin-bottom:6px">${data.gpu}</div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.6">${data.headline}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Certified Refurb Range</div>
+          <div style="font-size:14px;font-weight:700;color:var(--accent)">${data.pricePoint}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${data.verticals.length} target verticals</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(380px,1fr))">${vertCards}</div>`;
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
