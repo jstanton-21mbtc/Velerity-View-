@@ -1993,7 +1993,7 @@ function gpaasReadInputs() {
   GPAAS.surplusSplitEarlyVel = fv('gpaas-split-early');
   GPAAS.surplusSplitLateVel  = fv('gpaas-split-late');
   GPAAS.splitChangeYear      = Math.max(2, iv('gpaas-split-change-yr'));
-  GPAAS.term                 = Math.max(1, Math.min(10, iv('gpaas-term')));
+  // term is set via gpaasSetTerm(), not an input field
   const tg = document.getElementById('gpaas-info-gpus');
   if (tg) tg.textContent = `${GPAAS.servers * GPAAS.gpusPerServer} total GPUs · ${gpFmtK(GPAAS.servers * GPAAS.hwCostPerServer)} HW investment`;
 }
@@ -2106,6 +2106,15 @@ function gpaasSelectGPU(id) {
   gpaasRefresh();
 }
 
+function gpaasSetTerm(t) {
+  GPAAS.term = t;
+  [1,2,3,4,5].forEach(n => {
+    const el = document.getElementById('gpaas-term-'+n);
+    if (el) { el.style.background = n===t?'var(--accent)':'rgba(255,255,255,.07)'; el.style.color = n===t?'#000':'var(--text-muted)'; }
+  });
+  gpaasRefresh();
+}
+
 async function renderGPUaaS() {
   const el = document.getElementById('gpaas-content');
   if (!el) return;
@@ -2201,9 +2210,9 @@ async function renderGPUaaS() {
           <label class="form-label">Split Changes at Year</label>
           <input type="number" id="gpaas-split-change-yr" class="form-input" value="${GPAAS.splitChangeYear}" min="2" max="10" oninput="gpaasRefresh()">
         </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">Term (Years)</label>
-          <input type="number" id="gpaas-term" class="form-input" value="${GPAAS.term}" min="1" max="10" oninput="gpaasRefresh()">
+        <div style="margin-bottom:0">
+          <label class="form-label" style="display:block;margin-bottom:6px">Term (Years)</label>
+          <div style="display:flex;gap:6px">${[1,2,3,4,5].map(t=>`<span onclick="gpaasSetTerm(${t})" id="gpaas-term-${t}" style="cursor:pointer;flex:1;text-align:center;padding:5px 0;border-radius:4px;font-size:13px;font-weight:600;${t===GPAAS.term?'background:var(--accent);color:#000':'background:rgba(255,255,255,.07);color:var(--text-muted)'}">${t}yr</span>`).join('')}</div>
         </div>
       </div>
     </div>
