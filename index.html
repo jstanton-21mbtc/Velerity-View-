@@ -268,6 +268,9 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div class="nav-item" onclick="nav('tools-objections')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Objections
     </div>
+    <div class="nav-item" onclick="nav('tools-gpaas')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>GPUaaS Calc
+    </div>
   </div>
   <div class="nav-group">
     <div class="nav-group-label">CRM</div>
@@ -316,6 +319,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div id="s-tools-tco" class="section"><div class="section-header"><div class="section-title">TCO Calculator</div><div class="section-sub">Compare total cost: certified refurbished vs. cloud vs. new OEM</div></div><div id="tco-content"></div></div>
     <div id="s-tools-dc" class="section"><div class="section-header"><div class="section-title">Data Center Readiness</div><div class="section-sub">Qualify whether a buyer's facility can host the gear before the deal closes</div></div><div id="dc-content"></div></div>
     <div id="s-tools-objections" class="section"><div class="section-header"><div class="section-title">Objection Library</div><div class="section-sub">Ready responses to the most common AI server sales objections</div></div><div id="objections-content"></div></div>
+    <div id="s-tools-gpaas" class="section"><div class="section-header"><div class="section-title">GPUaaS Deal Calculator</div><div class="section-sub">Model GPU-as-a-Service economics — hardware cost, hosting fees, rev share, and return over term</div></div><div id="gpaas-content"></div></div>
     <div id="s-crm-accounts" class="section"><div class="section-header"><div class="section-title">Accounts</div><div class="section-sub">Prospect and customer account records — companies, contacts, GPU interests</div></div><div id="crm-accounts-content"></div></div>
     <div id="s-crm-pipeline" class="section"><div class="section-header"><div class="section-title">Pipeline</div><div class="section-sub">Opportunity pipeline — track deals from first contact to closed won</div></div><div id="crm-pipeline-content"></div></div>
     <div id="s-crm-targetmarket" class="section"><div class="section-header"><div class="section-title">Target Market</div><div class="section-sub">GPU-matched industry verticals, ICP profiles, buying signals, and competitive angles by product line</div></div><div id="crm-targetmarket-content"></div></div>
@@ -403,6 +407,7 @@ function render(id) {
     case 'tools-tco':          renderTCO(); break;
     case 'tools-dc':           renderDC(); break;
     case 'tools-objections':   renderObjections(); break;
+    case 'tools-gpaas':        renderGPUaaS(); break;
     case 'crm-accounts':       renderAccounts(); break;
     case 'crm-pipeline':       renderPipeline(); break;
     case 'crm-targetmarket':   renderTargetMarket(); break;
@@ -1833,6 +1838,247 @@ function renderObjections() {
       ${filtered.length === 0 ? '<div style="color:var(--text-muted);font-size:13px">No matching objections.</div>' : cards}
     </div>`;
 }
+// ── GPUaaS Deal Calculator ────────────────────────────────────────────────────
+const ORION_CI_RATES = {
+  'a100-40-pcie':1.59,'a100-80-pcie':2.06,'a100-80-sxm4':2.75,
+  'h100-80-pcie':2.39,'h100-80-sxm5':3.19,'h100-nvl':4.49,
+  'h200-sxm':4.79,'h200-nvl':5.49,'b200-sxm6':8.49,'b100-pcie':5.99
+};
+const GPAAS_HW_DEFAULTS = {
+  'a100-40-pcie':4500,'a100-80-pcie':7200,'a100-80-sxm4':11500,
+  'h100-80-pcie':14500,'h100-80-sxm5':24000,'h100-nvl':28000,
+  'h200-sxm':34000,'h200-nvl':38000,'b200-sxm6':62000,'b100-pcie':42000
+};
+const GPAAS = {
+  gpuId:'h100-80-sxm5', numGPUs:8, term:3, condition:'grade-a',
+  hwPrice:24000, deposit:0, marketRate:3.19, billingRate:2.80,
+  utilPct:70, dcMonthly:2000, dcRevShare:20
+};
+
+function gpFmt(n,d=0){return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function gpFmt$(n){return '$'+gpFmt(Math.round(n));}
+function gpFmtK(n){const a=Math.abs(n),s=n<0?'-':'';return a>=1e6?s+'$'+(a/1e6).toFixed(2)+'M':a>=1000?s+'$'+(a/1000).toFixed(1)+'K':s+gpFmt$(a);}
+
+function gpaasCalcNumbers() {
+  const totalMo = GPAAS.term * 12;
+  const gpuHrMo = (8760/12) * (GPAAS.utilPct/100) * GPAAS.numGPUs;
+  const totalGPUHrs = gpuHrMo * totalMo;
+  const grossRev = totalGPUHrs * GPAAS.billingRate;
+  const dcRevAmt = grossRev * (GPAAS.dcRevShare/100);
+  const velGross = grossRev - dcRevAmt;
+  const dcFixed = GPAAS.dcMonthly * totalMo;
+  const hwCost = GPAAS.hwPrice * GPAAS.numGPUs;
+  const hwNet = Math.max(0, hwCost - GPAAS.deposit);
+  const velNet = velGross - dcFixed - hwNet;
+  const roi = hwNet > 0 ? (velNet/hwNet)*100 : 0;
+  const moVelNet = (velGross - dcFixed) / totalMo;
+  const breakEvenMo = moVelNet > 0 ? Math.ceil(hwNet/moVelNet) : null;
+  const marketGross = totalGPUHrs * GPAAS.marketRate;
+  const custSavings = marketGross - grossRev;
+  const savingsPct = marketGross > 0 ? (custSavings/marketGross)*100 : 0;
+  const rows = [];
+  let cum = -hwNet;
+  for (let m=1; m<=totalMo; m++) {
+    const gross = gpuHrMo * GPAAS.billingRate;
+    const dcShr = gross * (GPAAS.dcRevShare/100);
+    const velShr = gross - dcShr;
+    const net = velShr - GPAAS.dcMonthly;
+    cum += net;
+    rows.push({m, gpuHrs:gpuHrMo, gross, dcShr, velShr, net, cum});
+  }
+  return {totalMo,totalGPUHrs,grossRev,dcRevAmt,velGross,dcFixed,hwCost,hwNet,velNet,roi,breakEvenMo,moVelNet,marketGross,custSavings,savingsPct,rows};
+}
+
+function gpaasReadInputs() {
+  const fv = id => { const e=document.getElementById(id); return e?parseFloat(e.value)||0:0; };
+  const sv = id => { const e=document.getElementById(id); return e?e.value:''; };
+  GPAAS.numGPUs = Math.max(1, parseInt(document.getElementById('gpaas-num-gpus')?.value)||1);
+  GPAAS.hwPrice   = fv('gpaas-hw-price');
+  GPAAS.deposit   = fv('gpaas-deposit');
+  GPAAS.marketRate= fv('gpaas-market-rate');
+  GPAAS.billingRate=fv('gpaas-billing-rate');
+  GPAAS.utilPct   = fv('gpaas-util');
+  GPAAS.dcMonthly = fv('gpaas-dc-monthly');
+  GPAAS.dcRevShare= fv('gpaas-dc-revshare');
+  GPAAS.condition = sv('gpaas-condition')||'grade-a';
+  const ul=document.getElementById('gpaas-util-lbl'); if(ul) ul.textContent=GPAAS.utilPct+'%';
+  const rl=document.getElementById('gpaas-revshare-lbl'); if(rl) rl.innerHTML=`DC&nbsp;<b style="color:#F59E0B">${GPAAS.dcRevShare}%</b>&nbsp;·&nbsp;Velerity&nbsp;<b style="color:#22C55E">${100-GPAAS.dcRevShare}%</b>`;
+}
+
+function gpaasRefresh() {
+  gpaasReadInputs();
+  const r = gpaasCalcNumbers();
+  const el = document.getElementById('gpaas-results');
+  if (!el) return;
+  const pc = r.velNet>=0?'#22C55E':'#EF4444';
+  const beText = r.breakEvenMo===null?'Never (negative margin)':r.breakEvenMo>GPAAS.term*12?`Mo ${r.breakEvenMo} (beyond term)`:`Month ${r.breakEvenMo} (Yr ${Math.ceil(r.breakEvenMo/12)})`;
+  const beColor = r.breakEvenMo!==null&&r.breakEvenMo<=GPAAS.term*12?'#22C55E':'#EF4444';
+  const pGPUMo = GPAAS.term*12*GPAAS.numGPUs;
+
+  const statCards = [
+    ['Gross Revenue',    gpFmtK(r.grossRev),    `${GPAAS.term}yr · ${GPAAS.numGPUs} GPU${GPAAS.numGPUs!==1?'s':''}`, 'var(--text)'],
+    ['DC Rev Share',     gpFmtK(r.dcRevAmt),    `${GPAAS.dcRevShare}% of gross`, '#F59E0B'],
+    ['DC Fixed Hosting', gpFmtK(r.dcFixed),     `${gpFmt$(GPAAS.dcMonthly)}/mo × ${GPAAS.term*12}mo`, '#F59E0B'],
+    ['HW Net Cost',      gpFmtK(r.hwNet),       `After ${gpFmt$(GPAAS.deposit)} deposit`, '#F59E0B'],
+    ['Velerity Revenue', gpFmtK(r.velGross),    `After DC rev share`, 'var(--accent)'],
+    ['Net Profit',       gpFmtK(r.velNet),      `Over ${GPAAS.term} year${GPAAS.term!==1?'s':''}`, pc],
+    ['ROI',              r.roi.toFixed(1)+'%',  'on HW net cost', r.roi>=0?'#22C55E':'#EF4444'],
+    ['Break-Even',       beText,                'from deployment', beColor],
+  ].map(([lbl,val,sub,col])=>`<div class="stat-card"><div class="stat-label">${lbl}</div><div class="stat-value" style="font-size:17px;line-height:1.2;color:${col}">${val}</div><div class="stat-sub">${sub}</div></div>`).join('');
+
+  const priceBadge = GPAAS.billingRate < GPAAS.marketRate
+    ? `<span style="color:#22C55E;font-size:11px"> ▲ ${((1-GPAAS.billingRate/GPAAS.marketRate)*100).toFixed(1)}% below market</span>`
+    : GPAAS.billingRate > GPAAS.marketRate
+    ? `<span style="color:#EF4444;font-size:11px"> ▼ ${((GPAAS.billingRate/GPAAS.marketRate-1)*100).toFixed(1)}% above market</span>`
+    : `<span style="color:var(--text-muted);font-size:11px"> = at market rate</span>`;
+
+  const twoCol = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+    <div class="card" style="border-color:rgba(74,208,250,.3)">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">Customer: Velerity vs. Cloud On-Demand</div>
+      <div class="calc-row"><span class="calc-label">Cloud (Orion CI ${gpFmt$(GPAAS.marketRate)}/GPU/hr)</span><span class="calc-val">${gpFmtK(r.marketGross)}</span></div>
+      <div class="calc-row"><span class="calc-label">Velerity rate (${gpFmt$(GPAAS.billingRate)}/GPU/hr)${priceBadge}</span><span class="calc-val">${gpFmtK(r.grossRev)}</span></div>
+      <div class="calc-row" style="border-bottom:none"><span class="calc-label" style="font-weight:600">Customer saves vs. cloud</span><span class="calc-val calc-highlight" style="color:${r.custSavings>=0?'#22C55E':'#EF4444'}">${gpFmtK(r.custSavings)} (${r.savingsPct.toFixed(1)}%)</span></div>
+    </div>
+    <div class="card" style="border-color:rgba(74,208,250,.3)">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">Per GPU Economics (Monthly Avg)</div>
+      <div class="calc-row"><span class="calc-label">Revenue / GPU / month</span><span class="calc-val">${gpFmt$(r.grossRev/pGPUMo)}</span></div>
+      <div class="calc-row"><span class="calc-label">DC rev share / GPU / mo</span><span class="calc-val" style="color:#F59E0B">${gpFmt$(r.dcRevAmt/pGPUMo)}</span></div>
+      <div class="calc-row"><span class="calc-label">DC hosting / GPU / mo</span><span class="calc-val" style="color:#F59E0B">${gpFmt$(r.dcFixed/pGPUMo)}</span></div>
+      <div class="calc-row"><span class="calc-label">HW amortized / GPU / mo</span><span class="calc-val" style="color:#F59E0B">${gpFmt$(r.hwNet/pGPUMo)}</span></div>
+      <div class="calc-row" style="border-bottom:none"><span class="calc-label" style="font-weight:600">Net / GPU / month</span><span class="calc-val calc-highlight" style="color:${pc}">${gpFmt$(r.velNet/pGPUMo)}</span></div>
+    </div>
+  </div>`;
+
+  const tblRows = r.rows.map(row => {
+    const cc = row.cum>=0?'#22C55E':'#EF4444';
+    return `<tr>
+      <td style="color:var(--text-muted)">${row.m}<span style="font-size:10px;margin-left:3px">Y${Math.ceil(row.m/12)}</span></td>
+      <td>${gpFmt(Math.round(row.gpuHrs))}</td>
+      <td>${gpFmt$(row.gross)}</td>
+      <td style="color:#F59E0B">${gpFmt$(row.dcShr)}</td>
+      <td style="color:#F59E0B">${gpFmt$(GPAAS.dcMonthly)}</td>
+      <td style="color:${row.net>=0?'var(--accent)':'#EF4444'}">${gpFmt$(row.net)}</td>
+      <td style="color:${cc};font-weight:600">${gpFmtK(row.cum)}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));margin-bottom:20px">${statCards}</div>
+    ${twoCol}
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="card-title">Monthly Cash Flow</div>
+        <span style="font-size:11px;color:var(--text-muted)">HW net cost of ${gpFmtK(r.hwNet)} deducted at Month 0</span>
+      </div>
+      <div class="tbl-wrap" style="max-height:320px;overflow-y:auto">
+        <table class="tbl">
+          <thead><tr><th>Mo</th><th>GPU Hrs</th><th>Gross Rev</th><th>DC Rev Share</th><th>DC Hosting</th><th>Vel Mo Net</th><th>Cumulative</th></tr></thead>
+          <tbody>${tblRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function gpaasSelectGPU(id) {
+  GPAAS.gpuId = id;
+  GPAAS.hwPrice = GPAAS_HW_DEFAULTS[id] || 10000;
+  GPAAS.marketRate = ORION_CI_RATES[id] || 2.00;
+  GPAAS.billingRate = +(GPAAS.marketRate * 0.88).toFixed(2);
+  const e1=document.getElementById('gpaas-hw-price'); if(e1) e1.value=GPAAS.hwPrice;
+  const e2=document.getElementById('gpaas-market-rate'); if(e2) e2.value=GPAAS.marketRate;
+  const e3=document.getElementById('gpaas-billing-rate'); if(e3) e3.value=GPAAS.billingRate;
+  gpaasRefresh();
+}
+
+function gpaasSetTerm(t) {
+  GPAAS.term = t;
+  document.querySelectorAll('#gpaas-term-tabs .tab').forEach((el,i)=>el.classList.toggle('active',i===t-1));
+  gpaasRefresh();
+}
+
+function renderGPUaaS() {
+  const el = document.getElementById('gpaas-content');
+  const gpuOpts = GPU_DATA.map(g=>`<option value="${g.id}" ${g.id===GPAAS.gpuId?'selected':''}>${g.name}</option>`).join('');
+  const termTabs = [1,2,3,4,5].map(t=>`<div class="tab${t===GPAAS.term?' active':''}" onclick="gpaasSetTerm(${t})">${t}yr</div>`).join('');
+
+  el.innerHTML = `
+  <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+    <div>
+      <div class="form-label" style="margin-bottom:6px">Contract Term</div>
+      <div class="tabs" id="gpaas-term-tabs" style="margin-bottom:0;border-bottom:none">${termTabs}</div>
+    </div>
+    <div style="flex:1;min-width:200px">
+      <label class="form-label">GPU Model</label>
+      <select class="form-select" onchange="gpaasSelectGPU(this.value)">${gpuOpts}</select>
+    </div>
+    <div style="width:110px">
+      <label class="form-label"># of GPUs</label>
+      <input type="number" id="gpaas-num-gpus" class="form-input" value="${GPAAS.numGPUs}" min="1" oninput="gpaasRefresh()">
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:24px">
+    <div class="card">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:14px">Hardware</div>
+      <div class="form-group">
+        <label class="form-label">Purchase Price / GPU <span style="color:var(--text-muted);font-weight:400;font-size:10px">(Velerity cost)</span></label>
+        <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)">$</span>
+        <input type="number" id="gpaas-hw-price" class="form-input" style="padding-left:22px" value="${GPAAS.hwPrice}" oninput="gpaasRefresh()"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Condition</label>
+        <select id="gpaas-condition" class="form-select" onchange="GPAAS.condition=this.value">
+          <option value="new" ${GPAAS.condition==='new'?'selected':''}>New</option>
+          <option value="grade-a" ${GPAAS.condition==='grade-a'?'selected':''}>Grade A Refurb</option>
+          <option value="grade-b" ${GPAAS.condition==='grade-b'?'selected':''}>Grade B Refurb</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Customer Deposit</label>
+        <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)">$</span>
+        <input type="number" id="gpaas-deposit" class="form-input" style="padding-left:22px" value="${GPAAS.deposit}" oninput="gpaasRefresh()"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:14px">Revenue</div>
+      <div class="form-group">
+        <label class="form-label">Orion CI Market Rate / GPU / hr <span style="font-size:10px;background:var(--accent-dim);color:var(--accent);padding:1px 5px;border-radius:3px">CI Default</span></label>
+        <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)">$</span>
+        <input type="number" id="gpaas-market-rate" class="form-input" style="padding-left:22px" value="${GPAAS.marketRate}" step="0.01" oninput="gpaasRefresh()"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Velerity Billing Rate / GPU / hr</label>
+        <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)">$</span>
+        <input type="number" id="gpaas-billing-rate" class="form-input" style="padding-left:22px" value="${GPAAS.billingRate}" step="0.01" oninput="gpaasRefresh()"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Utilization &nbsp;<span id="gpaas-util-lbl" style="color:var(--accent);font-weight:700">${GPAAS.utilPct}%</span></label>
+        <input type="range" id="gpaas-util" min="10" max="100" step="5" value="${GPAAS.utilPct}" style="width:100%;accent-color:var(--accent)" oninput="gpaasRefresh()">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:2px"><span>10%</span><span>100%</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:14px">Deal Structure</div>
+      <div class="form-group">
+        <label class="form-label">DC Monthly Hosting Cost <span style="color:var(--text-muted);font-weight:400;font-size:10px">(power, space, cooling)</span></label>
+        <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)">$</span>
+        <input type="number" id="gpaas-dc-monthly" class="form-input" style="padding-left:22px" value="${GPAAS.dcMonthly}" oninput="gpaasRefresh()"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">DC Revenue Share &nbsp;<span id="gpaas-revshare-lbl" style="font-size:12px">DC&nbsp;<b style="color:#F59E0B">${GPAAS.dcRevShare}%</b>&nbsp;·&nbsp;Velerity&nbsp;<b style="color:#22C55E">${100-GPAAS.dcRevShare}%</b></span></label>
+        <input type="range" id="gpaas-dc-revshare" min="0" max="50" step="1" value="${GPAAS.dcRevShare}" style="width:100%;accent-color:var(--accent)" oninput="gpaasRefresh()">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:2px"><span>0%</span><span>50%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="gpaas-results"></div>`;
+
+  gpaasRefresh();
+}
+
 // ── Flashcards ────────────────────────────────────────────────────────────────
 const FLASHCARDS = [
   { q:'What is the memory capacity and type of the H100 SXM5?', a:'80 GB HBM3 with 3,350 GB/s bandwidth — 68% more bandwidth than the A100 SXM4.' },
