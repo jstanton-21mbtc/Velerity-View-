@@ -1854,6 +1854,40 @@ const GPAAS = {
   hwPrice:24000, deposit:0, marketRate:3.19, billingRate:2.80,
   utilPct:70, dcMonthly:2000, dcRevShare:20
 };
+let gpaasLiveDate = null;
+let gpaasLivePriced = false;
+
+async function gpaasLoadLivePricing() {
+  try {
+    const res = await fetch('https://data.ornn.com/api/public-index/daily-index/all');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    if (!json.success || !Array.isArray(json.data)) throw new Error('Bad response');
+    gpaasLiveDate = new Date(json.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    for (const item of json.data) {
+      const r = item.index_value;
+      if (item.gpu_type === 'A100 SXM4') {
+        ORION_CI_RATES['a100-80-sxm4'] = r;
+        ORION_CI_RATES['a100-80-pcie'] = +(r * 0.80).toFixed(2);
+        ORION_CI_RATES['a100-40-pcie'] = +(r * 0.65).toFixed(2);
+      } else if (item.gpu_type === 'H100 SXM') {
+        ORION_CI_RATES['h100-80-sxm5'] = r;
+        ORION_CI_RATES['h100-80-pcie'] = +(r * 0.78).toFixed(2);
+        ORION_CI_RATES['h100-nvl']     = +(r * 1.35).toFixed(2);
+      } else if (item.gpu_type === 'H200') {
+        ORION_CI_RATES['h200-sxm'] = r;
+        ORION_CI_RATES['h200-nvl'] = +(r * 1.15).toFixed(2);
+      } else if (item.gpu_type === 'B200') {
+        ORION_CI_RATES['b200-sxm6'] = r;
+        ORION_CI_RATES['b100-pcie']  = +(r * 0.68).toFixed(2);
+      }
+    }
+    gpaasLivePriced = true;
+  } catch(e) {
+    console.warn('Orion CI fetch failed, using cached rates:', e.message);
+    gpaasLivePriced = false;
+  }
+}
 
 function gpFmt(n,d=0){return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
 function gpFmt$(n){return '$'+gpFmt(Math.round(n));}
@@ -1996,8 +2030,15 @@ function gpaasSetTerm(t) {
   gpaasRefresh();
 }
 
-function renderGPUaaS() {
+async function renderGPUaaS() {
   const el = document.getElementById('gpaas-content');
+  el.innerHTML = `<div style="padding:20px 0;color:var(--text-muted);font-size:13px;display:flex;align-items:center;gap:8px"><span style="color:var(--accent)">↻</span>Fetching live Orion CI prices…</div>`;
+  await gpaasLoadLivePricing();
+  GPAAS.marketRate = ORION_CI_RATES[GPAAS.gpuId] || GPAAS.marketRate;
+  GPAAS.billingRate = +(GPAAS.marketRate * 0.88).toFixed(2);
+  const liveBadge = gpaasLivePriced
+    ? `<span style="font-size:10px;background:rgba(34,197,94,.12);color:#22C55E;padding:1px 6px;border-radius:3px;border:1px solid rgba(34,197,94,.3)">● Live · ${gpaasLiveDate}</span>`
+    : `<span style="font-size:10px;background:rgba(245,158,11,.12);color:#F59E0B;padding:1px 6px;border-radius:3px;border:1px solid rgba(245,158,11,.3)">⚠ Offline (cached)</span>`;
   const gpuOpts = GPU_DATA.map(g=>`<option value="${g.id}" ${g.id===GPAAS.gpuId?'selected':''}>${g.name}</option>`).join('');
   const termTabs = [1,2,3,4,5].map(t=>`<div class="tab${t===GPAAS.term?' active':''}" onclick="gpaasSetTerm(${t})">${t}yr</div>`).join('');
 
@@ -2043,7 +2084,7 @@ function renderGPUaaS() {
     <div class="card">
       <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:14px">Revenue</div>
       <div class="form-group">
-        <label class="form-label">Orion CI Market Rate / GPU / hr <span style="font-size:10px;background:var(--accent-dim);color:var(--accent);padding:1px 5px;border-radius:3px">CI Default</span></label>
+        <label class="form-label">Orion CI Market Rate / GPU / hr ${liveBadge}</label>
         <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)">$</span>
         <input type="number" id="gpaas-market-rate" class="form-input" style="padding-left:22px" value="${GPAAS.marketRate}" step="0.01" oninput="gpaasRefresh()"></div>
       </div>
