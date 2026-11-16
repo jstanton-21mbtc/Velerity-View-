@@ -1895,10 +1895,17 @@ const GPAAS_HW_DEFAULTS = {
   'h100-80-pcie':14500,'h100-80-sxm5':24000,'h100-nvl':28000,
   'h200-sxm':34000,'h200-nvl':38000,'b200-sxm6':62000,'b100-pcie':42000
 };
+// Two-party surplus-sharing model: Velerity = Infrastructure Investment Partner,
+// DC Partner = operator (hosts servers, no upfront capital required).
+// Surplus = Gross Revenue − DC Hosting Costs − Guaranteed Rent → split by tiered %
 const GPAAS = {
-  gpuId:'h100-80-sxm5', numGPUs:8, term:3, condition:'grade-a',
-  hwPrice:24000, deposit:0, marketRate:3.19, billingRate:2.80,
-  utilPct:70, dcMonthly:2000, dcRevShare:20
+  gpuId:'a100-80-sxm4', servers:20, gpusPerServer:8,
+  hwCostPerServer:100000, deposit:0, term:5,
+  year1Rate:1.59, rateDeclinePct:10,
+  guaranteedMonthlyRent:15000, dcMonthly:45000,
+  surplusSplitEarlyVel:75, surplusSplitLateVel:50,
+  splitChangeYear:4,
+  scenarios:[55,70,85,100], detailScenario:70
 };
 let gpaasLiveDate = null;
 let gpaasLivePriced = false;
@@ -1939,226 +1946,268 @@ function gpFmt(n,d=0){return n.toLocaleString('en-US',{minimumFractionDigits:d,m
 function gpFmt$(n){return '$'+gpFmt(Math.round(n));}
 function gpFmtK(n){const a=Math.abs(n),s=n<0?'-':'';return a>=1e6?s+'$'+(a/1e6).toFixed(2)+'M':a>=1000?s+'$'+(a/1000).toFixed(1)+'K':s+gpFmt$(a);}
 
-function gpaasCalcNumbers() {
-  const totalMo = GPAAS.term * 12;
-  const gpuHrMo = (8760/12) * (GPAAS.utilPct/100) * GPAAS.numGPUs;
-  const totalGPUHrs = gpuHrMo * totalMo;
-  const grossRev = totalGPUHrs * GPAAS.billingRate;
-  const dcRevAmt = grossRev * (GPAAS.dcRevShare/100);
-  const velGross = grossRev - dcRevAmt;
-  const dcFixed = GPAAS.dcMonthly * totalMo;
-  const hwCost = GPAAS.hwPrice * GPAAS.numGPUs;
+// Per-scenario surplus model matching the Infrastructure Investment Partner deal structure
+function gpaasCalcScenario(utilPct) {
+  const totalGPUs = GPAAS.servers * GPAAS.gpusPerServer;
+  const hwCost = GPAAS.servers * GPAAS.hwCostPerServer;
   const hwNet = Math.max(0, hwCost - GPAAS.deposit);
-  const velNet = velGross - dcFixed - hwNet;
-  const roi = hwNet > 0 ? (velNet/hwNet)*100 : 0;
-  const moVelNet = (velGross - dcFixed) / totalMo;
-  const breakEvenMo = moVelNet > 0 ? Math.ceil(hwNet/moVelNet) : null;
-  const marketGross = totalGPUHrs * GPAAS.marketRate;
-  const custSavings = marketGross - grossRev;
-  const savingsPct = marketGross > 0 ? (custSavings/marketGross)*100 : 0;
-  const rows = [];
-  let cum = -hwNet;
-  for (let m=1; m<=totalMo; m++) {
-    const gross = gpuHrMo * GPAAS.billingRate;
-    const dcShr = gross * (GPAAS.dcRevShare/100);
-    const velShr = gross - dcShr;
-    const net = velShr - GPAAS.dcMonthly;
-    cum += net;
-    rows.push({m, gpuHrs:gpuHrMo, gross, dcShr, velShr, net, cum});
+  const years = [];
+  let velCum = -hwNet;
+  let dcCum = 0;
+  for (let yr = 1; yr <= GPAAS.term; yr++) {
+    const rate = GPAAS.year1Rate * Math.pow(1 - GPAAS.rateDeclinePct / 100, yr - 1);
+    const gpuHrs = totalGPUs * 8760 * (utilPct / 100);
+    const grossRev = gpuHrs * rate;
+    const dcCosts = GPAAS.dcMonthly * 12;
+    const guarRent = GPAAS.guaranteedMonthlyRent * 12;
+    const surplusBase = grossRev - dcCosts - guarRent;
+    const surplus = Math.max(0, surplusBase);
+    const velPct = yr < GPAAS.splitChangeYear ? GPAAS.surplusSplitEarlyVel : GPAAS.surplusSplitLateVel;
+    const dcPct = 100 - velPct;
+    const velSurplus = surplus * velPct / 100;
+    const dcSurplus = surplus * dcPct / 100;
+    const velYrCash = guarRent + velSurplus;
+    velCum += velYrCash;
+    dcCum += dcSurplus;
+    years.push({ yr, rate, gpuHrs, grossRev, dcCosts, guarRent, surplus, velPct, dcPct, velSurplus, dcSurplus, velYrCash, velCum, dcCum });
   }
-  return {totalMo,totalGPUHrs,grossRev,dcRevAmt,velGross,dcFixed,hwCost,hwNet,velNet,roi,breakEvenMo,moVelNet,marketGross,custSavings,savingsPct,rows};
+  const totalVelCash = years.reduce((s,y) => s + y.velYrCash, 0);
+  const totalDcNet   = years.reduce((s,y) => s + y.dcSurplus, 0);
+  const velNetProfit = totalVelCash - hwNet;
+  const roi = hwNet > 0 ? (velNetProfit / hwNet) * 100 : 0;
+  const beYear = years.find(y => y.velCum >= 0)?.yr || null;
+  return { years, hwCost, hwNet, totalGPUs, totalVelCash, totalDcNet, velNetProfit, roi, beYear };
 }
 
 function gpaasReadInputs() {
   const fv = id => { const e=document.getElementById(id); return e?parseFloat(e.value)||0:0; };
-  const sv = id => { const e=document.getElementById(id); return e?e.value:''; };
-  GPAAS.numGPUs = Math.max(1, parseInt(document.getElementById('gpaas-num-gpus')?.value)||1);
-  GPAAS.hwPrice   = fv('gpaas-hw-price');
-  GPAAS.deposit   = fv('gpaas-deposit');
-  GPAAS.marketRate= fv('gpaas-market-rate');
-  GPAAS.billingRate=fv('gpaas-billing-rate');
-  GPAAS.utilPct   = fv('gpaas-util');
-  GPAAS.dcMonthly = fv('gpaas-dc-monthly');
-  GPAAS.dcRevShare= fv('gpaas-dc-revshare');
-  GPAAS.condition = sv('gpaas-condition')||'grade-a';
-  const ul=document.getElementById('gpaas-util-lbl'); if(ul) ul.textContent=GPAAS.utilPct+'%';
-  const rl=document.getElementById('gpaas-revshare-lbl'); if(rl) rl.innerHTML=`DC&nbsp;<b style="color:#F59E0B">${GPAAS.dcRevShare}%</b>&nbsp;·&nbsp;Velerity&nbsp;<b style="color:#22C55E">${100-GPAAS.dcRevShare}%</b>`;
+  const iv = id => { const e=document.getElementById(id); return e?parseInt(e.value)||0:0; };
+  GPAAS.servers              = Math.max(1, iv('gpaas-servers'));
+  GPAAS.gpusPerServer        = Math.max(1, iv('gpaas-gpus-per-server'));
+  GPAAS.hwCostPerServer      = fv('gpaas-hw-cost-server');
+  GPAAS.deposit              = fv('gpaas-deposit');
+  GPAAS.year1Rate            = fv('gpaas-year1-rate');
+  GPAAS.rateDeclinePct       = fv('gpaas-rate-decline');
+  GPAAS.guaranteedMonthlyRent= fv('gpaas-guar-rent');
+  GPAAS.dcMonthly            = fv('gpaas-dc-monthly');
+  GPAAS.surplusSplitEarlyVel = fv('gpaas-split-early');
+  GPAAS.surplusSplitLateVel  = fv('gpaas-split-late');
+  GPAAS.splitChangeYear      = Math.max(2, iv('gpaas-split-change-yr'));
+  GPAAS.term                 = Math.max(1, Math.min(10, iv('gpaas-term')));
+  const tg = document.getElementById('gpaas-info-gpus');
+  if (tg) tg.textContent = `${GPAAS.servers * GPAAS.gpusPerServer} total GPUs · ${gpFmtK(GPAAS.servers * GPAAS.hwCostPerServer)} HW investment`;
 }
 
 function gpaasRefresh() {
   gpaasReadInputs();
-  const r = gpaasCalcNumbers();
+  const results = GPAAS.scenarios.map(u => ({ util:u, ...gpaasCalcScenario(u) }));
   const el = document.getElementById('gpaas-results');
   if (!el) return;
-  const pc = r.velNet>=0?'#22C55E':'#EF4444';
-  const beText = r.breakEvenMo===null?'Never (negative margin)':r.breakEvenMo>GPAAS.term*12?`Mo ${r.breakEvenMo} (beyond term)`:`Month ${r.breakEvenMo} (Yr ${Math.ceil(r.breakEvenMo/12)})`;
-  const beColor = r.breakEvenMo!==null&&r.breakEvenMo<=GPAAS.term*12?'#22C55E':'#EF4444';
-  const pGPUMo = GPAAS.term*12*GPAAS.numGPUs;
 
-  const statCards = [
-    ['Gross Revenue',    gpFmtK(r.grossRev),    `${GPAAS.term}yr · ${GPAAS.numGPUs} GPU${GPAAS.numGPUs!==1?'s':''}`, 'var(--text)'],
-    ['DC Rev Share',     gpFmtK(r.dcRevAmt),    `${GPAAS.dcRevShare}% of gross`, '#F59E0B'],
-    ['DC Fixed Hosting', gpFmtK(r.dcFixed),     `${gpFmt$(GPAAS.dcMonthly)}/mo × ${GPAAS.term*12}mo`, '#F59E0B'],
-    ['HW Net Cost',      gpFmtK(r.hwNet),       `After ${gpFmt$(GPAAS.deposit)} deposit`, '#F59E0B'],
-    ['Velerity Revenue', gpFmtK(r.velGross),    `After DC rev share`, 'var(--accent)'],
-    ['Net Profit',       gpFmtK(r.velNet),      `Over ${GPAAS.term} year${GPAAS.term!==1?'s':''}`, pc],
-    ['ROI',              r.roi.toFixed(1)+'%',  'on HW net cost', r.roi>=0?'#22C55E':'#EF4444'],
-    ['Break-Even',       beText,                'from deployment', beColor],
-  ].map(([lbl,val,sub,col])=>`<div class="stat-card"><div class="stat-label">${lbl}</div><div class="stat-value" style="font-size:17px;line-height:1.2;color:${col}">${val}</div><div class="stat-sub">${sub}</div></div>`).join('');
+  const cols = GPAAS.scenarios;
+  const hwNet = Math.max(0, GPAAS.servers * GPAAS.hwCostPerServer - GPAAS.deposit);
 
-  const priceBadge = GPAAS.billingRate < GPAAS.marketRate
-    ? `<span style="color:#22C55E;font-size:11px"> ▲ ${((1-GPAAS.billingRate/GPAAS.marketRate)*100).toFixed(1)}% below market</span>`
-    : GPAAS.billingRate > GPAAS.marketRate
-    ? `<span style="color:#EF4444;font-size:11px"> ▼ ${((GPAAS.billingRate/GPAAS.marketRate-1)*100).toFixed(1)}% above market</span>`
-    : `<span style="color:var(--text-muted);font-size:11px"> = at market rate</span>`;
+  // helper: 4-column scenario row
+  const tRow = (label, fn, labelStyle='') =>
+    `<tr><td style="color:var(--text-muted);font-size:12px;${labelStyle}">${label}</td>${results.map(r=>`<td style="text-align:right">${fn(r)}</td>`).join('')}</tr>`;
+  const tRowSect = (label, color='var(--accent)') =>
+    `<tr><td colspan="${cols.length+1}" style="background:rgba(255,255,255,.04);color:${color};font-size:10px;font-weight:700;letter-spacing:.6px;padding:5px 12px">${label}</td></tr>`;
 
-  const twoCol = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-    <div class="card" style="border-color:rgba(74,208,250,.3)">
-      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">Customer: Velerity vs. Cloud On-Demand</div>
-      <div class="calc-row"><span class="calc-label">Cloud (Orion CI ${gpFmt$(GPAAS.marketRate)}/GPU/hr)</span><span class="calc-val">${gpFmtK(r.marketGross)}</span></div>
-      <div class="calc-row"><span class="calc-label">Velerity rate (${gpFmt$(GPAAS.billingRate)}/GPU/hr)${priceBadge}</span><span class="calc-val">${gpFmtK(r.grossRev)}</span></div>
-      <div class="calc-row" style="border-bottom:none"><span class="calc-label" style="font-weight:600">Customer saves vs. cloud</span><span class="calc-val calc-highlight" style="color:${r.custSavings>=0?'#22C55E':'#EF4444'}">${gpFmtK(r.custSavings)} (${r.savingsPct.toFixed(1)}%)</span></div>
-    </div>
-    <div class="card" style="border-color:rgba(74,208,250,.3)">
-      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">Per GPU Economics (Monthly Avg)</div>
-      <div class="calc-row"><span class="calc-label">Revenue / GPU / month</span><span class="calc-val">${gpFmt$(r.grossRev/pGPUMo)}</span></div>
-      <div class="calc-row"><span class="calc-label">DC rev share / GPU / mo</span><span class="calc-val" style="color:#F59E0B">${gpFmt$(r.dcRevAmt/pGPUMo)}</span></div>
-      <div class="calc-row"><span class="calc-label">DC hosting / GPU / mo</span><span class="calc-val" style="color:#F59E0B">${gpFmt$(r.dcFixed/pGPUMo)}</span></div>
-      <div class="calc-row"><span class="calc-label">HW amortized / GPU / mo</span><span class="calc-val" style="color:#F59E0B">${gpFmt$(r.hwNet/pGPUMo)}</span></div>
-      <div class="calc-row" style="border-bottom:none"><span class="calc-label" style="font-weight:600">Net / GPU / month</span><span class="calc-val calc-highlight" style="color:${pc}">${gpFmt$(r.velNet/pGPUMo)}</span></div>
-    </div>
-  </div>`;
+  const summaryTable = `
+    <div class="card" style="margin-bottom:20px;overflow-x:auto">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:16px">${GPAAS.term}-Year Summary — Utilization Scenarios</div>
+      <table class="tbl" style="min-width:500px">
+        <thead>
+          <tr>
+            <th style="text-align:left;min-width:200px">Metric</th>
+            ${cols.map(u=>`<th style="text-align:right"><span style="color:var(--accent)">${u}%</span><div style="font-size:9px;color:var(--text-muted);font-weight:400">utilization</div></th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${tRowSect('REVENUE WATERFALL')}
+          ${tRow('Total Gross Revenue', r=>gpFmtK(r.years.reduce((s,y)=>s+y.grossRev,0)))}
+          ${tRow('Total DC Hosting Costs', r=>`<span style="color:#F59E0B">(${gpFmtK(r.years.reduce((s,y)=>s+y.dcCosts,0))})</span>`)}
+          ${tRow('Total Guaranteed Rent (to Velerity)', r=>`<span style="color:var(--accent)">(${gpFmtK(r.years.reduce((s,y)=>s+y.guarRent,0))})</span>`)}
+          ${tRow('Total Surplus Pool', r=>gpFmtK(r.years.reduce((s,y)=>s+y.surplus,0)))}
+          ${tRowSect('VELERITY — INFRASTRUCTURE INVESTMENT PARTNER')}
+          ${tRow('Hardware Investment (upfront)', r=>`<span style="color:#EF4444">(${gpFmtK(hwNet)})</span>`)}
+          ${tRow('Total Cash Received', r=>`<span style="color:var(--accent)">${gpFmtK(r.totalVelCash)}</span>`)}
+          ${tRow('Net Profit', r=>{const c=r.velNetProfit>=0?'#22C55E':'#EF4444';return `<span style="color:${c};font-weight:700">${gpFmtK(r.velNetProfit)}</span>`;})}
+          ${tRow('ROI on HW Investment', r=>{const c=r.roi>=0?'#22C55E':'#EF4444';return `<span style="color:${c}">${r.roi.toFixed(1)}%</span>`;})}
+          ${tRow('Break-Even Year', r=>r.beYear?`<span style="color:#22C55E">Year ${r.beYear}</span>`:`<span style="color:#EF4444">Beyond ${GPAAS.term}yr</span>`)}
+          ${tRowSect('DC PARTNER — OPERATOR (NO CAPITAL REQUIRED)', '#22C55E')}
+          ${tRow('Upfront Capital Required', r=>`<span style="color:#22C55E;font-weight:700">$0</span>`)}
+          ${tRow('Total Surplus Share Earned', r=>`<span style="color:#22C55E">${gpFmtK(r.totalDcNet)}</span>`)}
+        </tbody>
+      </table>
+    </div>`;
 
-  const tblRows = r.rows.map(row => {
-    const cc = row.cum>=0?'#22C55E':'#EF4444';
+  // Annual P&L detail for selected scenario
+  const sel = results.find(r => r.util === GPAAS.detailScenario) || results[1];
+  const scenTabs = GPAAS.scenarios.map(u=>`<span onclick="GPAAS.detailScenario=${u};gpaasRefresh()" style="cursor:pointer;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:600;${u===GPAAS.detailScenario?'background:var(--accent);color:#000':'background:rgba(255,255,255,.07);color:var(--text-muted)'}">${u}%</span>`).join('');
+
+  const yrRows = sel.years.map(y => {
+    const sp = y.yr < GPAAS.splitChangeYear
+      ? `${GPAAS.surplusSplitEarlyVel}/${100-GPAAS.surplusSplitEarlyVel}`
+      : `${GPAAS.surplusSplitLateVel}/${100-GPAAS.surplusSplitLateVel}`;
+    const vc = y.velCum >= 0 ? '#22C55E' : '#EF4444';
     return `<tr>
-      <td style="color:var(--text-muted)">${row.m}<span style="font-size:10px;margin-left:3px">Y${Math.ceil(row.m/12)}</span></td>
-      <td>${gpFmt(Math.round(row.gpuHrs))}</td>
-      <td>${gpFmt$(row.gross)}</td>
-      <td style="color:#F59E0B">${gpFmt$(row.dcShr)}</td>
-      <td style="color:#F59E0B">${gpFmt$(GPAAS.dcMonthly)}</td>
-      <td style="color:${row.net>=0?'var(--accent)':'#EF4444'}">${gpFmt$(row.net)}</td>
-      <td style="color:${cc};font-weight:600">${gpFmtK(row.cum)}</td>
+      <td style="font-weight:700">Yr ${y.yr}</td>
+      <td style="color:var(--text-muted)">$${y.rate.toFixed(2)}</td>
+      <td>${gpFmtK(y.grossRev)}</td>
+      <td style="color:#F59E0B">(${gpFmtK(y.dcCosts)})</td>
+      <td style="color:var(--accent)">(${gpFmtK(y.guarRent)})</td>
+      <td>${gpFmtK(y.surplus)}</td>
+      <td style="color:var(--text-muted);font-size:11px">${sp}</td>
+      <td style="color:var(--accent)">${gpFmtK(y.velYrCash)}</td>
+      <td style="color:${vc};font-weight:600">${gpFmtK(y.velCum)}</td>
+      <td style="color:#22C55E">${gpFmtK(y.dcSurplus)}</td>
+      <td style="color:#22C55E">${gpFmtK(y.dcCum)}</td>
     </tr>`;
   }).join('');
 
-  el.innerHTML = `
-    <div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));margin-bottom:20px">${statCards}</div>
-    ${twoCol}
+  const detailTable = `
     <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div class="card-title">Monthly Cash Flow</div>
-        <span style="font-size:11px;color:var(--text-muted)">HW net cost of ${gpFmtK(r.hwNet)} deducted at Month 0</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+        <div class="card-title">Annual P&amp;L Detail</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">${scenTabs}</div>
       </div>
-      <div class="tbl-wrap" style="max-height:320px;overflow-y:auto">
-        <table class="tbl">
-          <thead><tr><th>Mo</th><th>GPU Hrs</th><th>Gross Rev</th><th>DC Rev Share</th><th>DC Hosting</th><th>Vel Mo Net</th><th>Cumulative</th></tr></thead>
-          <tbody>${tblRows}</tbody>
+      <div style="overflow-x:auto">
+        <table class="tbl" style="min-width:820px">
+          <thead>
+            <tr>
+              <th>Year</th><th>Rate/hr</th><th>Gross Rev</th>
+              <th style="color:#F59E0B">DC Hosting</th>
+              <th style="color:var(--accent)">Guar. Rent</th>
+              <th>Surplus</th><th>V/DC Split</th>
+              <th style="color:var(--accent)">Vel Cash</th>
+              <th style="color:var(--accent)">Vel Cum.</th>
+              <th style="color:#22C55E">DC Share</th>
+              <th style="color:#22C55E">DC Cum.</th>
+            </tr>
+          </thead>
+          <tbody>${yrRows}</tbody>
         </table>
       </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:10px">
+        Vel Cum. starts at (${gpFmtK(hwNet)}) hardware investment and accumulates annual cash received.
+        Break-even when Vel Cum. ≥ $0. DC Partner puts in $0 upfront capital.
+        Surplus split changes at Year ${GPAAS.splitChangeYear}: ${GPAAS.surplusSplitEarlyVel}/${100-GPAAS.surplusSplitEarlyVel} → ${GPAAS.surplusSplitLateVel}/${100-GPAAS.surplusSplitLateVel} (Vel/DC).
+      </div>
     </div>`;
+
+  el.innerHTML = summaryTable + detailTable;
 }
 
 function gpaasSelectGPU(id) {
   GPAAS.gpuId = id;
-  GPAAS.hwPrice = GPAAS_HW_DEFAULTS[id] || 10000;
-  GPAAS.marketRate = ORION_CI_RATES[id] || 2.00;
-  GPAAS.billingRate = +(GPAAS.marketRate * 0.88).toFixed(2);
-  const e1=document.getElementById('gpaas-hw-price'); if(e1) e1.value=GPAAS.hwPrice;
-  const e2=document.getElementById('gpaas-market-rate'); if(e2) e2.value=GPAAS.marketRate;
-  const e3=document.getElementById('gpaas-billing-rate'); if(e3) e3.value=GPAAS.billingRate;
-  gpaasRefresh();
-}
-
-function gpaasSetTerm(t) {
-  GPAAS.term = t;
-  document.querySelectorAll('#gpaas-term-tabs .tab').forEach((el,i)=>el.classList.toggle('active',i===t-1));
+  GPAAS.year1Rate = ORION_CI_RATES[id] || 2.00;
+  const e1 = document.getElementById('gpaas-year1-rate'); if(e1) e1.value = GPAAS.year1Rate;
   gpaasRefresh();
 }
 
 async function renderGPUaaS() {
   const el = document.getElementById('gpaas-content');
+  if (!el) return;
   el.innerHTML = `<div style="padding:20px 0;color:var(--text-muted);font-size:13px;display:flex;align-items:center;gap:8px"><span style="color:var(--accent)">↻</span>Fetching live Orion CI prices…</div>`;
   await gpaasLoadLivePricing();
-  GPAAS.marketRate = ORION_CI_RATES[GPAAS.gpuId] || GPAAS.marketRate;
-  GPAAS.billingRate = +(GPAAS.marketRate * 0.88).toFixed(2);
+  GPAAS.year1Rate = ORION_CI_RATES[GPAAS.gpuId] || GPAAS.year1Rate;
   const liveBadge = gpaasLivePriced
     ? `<span style="font-size:10px;background:rgba(34,197,94,.12);color:#22C55E;padding:1px 6px;border-radius:3px;border:1px solid rgba(34,197,94,.3)">● Live · ${gpaasLiveDate}</span>`
     : `<span style="font-size:10px;background:rgba(245,158,11,.12);color:#F59E0B;padding:1px 6px;border-radius:3px;border:1px solid rgba(245,158,11,.3)">⚠ Offline (cached)</span>`;
   const gpuOpts = GPU_DATA.map(g=>`<option value="${g.id}" ${g.id===GPAAS.gpuId?'selected':''}>${g.name}</option>`).join('');
-  const termTabs = [1,2,3,4,5].map(t=>`<div class="tab${t===GPAAS.term?' active':''}" onclick="gpaasSetTerm(${t})">${t}yr</div>`).join('');
 
   el.innerHTML = `
-  <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px">
-    <div>
-      <div class="form-label" style="margin-bottom:6px">Contract Term</div>
-      <div class="tabs" id="gpaas-term-tabs" style="margin-bottom:0;border-bottom:none">${termTabs}</div>
-    </div>
-    <div style="flex:1;min-width:200px">
-      <label class="form-label">GPU Model</label>
-      <select class="form-select" onchange="gpaasSelectGPU(this.value)">${gpuOpts}</select>
-    </div>
-    <div style="width:110px">
-      <label class="form-label"># of GPUs</label>
-      <input type="number" id="gpaas-num-gpus" class="form-input" value="${GPAAS.numGPUs}" min="1" oninput="gpaasRefresh()">
-    </div>
+  <div style="font-size:11px;color:var(--text-muted);margin-bottom:16px;padding:8px 12px;background:rgba(74,208,250,.06);border:1px solid rgba(74,208,250,.2);border-radius:6px">
+    <strong style="color:var(--accent)">Infrastructure Investment Partner Model</strong> — Velerity funds hardware; DC Partner operates with zero upfront capital.
+    Surplus = Gross Revenue − DC Hosting Costs − Guaranteed Rent → split by tiered %. ${liveBadge}
   </div>
 
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:24px">
+
     <div class="card">
       <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:14px">Hardware</div>
       <div class="form-group">
-        <label class="form-label">Purchase Price / GPU <span style="color:var(--text-muted);font-weight:400;font-size:10px">(Velerity cost)</span></label>
-        <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)">$</span>
-        <input type="number" id="gpaas-hw-price" class="form-input" style="padding-left:22px" value="${GPAAS.hwPrice}" oninput="gpaasRefresh()"></div>
+        <label class="form-label">GPU Model</label>
+        <select class="form-select" onchange="gpaasSelectGPU(this.value)">${gpuOpts}</select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group">
+          <label class="form-label">Servers</label>
+          <input type="number" id="gpaas-servers" class="form-input" value="${GPAAS.servers}" min="1" oninput="gpaasRefresh()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">GPUs / Server</label>
+          <input type="number" id="gpaas-gpus-per-server" class="form-input" value="${GPAAS.gpusPerServer}" min="1" oninput="gpaasRefresh()">
+        </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Condition</label>
-        <select id="gpaas-condition" class="form-select" onchange="GPAAS.condition=this.value">
-          <option value="new" ${GPAAS.condition==='new'?'selected':''}>New</option>
-          <option value="grade-a" ${GPAAS.condition==='grade-a'?'selected':''}>Grade A Refurb</option>
-          <option value="grade-b" ${GPAAS.condition==='grade-b'?'selected':''}>Grade B Refurb</option>
-        </select>
+        <label class="form-label">HW Cost / Server <span style="color:var(--text-muted);font-size:10px">(Velerity funds)</span></label>
+        <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)">$</span>
+        <input type="number" id="gpaas-hw-cost-server" class="form-input" style="padding-left:22px" value="${GPAAS.hwCostPerServer}" oninput="gpaasRefresh()"></div>
       </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label class="form-label">Customer Deposit</label>
+      <div class="form-group" style="margin-bottom:4px">
+        <label class="form-label">DC Partner Deposit</label>
         <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)">$</span>
         <input type="number" id="gpaas-deposit" class="form-input" style="padding-left:22px" value="${GPAAS.deposit}" oninput="gpaasRefresh()"></div>
       </div>
+      <div id="gpaas-info-gpus" style="font-size:11px;color:var(--accent);margin-top:4px">${GPAAS.servers * GPAAS.gpusPerServer} total GPUs · ${gpFmtK(GPAAS.servers * GPAAS.hwCostPerServer)} HW investment</div>
     </div>
 
     <div class="card">
       <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:14px">Revenue</div>
       <div class="form-group">
-        <label class="form-label">Orion CI Market Rate / GPU / hr ${liveBadge}</label>
+        <label class="form-label">Year 1 Rate / GPU / hr ${liveBadge}</label>
         <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)">$</span>
-        <input type="number" id="gpaas-market-rate" class="form-input" style="padding-left:22px" value="${GPAAS.marketRate}" step="0.01" oninput="gpaasRefresh()"></div>
+        <input type="number" id="gpaas-year1-rate" class="form-input" style="padding-left:22px" value="${GPAAS.year1Rate}" step="0.01" oninput="gpaasRefresh()"></div>
       </div>
       <div class="form-group">
-        <label class="form-label">Velerity Billing Rate / GPU / hr</label>
-        <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)">$</span>
-        <input type="number" id="gpaas-billing-rate" class="form-input" style="padding-left:22px" value="${GPAAS.billingRate}" step="0.01" oninput="gpaasRefresh()"></div>
+        <label class="form-label">Annual Rate Decline %</label>
+        <div style="position:relative">
+        <input type="number" id="gpaas-rate-decline" class="form-input" style="padding-right:24px" value="${GPAAS.rateDeclinePct}" step="1" min="0" max="50" oninput="gpaasRefresh()">
+        <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)">%</span></div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:3px">Rate compounds down each year (market compression)</div>
       </div>
       <div class="form-group" style="margin-bottom:0">
-        <label class="form-label">Utilization &nbsp;<span id="gpaas-util-lbl" style="color:var(--accent);font-weight:700">${GPAAS.utilPct}%</span></label>
-        <input type="range" id="gpaas-util" min="10" max="100" step="5" value="${GPAAS.utilPct}" style="width:100%;accent-color:var(--accent)" oninput="gpaasRefresh()">
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:2px"><span>10%</span><span>100%</span></div>
+        <label class="form-label">Guaranteed Monthly Rent <span style="color:var(--text-muted);font-size:10px">(floor, to Velerity)</span></label>
+        <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)">$</span>
+        <input type="number" id="gpaas-guar-rent" class="form-input" style="padding-left:22px" value="${GPAAS.guaranteedMonthlyRent}" oninput="gpaasRefresh()"></div>
       </div>
     </div>
 
     <div class="card">
       <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:14px">Deal Structure</div>
       <div class="form-group">
-        <label class="form-label">DC Monthly Hosting Cost <span style="color:var(--text-muted);font-weight:400;font-size:10px">(power, space, cooling)</span></label>
+        <label class="form-label">DC Monthly Hosting Cost <span style="color:var(--text-muted);font-size:10px">(power, space, cooling)</span></label>
         <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted)">$</span>
         <input type="number" id="gpaas-dc-monthly" class="form-input" style="padding-left:22px" value="${GPAAS.dcMonthly}" oninput="gpaasRefresh()"></div>
       </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label class="form-label">DC Revenue Share &nbsp;<span id="gpaas-revshare-lbl" style="font-size:12px">DC&nbsp;<b style="color:#F59E0B">${GPAAS.dcRevShare}%</b>&nbsp;·&nbsp;Velerity&nbsp;<b style="color:#22C55E">${100-GPAAS.dcRevShare}%</b></span></label>
-        <input type="range" id="gpaas-dc-revshare" min="0" max="50" step="1" value="${GPAAS.dcRevShare}" style="width:100%;accent-color:var(--accent)" oninput="gpaasRefresh()">
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:2px"><span>0%</span><span>50%</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group">
+          <label class="form-label">Vel % Surplus<br><span style="color:var(--text-muted);font-weight:400;font-size:10px">Yrs 1 – (N-1)</span></label>
+          <div style="position:relative">
+          <input type="number" id="gpaas-split-early" class="form-input" style="padding-right:22px" value="${GPAAS.surplusSplitEarlyVel}" min="0" max="100" oninput="gpaasRefresh()">
+          <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--text-muted)">%</span></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vel % Surplus<br><span style="color:var(--text-muted);font-weight:400;font-size:10px">Yr N+</span></label>
+          <div style="position:relative">
+          <input type="number" id="gpaas-split-late" class="form-input" style="padding-right:22px" value="${GPAAS.surplusSplitLateVel}" min="0" max="100" oninput="gpaasRefresh()">
+          <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--text-muted)">%</span></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Split Changes at Year</label>
+          <input type="number" id="gpaas-split-change-yr" class="form-input" value="${GPAAS.splitChangeYear}" min="2" max="10" oninput="gpaasRefresh()">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Term (Years)</label>
+          <input type="number" id="gpaas-term" class="form-input" value="${GPAAS.term}" min="1" max="10" oninput="gpaasRefresh()">
+        </div>
       </div>
     </div>
+
   </div>
 
   <div id="gpaas-results"></div>`;
