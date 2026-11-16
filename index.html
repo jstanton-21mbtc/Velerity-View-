@@ -305,7 +305,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <button class="btn-copilot" onclick="toggleCopilot()">&#9733; Rep Copilot</button>
   </div>
   <div id="content">
-    <div id="s-academy-gpus" class="section active"><div class="section-header"><div class="section-title">GPU Reference</div><div class="section-sub">A100 · H100 · H200 — specifications, capabilities, and sales positioning</div></div><div id="gpu-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
+    <div id="s-academy-gpus" class="section active"><div class="section-header"><div class="section-title">GPU Reference</div><div class="section-sub">A100 · H100 · H200 · B200 — specifications, form factors, and what customers buy</div></div><div id="gpu-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-academy-platforms" class="section"><div class="section-header"><div class="section-title">Platform Catalog</div><div class="section-sub">DGX, HGX, and OEM AI server platforms — certified for resale</div></div><div id="platform-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-academy-compare" class="section"><div class="section-header"><div class="section-title">Compare</div><div class="section-sub">Side-by-side GPU and platform comparison</div></div><div id="compare-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-academy-cert" class="section"><div class="section-header"><div class="section-title">Certification &amp; Refurbishment</div><div class="section-sub">How Velerity certifies and warranties AI hardware</div></div><div id="cert-content"></div></div>
@@ -476,68 +476,105 @@ const GPU_DATA = [
   { id:'a100-40-pcie', gen:'A100', name:'A100 40GB PCIe', badge:'A100',
     memory:'40 GB HBM2', memBW:'1,555 GB/s', tdp:'250 W', mig:true, te:false,
     nvlink:'N/A (PCIe)',
-    perf:{ fp64:'9.7 TFLOPS', fp32:'19.5 TFLOPS', tf32:'156 TFLOPS (312 w/ sparsity)', bf16:'312 TFLOPS (624 w/ sparsity)', fp16:'312 TFLOPS (624 w/ sparsity)', fp8:'Not supported', int8:'624 TOPS (1,248 w/ sparsity)' },
+    perf:{ fp64:'9.7 TFLOPS', fp32:'19.5 TFLOPS', tf32:'156 TFLOPS (312 w/ sparsity)', bf16:'312 TFLOPS (624 w/ sparsity)', fp16:'312 TFLOPS (624 w/ sparsity)', fp8:'Not supported', fp4:'Not supported', int8:'624 TOPS (1,248 w/ sparsity)' },
     bestFor:'Cost-effective training and inference for models up to ~20B params; workloads that fit in 40 GB VRAM; MIG for multi-tenant inference.',
     notes:'PCIe form factor — fits standard GPU servers without NVLink fabric. Lower FP64 than SXM4; good for HPC-light workloads.',
+    platformContext:'PCIe. Drops into any standard PCIe x16 slot. No NVLink — used in 1U–4U PCIe GPU servers, not in DGX or HGX systems.',
+    buyWhy:'Budget-conscious inference buyers; research institutions; MIG multi-tenant deployments serving multiple teams off one GPU. Competitive vs. cloud for sustained, low-VRAM workloads. Best pitch: lowest per-GPU entry price in the A100 family.',
     sourceUrl:'https://www.nvidia.com/en-us/data-center/a100/', verified:true },
 
   { id:'a100-80-pcie', gen:'A100', name:'A100 80GB PCIe', badge:'A100',
     memory:'80 GB HBM2e', memBW:'1,935 GB/s', tdp:'300 W', mig:true, te:false,
     nvlink:'N/A (PCIe)',
-    perf:{ fp64:'9.7 TFLOPS', fp32:'19.5 TFLOPS', tf32:'156 TFLOPS (312 w/ sparsity)', bf16:'312 TFLOPS (624 w/ sparsity)', fp16:'312 TFLOPS (624 w/ sparsity)', fp8:'Not supported', int8:'624 TOPS (1,248 w/ sparsity)' },
+    perf:{ fp64:'9.7 TFLOPS', fp32:'19.5 TFLOPS', tf32:'156 TFLOPS (312 w/ sparsity)', bf16:'312 TFLOPS (624 w/ sparsity)', fp16:'312 TFLOPS (624 w/ sparsity)', fp8:'Not supported', fp4:'Not supported', int8:'624 TOPS (1,248 w/ sparsity)' },
     bestFor:'Large model inference (LLaMA 70B single-GPU); fine-tuning up to ~40B params; memory-constrained workloads needing 80 GB.',
     notes:'Same compute as 40GB PCIe but with double the VRAM. Memory bandwidth slightly higher due to HBM2e.',
+    platformContext:'PCIe. Standard PCIe x16 slot. No NVLink — multi-GPU communication over PCIe. Used in PCIe GPU servers, not in DGX or HGX systems.',
+    buyWhy:'Teams running LLaMA-70B or Falcon-180B inference without DGX infrastructure. Common in university AI labs, regional cloud providers, and enterprise IT departments with existing PCIe server racks. Upgrade from 40GB when models no longer fit.',
     sourceUrl:'https://www.nvidia.com/en-us/data-center/a100/', verified:true },
 
   { id:'a100-80-sxm4', gen:'A100', name:'A100 80GB SXM4', badge:'A100',
     memory:'80 GB HBM2e', memBW:'2,000 GB/s', tdp:'400 W', mig:true, te:false,
     nvlink:'600 GB/s (NVLink 3.0)',
-    perf:{ fp64:'19.5 TFLOPS', fp32:'19.5 TFLOPS', tf32:'312 TFLOPS (624 w/ sparsity)', bf16:'624 TFLOPS (1,248 w/ sparsity)', fp16:'624 TFLOPS (1,248 w/ sparsity)', fp8:'Not supported', int8:'1,248 TOPS (2,496 w/ sparsity)' },
-    bestFor:'Multi-GPU training (GPT-3 scale, diffusion models); clusters requiring high NVLink bandwidth; DGX A100 systems.',
+    perf:{ fp64:'19.5 TFLOPS', fp32:'19.5 TFLOPS', tf32:'312 TFLOPS (624 w/ sparsity)', bf16:'624 TFLOPS (1,248 w/ sparsity)', fp16:'624 TFLOPS (1,248 w/ sparsity)', fp8:'Not supported', fp4:'Not supported', int8:'1,248 TOPS (2,496 w/ sparsity)' },
+    bestFor:'Multi-GPU training (GPT-3 scale, diffusion models); clusters requiring high NVLink bandwidth; DGX A100 and HGX A100 systems.',
     notes:'2× the FP64 and BF16 throughput vs. PCIe variant due to higher TDP and NVLink fabric. The workhorse of the 2021–2023 AI boom.',
+    platformContext:'SXM4. Mounts on HGX A100 baseboard inside DGX A100 (NVIDIA) or OEM HGX systems (Dell XE8545, HPE XL675d, Lenovo SR670 V2, Gigabyte G492). NVSwitch fabric enables all-to-all GPU connectivity. Not PCIe-compatible.',
+    buyWhy:'Core of certified refurb DGX A100 and HGX A100 clusters — Velerity\'s highest-volume A100 SKU. Customers buying refurb DGX A100 systems at 50–60% below new H100 pricing for workloads that fit in 80 GB. Large installed base drives multi-unit expansion sales. Best pitch: same training capability as 2022 state-of-the-art at a fraction of new H100 cost.',
     sourceUrl:'https://www.nvidia.com/en-us/data-center/a100/', verified:true },
 
   // ── H100 ──
   { id:'h100-80-pcie', gen:'H100', name:'H100 80GB PCIe', badge:'H100',
     memory:'80 GB HBM2e', memBW:'2,000 GB/s', tdp:'350 W', mig:true, te:true,
     nvlink:'N/A (PCIe)',
-    perf:{ fp64:'25.6 TFLOPS', fp32:'51.2 TFLOPS', tf32:'756 TFLOPS (1,513 w/ sparsity)', bf16:'1,513 TFLOPS (3,026 w/ sparsity)', fp16:'1,513 TFLOPS (3,026 w/ sparsity)', fp8:'3,026 TOPS (6,051 w/ sparsity)', int8:'3,026 TOPS (6,051 w/ sparsity)' },
+    perf:{ fp64:'25.6 TFLOPS', fp32:'51.2 TFLOPS', tf32:'756 TFLOPS (1,513 w/ sparsity)', bf16:'1,513 TFLOPS (3,026 w/ sparsity)', fp16:'1,513 TFLOPS (3,026 w/ sparsity)', fp8:'3,026 TOPS (6,051 w/ sparsity)', fp4:'Not supported', int8:'3,026 TOPS (6,051 w/ sparsity)' },
     bestFor:'High-throughput inference; fine-tuning in PCIe-only environments; drop-in H100 upgrade for A100 PCIe servers.',
     notes:'Hopper architecture with Transformer Engine (FP8). ~2.4× BF16 throughput vs. A100 80GB PCIe. Lower memory bandwidth than SXM5 due to HBM2e vs. HBM3.',
+    platformContext:'PCIe. Drops into any PCIe x16 slot. No NVLink — multi-GPU over PCIe. Direct drop-in upgrade path from A100 PCIe infrastructure without buying a new HGX chassis.',
+    buyWhy:'Customers upgrading from A100 PCIe infrastructure who want 2.4× more throughput without a new HGX chassis. Common in enterprises with existing PCIe GPU servers. Inference shops buying as slot-for-slot upgrades in serving farms. Good deal for buyers who can\'t justify DGX/HGX cost.',
     sourceUrl:'https://www.nvidia.com/en-us/data-center/h100/', verified:true },
 
   { id:'h100-80-sxm5', gen:'H100', name:'H100 80GB SXM5', badge:'H100',
     memory:'80 GB HBM3', memBW:'3,350 GB/s', tdp:'700 W', mig:true, te:true,
     nvlink:'900 GB/s (NVLink 4.0)',
-    perf:{ fp64:'33.5 TFLOPS', fp32:'66.9 TFLOPS', tf32:'989 TFLOPS (1,979 w/ sparsity)', bf16:'1,979 TFLOPS (3,958 w/ sparsity)', fp16:'1,979 TFLOPS (3,958 w/ sparsity)', fp8:'3,958 TOPS (7,916 w/ sparsity)', int8:'3,958 TOPS (7,916 w/ sparsity)' },
+    perf:{ fp64:'33.5 TFLOPS', fp32:'66.9 TFLOPS', tf32:'989 TFLOPS (1,979 w/ sparsity)', bf16:'1,979 TFLOPS (3,958 w/ sparsity)', fp16:'1,979 TFLOPS (3,958 w/ sparsity)', fp8:'3,958 TOPS (7,916 w/ sparsity)', fp4:'Not supported', int8:'3,958 TOPS (7,916 w/ sparsity)' },
     bestFor:'Large-scale LLM training (100B+ parameter models); high-throughput inference serving; DGX H100 and HGX H100 clusters.',
     notes:'The flagship AI training GPU. HBM3 delivers 68% more memory bandwidth vs. A100 SXM4. NVLink 4.0 at 900 GB/s enables tight 8-GPU coupling. Transformer Engine accelerates FP8 training.',
+    platformContext:'SXM5. Mounts on HGX H100 baseboard inside DGX H100 (NVIDIA) or OEM HGX systems (Dell XE9680, Supermicro SYS-821GE, HPE Cray XD670, Lenovo SR675 V3). NVSwitch 3.0 for all-to-all GPU connectivity. Not PCIe-compatible.',
+    buyWhy:'The highest-demand GPU in market today. Bought by neoclouds (CoreWeave, Lambda, Vast.ai), enterprise AI teams, and research labs. 8-GPU DGX/HGX nodes are the standard training configuration. OEM lead times of 6–9 months make Velerity certified refurb extremely competitive at 20–35% discount. Best pitch: same delivery in 5 weeks at a 25% discount vs. waiting 9 months for new.',
     sourceUrl:'https://www.nvidia.com/en-us/data-center/h100/', verified:true },
 
   { id:'h100-nvl', gen:'H100', name:'H100 NVL 94GB', badge:'H100',
     memory:'94 GB HBM3 (per GPU; 188 GB per NVL pair)', memBW:'3,350 GB/s', tdp:'400 W', mig:true, te:true,
     nvlink:'600 GB/s (NVLink 4.0, paired)',
-    perf:{ fp64:'33.5 TFLOPS', fp32:'66.9 TFLOPS', tf32:'989 TFLOPS (1,979 w/ sparsity)', bf16:'1,979 TFLOPS (3,958 w/ sparsity)', fp16:'1,979 TFLOPS (3,958 w/ sparsity)', fp8:'3,958 TOPS (7,916 w/ sparsity)', int8:'3,958 TOPS (7,916 w/ sparsity)' },
+    perf:{ fp64:'33.5 TFLOPS', fp32:'66.9 TFLOPS', tf32:'989 TFLOPS (1,979 w/ sparsity)', bf16:'1,979 TFLOPS (3,958 w/ sparsity)', fp16:'1,979 TFLOPS (3,958 w/ sparsity)', fp8:'3,958 TOPS (7,916 w/ sparsity)', fp4:'Not supported', int8:'3,958 TOPS (7,916 w/ sparsity)' },
     bestFor:'Large context inference (long documents, video); models requiring >80 GB VRAM; PCIe server environments needing extra memory.',
     notes:'Two H100 dies connected via NVLink on a single PCIe card. 94 GB per die (188 GB total addressable). Lower NVLink BW than SXM5. Good for memory-constrained inference.',
+    platformContext:'PCIe card (dual-die). Two H100 GPU dies unified as 188 GB addressable via NVLink. Fits a standard PCIe x16 slot. Used in PCIe servers — not an HGX/DGX component.',
+    buyWhy:'Customers needing >80 GB VRAM per GPU in a PCIe form factor. Typically inference teams running very long context (128K+ token) models or large VLMs like LLaMA 405B on fewer cards. NVL pairs sold as 2-die units — natural upsell for teams already buying H100 PCIe infrastructure.',
     sourceUrl:'https://www.nvidia.com/en-us/data-center/h100/', verified:false },
 
   // ── H200 ──
   { id:'h200-sxm', gen:'H200', name:'H200 141GB SXM', badge:'H200',
     memory:'141 GB HBM3e', memBW:'4,800 GB/s', tdp:'700 W', mig:true, te:true,
     nvlink:'900 GB/s (NVLink 4.0)',
-    perf:{ fp64:'33.5 TFLOPS', fp32:'66.9 TFLOPS', tf32:'989 TFLOPS (1,979 w/ sparsity)', bf16:'1,979 TFLOPS (3,958 w/ sparsity)', fp16:'1,979 TFLOPS (3,958 w/ sparsity)', fp8:'3,958 TOPS (7,916 w/ sparsity)', int8:'3,958 TOPS (7,916 w/ sparsity)' },
+    perf:{ fp64:'33.5 TFLOPS', fp32:'66.9 TFLOPS', tf32:'989 TFLOPS (1,979 w/ sparsity)', bf16:'1,979 TFLOPS (3,958 w/ sparsity)', fp16:'1,979 TFLOPS (3,958 w/ sparsity)', fp8:'3,958 TOPS (7,916 w/ sparsity)', fp4:'Not supported', int8:'3,958 TOPS (7,916 w/ sparsity)' },
     bestFor:'Frontier LLM training and inference; models >80B parameters; memory-bandwidth-bound workloads (large-batch inference, MoE models).',
     notes:'Same Hopper compute die as H100 SXM5 — the upgrade is memory: 141 GB HBM3e at 4,800 GB/s (43% more BW vs. H100). Memory-bandwidth-bound workloads see the biggest gains.',
+    platformContext:'SXM form factor. Mounts on HGX H200 baseboard inside DGX H200 (NVIDIA) or OEM HGX H200 systems (Lenovo SR680a V3, Dell XE9680 H200 config). Drop-in upgrade on same chassis as H100 SXM5 for most OEMs.',
+    buyWhy:'Labs and enterprises serving frontier models (Llama 3 405B, DeepSeek R1, Mixtral 8×22B). The upgrade path from H100 DGX/HGX — same chassis, 76% more GPU memory and 43% more bandwidth. Hyperscalers and neoclouds buying in multi-node clusters for production inference. Key pitch: H200 fits in your existing H100 rack and doubles the models you can serve.',
     sourceUrl:'https://www.nvidia.com/en-us/data-center/h200/', verified:true },
 
   { id:'h200-nvl', gen:'H200', name:'H200 NVL 141GB', badge:'H200',
     memory:'141 GB HBM3e (per GPU; 282 GB per NVL pair)', memBW:'4,800 GB/s', tdp:'700 W', mig:true, te:true,
     nvlink:'900 GB/s (NVLink 4.0, paired)',
-    perf:{ fp64:'33.5 TFLOPS', fp32:'66.9 TFLOPS', tf32:'989 TFLOPS (1,979 w/ sparsity)', bf16:'1,979 TFLOPS (3,958 w/ sparsity)', fp16:'1,979 TFLOPS (3,958 w/ sparsity)', fp8:'3,958 TOPS (7,916 w/ sparsity)', int8:'3,958 TOPS (7,916 w/ sparsity)' },
+    perf:{ fp64:'33.5 TFLOPS', fp32:'66.9 TFLOPS', tf32:'989 TFLOPS (1,979 w/ sparsity)', bf16:'1,979 TFLOPS (3,958 w/ sparsity)', fp16:'1,979 TFLOPS (3,958 w/ sparsity)', fp8:'3,958 TOPS (7,916 w/ sparsity)', fp4:'Not supported', int8:'3,958 TOPS (7,916 w/ sparsity)' },
     bestFor:'Extremely large models (400B+ MoE); production inference requiring maximum GPU memory; rack-scale AI deployments.',
     notes:'NVL variant pairs two H200 dies for 282 GB addressable memory. Premium option for the most memory-constrained use cases.',
+    platformContext:'PCIe card (dual-die). Two H200 GPU dies unified as 282 GB addressable via NVLink. Fits a standard PCIe x16 slot. Different from the SXM variant used in DGX/HGX systems.',
+    buyWhy:'Niche top-of-market use case — customers running 1T+ parameter models or massive MoE serving who need maximum per-node GPU memory in PCIe form factor. Very limited supply; premium pricing. Good for deal size but rare buyer profile. Qualify carefully before pitching.',
     sourceUrl:'https://www.nvidia.com/en-us/data-center/h200/', verified:false },
+
+  // ── B200 / Blackwell ──
+  { id:'b200-sxm6', gen:'B200', name:'B200 192GB SXM6', badge:'B200',
+    memory:'192 GB HBM3e', memBW:'8,000 GB/s', tdp:'~1,000 W', mig:true, te:true,
+    nvlink:'1,800 GB/s (NVLink 5.0)',
+    perf:{ fp64:'40 TFLOPS', fp32:'80 TFLOPS', tf32:'2,500 TFLOPS (5,000 w/ sparsity)', bf16:'4,500 TFLOPS (9,000 w/ sparsity)', fp16:'4,500 TFLOPS (9,000 w/ sparsity)', fp8:'9,000 TFLOPS (18,000 w/ sparsity)', fp4:'18,000 TFLOPS (36,000 w/ sparsity)', int8:'18,000 TOPS (36,000 w/ sparsity)' },
+    bestFor:'Frontier LLM training (GPT-4 scale and beyond); large-batch inference for 100B–1T+ parameter models; MoE and reasoning model serving; next-generation AI clusters replacing H100/H200.',
+    notes:'Blackwell architecture — 2nd-gen Transformer Engine with FP4 precision. NVLink 5.0 at 1,800 GB/s (2× H100). ~4.5× more FP8 throughput vs. H100 SXM5. Liquid cooling mandatory — no air-cooled B200 SXM6 configuration supported. 192 GB HBM3e enables serving GPT-4-class models on a single node.',
+    platformContext:'SXM6. Mounts on HGX B200 baseboard inside DGX B200 (NVIDIA), OEM HGX B200 systems (Dell XE9780, Supermicro B200), or GB200 NVL72 rack (as GB200 Superchip pairing one Grace CPU + 2 B200 dies). Liquid cooling required for all SXM6 deployments.',
+    buyWhy:'Hyperscalers and frontier AI labs building next-generation training clusters. Enterprises buying to serve GPT-4-class models where H200 memory or compute is insufficient. Key trigger: H100/H200 clusters are saturated and teams need 4–5× more throughput. OEM lead times 12–18+ months — Velerity certified supply is high-value here.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/b200/', verified:true },
+
+  { id:'b100-pcie', gen:'B200', name:'B100 192GB PCIe', badge:'B200',
+    memory:'192 GB HBM3e', memBW:'8,000 GB/s', tdp:'~700 W', mig:true, te:true,
+    nvlink:'N/A (PCIe)',
+    perf:{ fp64:'30 TFLOPS', fp32:'60 TFLOPS', tf32:'~1,800 TFLOPS', bf16:'~3,500 TFLOPS', fp16:'~3,500 TFLOPS', fp8:'~7,000 TFLOPS', fp4:'~14,000 TFLOPS', int8:'~14,000 TOPS' },
+    bestFor:'High-throughput inference in PCIe server environments; drop-in Blackwell upgrade for existing H100/H200 PCIe servers; workloads needing 192 GB VRAM without full NVLink fabric.',
+    notes:'PCIe 5.0 form factor. Same 192 GB HBM3e memory as B200 SXM6 but lower TDP and no NVLink. Fits standard PCIe GPU servers — does not require liquid cooling. Good entry point to Blackwell generation without facility upgrades.',
+    platformContext:'PCIe 5.0 x16 slot. No NVLink — multi-GPU communication over PCIe. Drop-in upgrade path from H100/H200 PCIe infrastructure. Air-cooled support in standard server configurations. No DGX/HGX variant exists for B100.',
+    buyWhy:'Mid-market enterprises upgrading PCIe-based inference clusters to Blackwell without infrastructure changes. Customers who need 192 GB VRAM per GPU but cannot support liquid cooling or NVLink. Often purchased as inference-only nodes alongside existing H100 SXM training clusters. Lower barrier to entry than B200 SXM6.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/b100/', verified:false },
 ];
 
 let gpuGenFilter = 'A100';
@@ -545,191 +582,304 @@ let selectedGPU = null;
 
 function renderGPUs() {
   const el = document.getElementById('gpu-content');
-  const gens = ['A100','H100','H200'];
+  const gens = ['A100','H100','H200','B200'];
   const filtered = GPU_DATA.filter(g => g.gen === gpuGenFilter);
 
-  const tabs = gens.map(g => `<div class="tab${g===gpuGenFilter?' active':''}" onclick="gpuGenFilter='${g}';renderGPUs()">${g}</div>`).join('');
+  const genColors = { A100:'var(--text-dim)', H100:'#22C55E', H200:'var(--accent)', B200:'#A78BFA' };
+  const tabs = gens.map(g => `<div class="tab${g===gpuGenFilter?' active':''}" onclick="gpuGenFilter='${g}';selectedGPU=null;renderGPUs()" style="${g===gpuGenFilter?'':''}${g==='B200'&&gpuGenFilter!=='B200'?'color:#A78BFA80':''}">${g}${g==='B200'?'&nbsp;<span style="font-size:9px;background:rgba(167,139,250,.15);color:#A78BFA;border:1px solid rgba(167,139,250,.3);border-radius:3px;padding:1px 5px;vertical-align:middle">Blackwell</span>':''}</div>`).join('');
 
-  const cards = filtered.map(g => `
+  const cards = filtered.map(g => {
+    const formTag = g.nvlink.startsWith('N/A') ? 'PCIe' : (g.id.includes('nvl') ? 'NVL' : 'SXM');
+    const formColor = formTag==='PCIe'?'#64748B':formTag==='NVL'?'#F59E0B':'#4AD0FA';
+    return `
     <div class="card" style="cursor:pointer;border-color:${selectedGPU===g.id?'var(--accent)':'var(--border)'}" onclick="selectedGPU='${g.id}';renderGPUs()">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <span style="font-size:15px;font-weight:600">${g.name}</span>
-        <span class="badge ${g.verified?'badge-verified':'badge-unverified'}">${g.verified?'Verified':'Unverified'}</span>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+            <span style="font-size:15px;font-weight:600">${g.name}</span>
+            <span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:4px;border:1px solid;color:${formColor};border-color:${formColor}40;background:${formColor}10">${formTag}</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted)">${g.platformContext.split('.')[0]}</div>
+        </div>
+        <span class="badge ${g.verified?'badge-verified':'badge-unverified'}">${g.verified?'✓ Verified':'Unverified'}</span>
       </div>
-      <div style="font-size:12px;color:var(--text-dim);line-height:1.6">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.7;margin-top:8px">
         <div><b style="color:var(--text-muted)">Memory:</b> ${g.memory}</div>
-        <div><b style="color:var(--text-muted)">BW:</b> ${g.memBW}</div>
-        <div><b style="color:var(--text-muted)">TDP:</b> ${g.tdp}</div>
-        <div><b style="color:var(--text-muted)">MIG:</b> ${g.mig?'Yes':'No'} &nbsp; <b style="color:var(--text-muted)">Transformer Engine:</b> ${g.te?'Yes':'No'}</div>
+        <div><b style="color:var(--text-muted)">BW:</b> ${g.memBW} &nbsp;·&nbsp; <b style="color:var(--text-muted)">TDP:</b> ${g.tdp}</div>
+        <div><b style="color:var(--text-muted)">NVLink:</b> ${g.nvlink}</div>
+        <div style="margin-top:4px"><b style="color:var(--text-muted)">MIG:</b> ${g.mig?'Yes':'No'} &nbsp;·&nbsp; <b style="color:var(--text-muted)">TE / FP8:</b> ${g.te?'Yes':'No'} &nbsp;·&nbsp; <b style="color:var(--text-muted)">FP4:</b> ${g.perf.fp4&&g.perf.fp4!=='Not supported'?'Yes':'No'}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   const gpu = GPU_DATA.find(g => g.id === selectedGPU);
-  const detail = gpu ? `
+  const detail = gpu ? (() => {
+    const formTag = gpu.nvlink.startsWith('N/A') ? 'PCIe' : (gpu.id.includes('nvl') ? 'NVL' : 'SXM');
+    const formColor = formTag==='PCIe'?'#64748B':formTag==='NVL'?'#F59E0B':'#4AD0FA';
+    return `
     <div class="card" style="margin-top:24px;border-color:var(--accent)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
         <div>
-          <div style="font-size:18px;font-weight:700">${gpu.name}</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-top:2px">NVLink: ${gpu.nvlink}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <div style="font-size:18px;font-weight:700">${gpu.name}</div>
+            <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid;color:${formColor};border-color:${formColor}40;background:${formColor}10">${formTag}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted)">NVLink: ${gpu.nvlink}</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
-          <span class="badge ${gpu.verified?'badge-verified':'badge-unverified'}">${gpu.verified?'Verified':'Unverified'}</span>
+          <span class="badge ${gpu.verified?'badge-verified':'badge-unverified'}">${gpu.verified?'✓ Verified':'Unverified'}</span>
           <button class="btn btn-ghost btn-sm" onclick="selectedGPU=null;renderGPUs()">Close</button>
         </div>
       </div>
+
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Platform Context — Where This GPU Lives</div>
+        <div class="info-block" style="margin-bottom:0">${gpu.platformContext}</div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">What Customers Buy &amp; Why</div>
+        <div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:14px 16px;font-size:13px;line-height:1.65">${gpu.buyWhy}</div>
+      </div>
+
       <div style="margin-bottom:16px">
         <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Performance</div>
         <div class="spec-grid">
-          ${Object.entries(gpu.perf).map(([k,v])=>`<div class="spec-item"><div class="spec-key">${k.toUpperCase()}</div><div class="spec-val">${v}</div></div>`).join('')}
+          ${Object.entries(gpu.perf).map(([k,v])=>`<div class="spec-item"><div class="spec-key">${k.toUpperCase()}</div><div class="spec-val" style="font-size:12px">${v}</div></div>`).join('')}
         </div>
       </div>
+
       <div style="margin-bottom:14px">
         <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Best For</div>
         <div style="font-size:13px;line-height:1.6;color:var(--text-dim)">${gpu.bestFor}</div>
       </div>
+
       <div style="margin-bottom:14px">
         <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Notes</div>
         <div style="font-size:13px;line-height:1.6;color:var(--text-dim)">${gpu.notes}</div>
       </div>
+
       <div style="font-size:11px;color:var(--text-muted)">Source: <a href="${gpu.sourceUrl}" target="_blank" style="color:var(--accent)">${gpu.sourceUrl}</a></div>
-    </div>` : '';
+    </div>`;
+  })() : '';
 
   el.innerHTML = `<div class="tabs">${tabs}</div><div class="card-grid">${cards}</div>${detail}`;
 }
 // ── Platform Data ─────────────────────────────────────────────────────────────
 const PLATFORM_DATA = [
+  // ── DGX (NVIDIA-branded, turnkey) ──
   { id:'dgx-a100', oem:'NVIDIA', name:'DGX A100', gpuType:'A100 80GB SXM4', gpuCount:8, formFactor:'6U', category:'DGX',
     cpu:'2× AMD EPYC 7742 (64-core)', ram:'1 TB DDR4', storage:'15 TB NVMe (8× 1.92 TB)',
     networking:'8× 200Gb HDR InfiniBand, 2× 10GbE mgmt', power:'6,500 W', cooling:'Air', weight:'~227 kg',
-    nvlink:'NVLink 3.0 (600 GB/s)', notes:'Reference DGX platform for A100 era. Ships with NVIDIA Base Command software. 5× NVLink switches inside.',
+    nvlink:'NVLink 3.0 (600 GB/s)',
+    notes:'Reference DGX platform for A100 era. Ships with NVIDIA Base Command software. 5× NVLink switches inside. Total GPU memory: 640 GB.',
+    whosBuying:'Enterprise AI teams wanting NVIDIA-branded turnkey systems with software included (Base Command). Research institutions preferring single-vendor support. Common in finance, pharma, and government. Velerity certified DGX A100 systems typically sell 40–50% below new DGX H100 price — strong value pitch for teams where A100 compute is sufficient.',
     sourceUrl:'https://www.nvidia.com/en-us/data-center/dgx-a100/', verified:true },
 
   { id:'dgx-h100', oem:'NVIDIA', name:'DGX H100', gpuType:'H100 80GB SXM5', gpuCount:8, formFactor:'10U', category:'DGX',
     cpu:'2× Intel Xeon Platinum 8480C (60-core)', ram:'2 TB DDR5', storage:'30 TB NVMe (8× 3.84 TB)',
     networking:'8× 400Gb NDR InfiniBand (ConnectX-7), 2× 10GbE mgmt', power:'10,200 W', cooling:'Air (liquid-ready)',
-    weight:'~320 kg', nvlink:'NVLink 4.0 (900 GB/s)', notes:'NVIDIA flagship training server. NVSwitch 3.0 for all-to-all GPU connectivity. Ships with DGX OS.',
+    weight:'~320 kg', nvlink:'NVLink 4.0 (900 GB/s)',
+    notes:'NVIDIA flagship training server. NVSwitch 3.0 for all-to-all GPU connectivity. Ships with DGX OS and Base Command. Total GPU memory: 640 GB.',
+    whosBuying:'The reference AI training server for 2023–2025. Bought by hyperscalers, neoclouds, enterprise AI labs, and research institutions. NVIDIA Direct or through Velerity certified refurb. Strong demand; 6–9 month OEM lead times make used/certified supply highly valuable. Typical buyer: ML team scaling from 1–2 nodes to 10+ nodes.',
     sourceUrl:'https://www.nvidia.com/en-us/data-center/dgx-h100/', verified:true },
 
   { id:'dgx-h200', oem:'NVIDIA', name:'DGX H200', gpuType:'H200 141GB SXM', gpuCount:8, formFactor:'10U', category:'DGX',
     cpu:'2× Intel Xeon Platinum 8480C (60-core)', ram:'2 TB DDR5', storage:'30 TB NVMe',
     networking:'8× 400Gb NDR InfiniBand (ConnectX-7), 2× 10GbE mgmt', power:'10,200 W', cooling:'Air (liquid-ready)',
-    weight:'~320 kg', nvlink:'NVLink 4.0 (900 GB/s)', notes:'Drop-in H200 upgrade on same chassis as DGX H100. 141 GB HBM3e per GPU = 1,128 GB total GPU memory per node.',
+    weight:'~320 kg', nvlink:'NVLink 4.0 (900 GB/s)',
+    notes:'Drop-in H200 upgrade on same chassis as DGX H100. Total GPU memory: 1,128 GB (141 GB × 8). Same DC footprint, 76% more GPU memory per node.',
+    whosBuying:'Frontier AI labs and large enterprise AI teams requiring maximum GPU memory per node. Early-access buyers in 2024–2025. Demand exceeds supply; Velerity certified units command premium. Best pitch: H200 fits your existing H100 rack but handles models 70%+ larger.',
     sourceUrl:'https://www.nvidia.com/en-us/data-center/dgx-h200/', verified:false },
+
+  { id:'dgx-b200', oem:'NVIDIA', name:'DGX B200', gpuType:'B200 192GB SXM6', gpuCount:8, formFactor:'10U', category:'DGX',
+    cpu:'2× Intel Xeon (Granite Rapids, 60-core)', ram:'2.3 TB LPDDR5X', storage:'30 TB NVMe',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-8), 2× 10GbE mgmt', power:'~14,400 W', cooling:'Direct liquid cooling required',
+    weight:'~350 kg', nvlink:'NVLink 5.0 (1,800 GB/s per GPU)',
+    notes:'NVIDIA flagship Blackwell training server. Liquid cooling mandatory — cannot run on air. 1.44 PB/s NVLink fabric per node. Total GPU memory: 1,536 GB (192 GB × 8). ~4.5× FP8 throughput vs. DGX H100. Ships with DGX OS and Base Command.',
+    whosBuying:'Frontier AI labs (OpenAI, Anthropic, xAI-scale operations) and hyperscalers building next-generation training clusters. Enterprise AI teams securing capacity ahead of frontier model development. Requires liquid cooling DC infrastructure — qualify facility readiness before selling. OEM lead time 12–18+ months new.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/dgx-b200/', verified:false },
+
+  // ── HGX (OEM-built, NVIDIA baseboard) ──
+  { id:'hgx-b200', oem:'NVIDIA', name:'HGX B200 (OEM Baseboard)', gpuType:'B200 192GB SXM6', gpuCount:8, formFactor:'Varies (OEM)', category:'HGX',
+    cpu:'OEM-defined (Intel Granite Rapids or AMD EPYC Turin)', ram:'OEM-configured', storage:'OEM-configured',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-8) or 400GbE', power:'~14,400 W (GPUs)', cooling:'Direct liquid cooling required',
+    weight:'Varies by OEM', nvlink:'NVLink 5.0 (1,800 GB/s per GPU)',
+    notes:'NVIDIA HGX B200 baseboard used by Dell (XE9780), Supermicro, HPE, and Lenovo. OEM selects CPU, memory, and storage. Liquid cooling is mandatory — no air-cooled B200 HGX configuration supported. All-to-all GPU connectivity via NVSwitch 4th gen.',
+    whosBuying:'Enterprises and neoclouds with existing OEM vendor relationships wanting Blackwell performance within their preferred infrastructure vendor. Dell XE9780 is most common HGX B200 platform in enterprise; Supermicro B200 leads in neocloud deployments. Best angle: same performance as DGX B200 with the OEM support model customer already has.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/hgx/', verified:false },
 
   { id:'dell-xe8545', oem:'Dell', name:'PowerEdge XE8545', gpuType:'A100 80GB SXM4', gpuCount:4, formFactor:'4U', category:'HGX',
     cpu:'2× AMD EPYC 7003 series (up to 64-core)', ram:'Up to 4 TB DDR4', storage:'Up to 12× NVMe U.2',
     networking:'2× 200Gb HDR InfiniBand or 2× 100GbE (ConnectX-6)', power:'~5,600 W (4× GPU)', cooling:'Air',
-    weight:'~65 kg', nvlink:'NVLink 3.0 (600 GB/s, 4-GPU)', notes:'4-GPU A100 SXM4 platform. Popular for workloads requiring high memory bandwidth without full 8-GPU node cost. Common in Velerity certified inventory.',
+    weight:'~65 kg', nvlink:'NVLink 3.0 (600 GB/s, 4-GPU)',
+    notes:'4-GPU A100 SXM4 platform. Popular for workloads requiring high memory bandwidth without full 8-GPU node cost. Common in Velerity certified inventory.',
+    whosBuying:'Mid-market enterprises who want SXM4 bandwidth without the full 8-GPU DGX/HGX cost. 4-GPU configuration is accessible for smaller teams. University AI labs and enterprise IT shops that want Dell OEM support. Good fit for buyers needing 320 GB total GPU memory at lower entry price.',
     sourceUrl:'https://www.dell.com/en-us/shop/povw/poweredge-xe8545', verified:true },
 
   { id:'dell-xe9680', oem:'Dell', name:'PowerEdge XE9680', gpuType:'H100/H200 SXM', gpuCount:8, formFactor:'8U', category:'HGX',
     cpu:'2× Intel Xeon Scalable (Sapphire Rapids, up to 60-core)', ram:'Up to 8 TB DDR5', storage:'Up to 12× NVMe E3.S',
     networking:'Up to 8× 400Gb NDR InfiniBand (ConnectX-7) or 400GbE', power:'~12,000 W', cooling:'Air or liquid',
-    weight:'~250 kg', nvlink:'NVLink 4.0 (900 GB/s)', notes:'Dell flagship 8-GPU HGX server for H100/H200. Designed for dense GPU clusters. Liquid cooling option for high-density racks.',
+    weight:'~250 kg', nvlink:'NVLink 4.0 (900 GB/s)',
+    notes:'Dell flagship 8-GPU HGX server for H100/H200. Designed for dense GPU clusters. Liquid cooling option for high-density racks.',
+    whosBuying:'Dell-preferring enterprises upgrading to H100/H200. Very common in enterprise data centers with Dell as preferred vendor. Sales pitch: matches DGX H100 GPU specs with the Dell support relationship and warranty the customer already has. Also available with H200 GPU config — same chassis.',
     sourceUrl:'https://www.dell.com/en-us/shop/povw/poweredge-xe9680', verified:true },
 
   { id:'hpe-xl675d', oem:'HPE', name:'ProLiant XL675d Gen10+', gpuType:'A100 80GB SXM4', gpuCount:8, formFactor:'4U', category:'HGX',
     cpu:'2× AMD EPYC 7003 series', ram:'Up to 4 TB DDR4', storage:'Up to 12× NVMe',
     networking:'Up to 8× 200Gb HDR InfiniBand (ConnectX-6)', power:'~7,200 W', cooling:'Air',
-    weight:'~150 kg', nvlink:'NVLink 3.0 (600 GB/s)', notes:'HPE OEM HGX A100 8-GPU platform. Apollo 6500 chassis. Common in enterprise HPC deployments.',
+    weight:'~150 kg', nvlink:'NVLink 3.0 (600 GB/s)',
+    notes:'HPE OEM HGX A100 8-GPU platform. Apollo 6500 chassis. Common in enterprise HPC deployments.',
+    whosBuying:'HPE GreenLake customers and enterprises with HPE as preferred vendor. Used heavily in academia and national labs. Best angle for Velerity: HPE-loyal customers who want A100-era refurb systems through a certified channel rather than gray-market.',
     sourceUrl:'https://www.hpe.com/us/en/servers/proliant-xl.html', verified:false },
 
   { id:'hpe-cray-xd670', oem:'HPE', name:'Cray XD670', gpuType:'H100/H200 SXM', gpuCount:8, formFactor:'6U', category:'HGX',
     cpu:'2× Intel Xeon Scalable (Sapphire Rapids)', ram:'Up to 4 TB DDR5', storage:'Up to 8× NVMe',
     networking:'Up to 8× 400Gb NDR InfiniBand (ConnectX-7)', power:'~10,000 W', cooling:'Air or direct liquid',
-    weight:'~180 kg', nvlink:'NVLink 4.0 (900 GB/s)', notes:'HPE Cray high-density GPU platform. Used in national labs and tier-1 HPC centers. Liquid cooling option supports extremely dense GPU racks.',
+    weight:'~180 kg', nvlink:'NVLink 4.0 (900 GB/s)',
+    notes:'HPE Cray high-density GPU platform. Used in national labs and tier-1 HPC centers. Liquid cooling option supports extremely dense GPU racks.',
+    whosBuying:'HPC-first buyers — national labs, universities, tier-1 HPC centers, and government. Liquid cooling is a differentiator for dense deployments. Overkill for most enterprise AI workloads; ideal for scientific computing + AI mixed clusters. Long procurement cycles; qualify budget authority early.',
     sourceUrl:'https://www.hpe.com/us/en/compute/hpc/supercomputing/cray-xd-series.html', verified:false },
 
   { id:'supermicro-hgx-h100', oem:'Supermicro', name:'SYS-821GE-TNHR', gpuType:'H100 80GB SXM5', gpuCount:8, formFactor:'8U', category:'HGX',
     cpu:'2× Intel Xeon Scalable (Sapphire Rapids)', ram:'Up to 8 TB DDR5', storage:'Up to 24× NVMe',
     networking:'8× 400Gb NDR InfiniBand (ConnectX-7)', power:'~12,000 W', cooling:'Air',
-    weight:'~230 kg', nvlink:'NVLink 4.0 (900 GB/s)', notes:'Supermicro 8-GPU HGX H100 platform. NVIDIA HGX H100 baseboard. Popular with neoclouds and hyperscalers.',
+    weight:'~230 kg', nvlink:'NVLink 4.0 (900 GB/s)',
+    notes:'Supermicro 8-GPU HGX H100 platform. NVIDIA HGX H100 baseboard. Popular with neoclouds and hyperscalers.',
+    whosBuying:'Neoclouds and hyperscalers building cost-optimized GPU clusters. Supermicro is the most common OEM in neocloud deployments (CoreWeave, Lambda, Vast.ai). Lower price per node than Dell/HPE. Buyers self-manage infrastructure and want value over brand support. Strong ICP match for GPU rental and cloud GPU providers.',
     sourceUrl:'https://www.supermicro.com/en/solutions/nvidia-hgx-h100', verified:false },
 
   { id:'lenovo-sr670v2', oem:'Lenovo', name:'ThinkSystem SR670 V2', gpuType:'A100 80GB SXM4', gpuCount:8, formFactor:'4U', category:'HGX',
     cpu:'2× Intel Xeon Scalable (Ice Lake, up to 40-core)', ram:'Up to 6 TB DDR4', storage:'Up to 8× NVMe',
     networking:'Up to 4× 200Gb HDR InfiniBand or 2× 100GbE', power:'~7,200 W', cooling:'Air',
-    weight:'~130 kg', nvlink:'NVLink 3.0 (600 GB/s)', notes:'Lenovo OEM HGX A100 platform. Used heavily in enterprise and research. Tight integration with Lenovo XClarity management.',
+    weight:'~130 kg', nvlink:'NVLink 3.0 (600 GB/s)',
+    notes:'Lenovo OEM HGX A100 platform. Used heavily in enterprise and research. Tight integration with Lenovo XClarity management.',
+    whosBuying:'Enterprise customers with Lenovo as preferred vendor or existing Lenovo HPC infrastructure. Common in automotive, manufacturing, and financial services. Lenovo XClarity management integration is key differentiator for IT ops teams. Good refurb angle: widely deployed, well-documented.',
     sourceUrl:'https://www.lenovo.com/us/en/servers-storage/servers/gpu-servers/ThinkSystem-SR670-V2/', verified:false },
 
   { id:'lenovo-sr675v3', oem:'Lenovo', name:'ThinkSystem SR675 V3', gpuType:'H100 80GB SXM5', gpuCount:8, formFactor:'5U', category:'HGX',
     cpu:'2× AMD EPYC 9004 series (up to 96-core)', ram:'Up to 6 TB DDR5', storage:'Up to 12× NVMe',
     networking:'Up to 8× 400Gb NDR InfiniBand (ConnectX-7)', power:'~10,000 W', cooling:'Air or liquid',
-    weight:'~170 kg', nvlink:'NVLink 4.0 (900 GB/s)', notes:'Lenovo flagship H100 platform. EPYC CPU option differentiates from Intel-based HGX servers. Strong memory capacity.',
+    weight:'~170 kg', nvlink:'NVLink 4.0 (900 GB/s)',
+    notes:'Lenovo flagship H100 platform. EPYC CPU option differentiates from Intel-based HGX servers. Strong memory capacity.',
+    whosBuying:'Lenovo customers upgrading from A100 to H100. EPYC CPU differentiates for memory-intensive CPU-side workloads. Research and enterprise AI teams with existing Lenovo relationships. EPYC 9004 (Genoa) gives more CPU memory bandwidth for data preprocessing alongside GPU training.',
     sourceUrl:'https://www.lenovo.com/us/en/servers-storage/servers/gpu-servers/ThinkSystem-SR675-V3/', verified:false },
 
   { id:'lenovo-sr680av3', oem:'Lenovo', name:'ThinkSystem SR680a V3', gpuType:'H200 141GB SXM', gpuCount:8, formFactor:'6U', category:'HGX',
     cpu:'2× Intel Xeon Scalable (Granite Rapids)', ram:'Up to 8 TB DDR5', storage:'Up to 12× NVMe',
     networking:'Up to 8× 400Gb NDR InfiniBand (ConnectX-7)', power:'~10,200 W', cooling:'Air or direct liquid',
-    weight:'~200 kg', nvlink:'NVLink 4.0 (900 GB/s)', notes:'Lenovo H200 platform. Updated chassis for H200 thermal envelope. Liquid cooling option for ultra-dense deployment.',
+    weight:'~200 kg', nvlink:'NVLink 4.0 (900 GB/s)',
+    notes:'Lenovo H200 platform. Updated chassis for H200 thermal envelope. Liquid cooling option for ultra-dense deployment.',
+    whosBuying:'Lenovo installed base upgrading from H100 to H200. Early H200 buyers in Lenovo accounts. Liquid cooling variant supports ultra-dense rack deployments. Limited availability in refurb market; new supply constrained.',
     sourceUrl:'https://www.lenovo.com/us/en/servers-storage/servers/gpu-servers/', verified:false },
 
   { id:'gigabyte-g492', oem:'Gigabyte', name:'G492-ZD0', gpuType:'A100 80GB SXM4', gpuCount:8, formFactor:'4U', category:'HGX',
     cpu:'2× AMD EPYC 7003 series', ram:'Up to 2 TB DDR4', storage:'8× NVMe',
     networking:'4× 200Gb HDR InfiniBand (ConnectX-6 Dx)', power:'~7,000 W', cooling:'Air',
-    weight:'~120 kg', nvlink:'NVLink 3.0 (600 GB/s)', notes:'Gigabyte OEM HGX A100 platform. Compact 4U design. Popular with value-focused cloud builders.',
+    weight:'~120 kg', nvlink:'NVLink 3.0 (600 GB/s)',
+    notes:'Gigabyte OEM HGX A100 platform. Compact 4U design. Popular with value-focused cloud builders.',
+    whosBuying:'Value-focused cloud builders and GPU rental providers. Lower-cost alternative to Dell/HPE with comparable GPU performance. Common in smaller neoclouds and research groups building cost-optimized training clusters. Buyers self-manage; want lowest per-GPU cost in a supported OEM form factor.',
     sourceUrl:'https://www.gigabyte.com/Enterprise/GPU-Server', verified:false },
+
+  // ── NVL72 (Rack-scale Blackwell) ──
+  { id:'gb200-nvl72', oem:'NVIDIA', name:'GB200 NVL72', gpuType:'B200 192GB SXM6', gpuCount:72, formFactor:'Full rack (77U)', category:'NVL72',
+    cpu:'36× NVIDIA Grace ARM CPU (72-core per chip) — integrated on GB200 Superchip', ram:'17.3 TB LPDDR5X (CPU) + 13.8 TB HBM3e (GPU)', storage:'External (OEM-configured)',
+    networking:'NDR InfiniBand or 400GbE spine; NVLink Switch 5th gen within rack', power:'~120,000 W per rack', cooling:'Direct liquid cooling required (CDU)',
+    weight:'~2,000+ kg (full rack)', nvlink:'NVLink Switch 5th gen — 1.8 TB/s per GPU (all-to-all within rack)',
+    notes:'Rack-scale AI system: 36× GB200 Superchips (each = 1 Grace CPU + 2 B200 GPU dies). Full rack treats all 72 GPUs as a single compute unit. 1.44 exaFLOPS FP8 per rack. Requires new facility build-out: liquid CDU, reinforced floors, dedicated power. Not a drop-in upgrade.',
+    whosBuying:'Hyperscalers (Microsoft, Google, Amazon, Meta, Oracle) and sovereign AI programs building purpose-built AI data centers. Minimum procurement is typically multi-rack. Not suitable for most enterprise data centers without facility modification. Sales approach: qualify DC readiness (power, cooling, floor load) before engaging on NVL72. Any prospect without 120 kW/rack liquid cooling is not an NVL72 buyer.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', verified:false },
 ];
 
 let platformFilter = 'All';
 let selectedPlatform = null;
+
+const CATEGORY_COLORS = { DGX:'#4AD0FA', HGX:'#22C55E', NVL72:'#A78BFA' };
 
 function renderPlatforms() {
   const el = document.getElementById('platform-content');
   const oems = ['All','NVIDIA','Dell','HPE','Supermicro','Lenovo','Gigabyte'];
   const filtered = platformFilter === 'All' ? PLATFORM_DATA : PLATFORM_DATA.filter(p => p.oem === platformFilter);
 
-  const tabs = oems.map(o => `<div class="tab${o===platformFilter?' active':''}" onclick="platformFilter='${o}';renderPlatforms()">${o}</div>`).join('');
+  const tabs = oems.map(o => `<div class="tab${o===platformFilter?' active':''}" onclick="platformFilter='${o}';selectedPlatform=null;renderPlatforms()">${o}</div>`).join('');
 
-  const cards = filtered.map(p => `
+  // Category legend
+  const legend = `<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;font-size:12px">
+    ${Object.entries(CATEGORY_COLORS).map(([cat,col])=>`<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:${col};opacity:.7;display:inline-block"></span><span style="color:var(--text-dim)">${cat==='NVL72'?'NVL72 (Rack-scale)':cat==='DGX'?'DGX (NVIDIA-branded turnkey)':'HGX (OEM-built)'}</span></span>`).join('')}
+  </div>`;
+
+  const cards = filtered.map(p => {
+    const catColor = CATEGORY_COLORS[p.category] || 'var(--text-dim)';
+    const liqRequired = p.cooling.toLowerCase().includes('required');
+    return `
     <div class="card" style="cursor:pointer;border-color:${selectedPlatform===p.id?'var(--accent)':'var(--border)'}" onclick="selectedPlatform='${p.id}';renderPlatforms()">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
         <div>
-          <div style="font-size:13px;color:var(--text-muted);font-weight:500">${p.oem}</div>
-          <div style="font-size:15px;font-weight:600;margin-top:2px">${p.name}</div>
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">
+            <span style="font-size:12px;color:var(--text-muted);font-weight:500">${p.oem}</span>
+            <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:3px;border:1px solid;color:${catColor};border-color:${catColor}40;background:${catColor}10">${p.category}</span>
+            ${liqRequired?`<span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:3px;background:rgba(239,68,68,.1);color:#EF4444;border:1px solid rgba(239,68,68,.3)">Liquid Cooling</span>`:''}
+          </div>
+          <div style="font-size:15px;font-weight:600">${p.name}</div>
         </div>
-        <span class="badge ${p.verified?'badge-verified':'badge-unverified'}">${p.verified?'Verified':'Unverified'}</span>
+        <span class="badge ${p.verified?'badge-verified':'badge-unverified'}">${p.verified?'✓':'?'}</span>
       </div>
       <div style="font-size:12px;color:var(--text-dim);line-height:1.7">
         <div><b style="color:var(--text-muted)">GPU:</b> ${p.gpuCount}× ${p.gpuType}</div>
-        <div><b style="color:var(--text-muted)">Form:</b> ${p.formFactor} &nbsp; <b style="color:var(--text-muted)">Cooling:</b> ${p.cooling}</div>
-        <div><b style="color:var(--text-muted)">Power:</b> ${p.power}</div>
+        <div><b style="color:var(--text-muted)">Form:</b> ${p.formFactor} &nbsp;·&nbsp; <b style="color:var(--text-muted)">Power:</b> ${p.power}</div>
+        <div><b style="color:var(--text-muted)">NVLink:</b> ${p.nvlink.split('(')[0].trim()}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   const plat = PLATFORM_DATA.find(p => p.id === selectedPlatform);
-  const detail = plat ? `
+  const detail = plat ? (() => {
+    const catColor = CATEGORY_COLORS[plat.category] || 'var(--text-dim)';
+    const liqRequired = plat.cooling.toLowerCase().includes('required');
+    return `
     <div class="card" style="margin-top:24px;border-color:var(--accent)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
         <div>
-          <div style="font-size:12px;color:var(--text-muted)">${plat.oem} &bull; ${plat.category}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-size:12px;color:var(--text-muted)">${plat.oem}</span>
+            <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid;color:${catColor};border-color:${catColor}40;background:${catColor}10">${plat.category}</span>
+            ${liqRequired?`<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;background:rgba(239,68,68,.1);color:#EF4444;border:1px solid rgba(239,68,68,.3)">⚠ Liquid Cooling Required</span>`:''}
+          </div>
           <div style="font-size:18px;font-weight:700">${plat.name}</div>
         </div>
         <div style="display:flex;gap:8px">
-          <span class="badge ${plat.verified?'badge-verified':'badge-unverified'}">${plat.verified?'Verified':'Unverified'}</span>
+          <span class="badge ${plat.verified?'badge-verified':'badge-unverified'}">${plat.verified?'✓ Verified':'Unverified'}</span>
           <button class="btn btn-ghost btn-sm" onclick="selectedPlatform=null;renderPlatforms()">Close</button>
         </div>
       </div>
+
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Who Buys This &amp; Why</div>
+        <div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:14px 16px;font-size:13px;line-height:1.65">${plat.whosBuying}</div>
+      </div>
+
       <div class="spec-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
-        <div class="spec-item"><div class="spec-key">GPU</div><div class="spec-val">${plat.gpuCount}× ${plat.gpuType}</div></div>
+        <div class="spec-item"><div class="spec-key">GPU</div><div class="spec-val" style="font-size:12px">${plat.gpuCount}× ${plat.gpuType}</div></div>
         <div class="spec-item"><div class="spec-key">Form Factor</div><div class="spec-val">${plat.formFactor}</div></div>
         <div class="spec-item"><div class="spec-key">Power Draw</div><div class="spec-val">${plat.power}</div></div>
-        <div class="spec-item"><div class="spec-key">CPU</div><div class="spec-val">${plat.cpu}</div></div>
+        <div class="spec-item"><div class="spec-key">CPU</div><div class="spec-val" style="font-size:12px">${plat.cpu}</div></div>
         <div class="spec-item"><div class="spec-key">RAM</div><div class="spec-val">${plat.ram}</div></div>
         <div class="spec-item"><div class="spec-key">Storage</div><div class="spec-val">${plat.storage}</div></div>
-        <div class="spec-item"><div class="spec-key">Networking</div><div class="spec-val">${plat.networking}</div></div>
-        <div class="spec-item"><div class="spec-key">NVLink</div><div class="spec-val">${plat.nvlink}</div></div>
+        <div class="spec-item"><div class="spec-key">Networking</div><div class="spec-val" style="font-size:12px">${plat.networking}</div></div>
+        <div class="spec-item"><div class="spec-key">NVLink</div><div class="spec-val" style="font-size:12px">${plat.nvlink}</div></div>
         <div class="spec-item"><div class="spec-key">Cooling</div><div class="spec-val">${plat.cooling}</div></div>
         <div class="spec-item"><div class="spec-key">Weight</div><div class="spec-val">${plat.weight}</div></div>
       </div>
+
       <div style="margin-bottom:14px">
         <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Notes</div>
         <div style="font-size:13px;line-height:1.6;color:var(--text-dim)">${plat.notes}</div>
       </div>
       <div style="font-size:11px;color:var(--text-muted)">Source: <a href="${plat.sourceUrl}" target="_blank" style="color:var(--accent)">${plat.sourceUrl}</a></div>
-    </div>` : '';
+    </div>`;
+  })() : '';
 
-  el.innerHTML = `<div class="tabs" style="flex-wrap:wrap">${tabs}</div><div class="card-grid">${cards}</div>${detail}`;
+  el.innerHTML = `<div class="tabs" style="flex-wrap:wrap">${tabs}</div>${legend}<div class="card-grid">${cards}</div>${detail}`;
 }
 // ── Compare ───────────────────────────────────────────────────────────────────
 let compareType = 'gpu';
@@ -772,6 +922,7 @@ function renderCompare() {
         ['BF16', i => i.perf.bf16],
         ['FP16', i => i.perf.fp16],
         ['FP8', i => i.perf.fp8],
+        ['FP4', i => i.perf.fp4 || '—'],
         ['INT8', i => i.perf.int8],
         ['Best For', i => i.bestFor],
       ];
