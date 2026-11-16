@@ -1102,7 +1102,9 @@ const RACK_REPORT = {
   ]
 };
 
-function renderMarketPrices() {
+async function renderMarketPrices() {
+  document.getElementById('prices-content').innerHTML = `<div style="padding:20px 0;color:var(--text-muted);font-size:13px;display:flex;align-items:center;gap:8px"><span style="color:var(--accent)">↻</span>Fetching live Orion CI prices…</div>`;
+  await gpaasLoadLivePricing();
   const R = RACK_REPORT;
   const fmt = n => '$' + n.toLocaleString();
   const mom = v => `<span style="color:${v.startsWith('+')?'var(--success)':'var(--danger)'}">${v}</span>`;
@@ -1128,15 +1130,23 @@ function renderMarketPrices() {
 
   const newRows = R.newEquipment.map(n => `<tr><td>${n.config}</td><td style="font-weight:600;color:var(--text-dim)">${n.price}</td></tr>`).join('');
 
-  const rentalRows = R.rentalImplied.map(r => `<tr>
+  const RENTAL_CI_MAP = { 'A100 SXM':'a100-80-sxm4', 'H100 SXM5':'h100-80-sxm5', 'H200 SXM5':'h200-sxm' };
+  const rentalRows = R.rentalImplied.map(r => {
+    const lv = gpaasLivePriced && RENTAL_CI_MAP[r.asset] ? ORION_CI_RATES[RENTAL_CI_MAP[r.asset]] : null;
+    const lvCell = lv
+      ? `<td style="color:var(--accent);font-weight:600">$${lv.toFixed(2)} <span style="color:#22C55E;font-size:10px">●</span></td>`
+      : `<td style="color:var(--text-muted)">—</td>`;
+    return `<tr>
     <td>${r.asset}${r.limited?' <span style="color:var(--text-muted);font-size:10px">*</span>':''}</td>
-    <td>$${r.rentPerGPUHr.toFixed(2)}</td>
+    <td style="color:var(--text-muted)">$${r.rentPerGPUHr.toFixed(2)}</td>
+    ${lvCell}
     <td>${fmt(r.netAnnualRent)}</td>
     <td>${fmt(r.rentalImpliedValue)}</td>
     <td style="font-weight:600">${fmt(r.realNodeValue)}</td>
     <td>${r.impliedVsReal}</td>
     <td style="color:var(--accent)">${r.paybackYears} yrs</td>
-  </tr>`).join('');
+  </tr>`;
+  }).join('');
 
   const dash = '<span style="color:var(--text-muted)">—</span>';
   const fmtMom = v => v == null ? dash : mom(v);
@@ -1223,8 +1233,44 @@ function renderMarketPrices() {
     </div>`;
   };
 
+  // Live Orion CI block
+  const ornnGPUs = [
+    { label:'A100 SXM4', ciKey:'a100-80-sxm4', stoaRate:1.82 },
+    { label:'H100 SXM',  ciKey:'h100-80-sxm5', stoaRate:3.19 },
+    { label:'H200',      ciKey:'h200-sxm',      stoaRate:4.67 },
+    { label:'B200',      ciKey:'b200-sxm6',     stoaRate:null },
+  ];
+  const priceLiveBadge = gpaasLivePriced
+    ? `<span style="font-size:11px;background:rgba(34,197,94,.12);color:#22C55E;padding:2px 8px;border-radius:3px;border:1px solid rgba(34,197,94,.3)">● Live · ${gpaasLiveDate}</span>`
+    : `<span style="font-size:11px;background:rgba(245,158,11,.12);color:#F59E0B;padding:2px 8px;border-radius:3px;border:1px solid rgba(245,158,11,.3)">⚠ Offline (cached)</span>`;
+  const ornnTableRows = ornnGPUs.map(g => {
+    const lv = ORION_CI_RATES[g.ciKey];
+    const delta = g.stoaRate != null ? ((lv - g.stoaRate) / g.stoaRate * 100) : null;
+    const dStr = delta != null
+      ? `<span style="color:${delta>=0?'#22C55E':'#EF4444'};font-weight:600">${delta>=0?'+':''}${delta.toFixed(1)}%</span> <span style="color:var(--text-muted);font-size:11px">vs Stoa</span>`
+      : `<span style="color:var(--text-muted);font-size:11px">no Stoa ref</span>`;
+    return `<tr>
+      <td style="font-weight:600">${g.label}</td>
+      <td style="color:var(--accent);font-weight:700;font-size:15px">$${lv.toFixed(2)}<span style="font-size:11px;font-weight:400;color:var(--text-muted)">/GPU/hr</span></td>
+      <td style="color:var(--text-dim)">${g.stoaRate != null ? `$${g.stoaRate.toFixed(2)}/hr` : '<span style="color:var(--text-muted)">—</span>'}</td>
+      <td>${dStr}</td>
+    </tr>`;
+  }).join('');
+  const ornnLiveBlock = `<div class="card" style="border-color:${gpaasLivePriced?'rgba(34,197,94,.35)':'rgba(245,158,11,.3)'}">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div class="card-title" style="font-size:16px">Orion Compute Index — Live Spot GPU Rental Rates</div>
+      ${priceLiveBadge}
+    </div>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>GPU Type</th><th>OCPI Spot Rate</th><th>Stoa Exchange (Oct 2026)</th><th>Delta</th></tr></thead>
+      <tbody>${ornnTableRows}</tbody>
+    </table></div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:8px">Source: <a href="https://data.ornn.com" target="_blank" style="color:var(--accent)">data.ornn.com</a> — Orion Compute Price Index, settled trade data aggregated hourly. SXM variants are direct API values. PCIe/NVL variants derived by ratio in GPUaaS Calc.</div>
+  </div>`;
+
   document.getElementById('prices-content').innerHTML = `
   <div style="max-width:900px;display:flex;flex-direction:column;gap:24px">
+    ${ornnLiveBlock}
     <div class="card" style="border-color:var(--accent)">
       <div class="card-title" style="font-size:17px;margin-bottom:6px">AI Server Node Pricing — New vs. Used vs. Velerity Certified Refurbished</div>
       <div class="card-sub" style="margin-bottom:20px">Edit the Velerity price fields to reflect current inventory pricing. Used market prices from Stoa Exchange Intelligence, November 2026.</div>
@@ -1276,7 +1322,7 @@ function renderMarketPrices() {
     <div class="card">
       <div class="card-title" style="font-size:16px;margin-bottom:14px">Rental-Implied GPU Values (per 8-GPU node)</div>
       <div class="tbl-wrap"><table class="tbl">
-        <thead><tr><th>Asset</th><th>$/GPU/hr</th><th>Net Annual Rent</th><th>Rental-Implied Value</th><th>Real Node Value</th><th>Implied ÷ Real</th><th>Payback</th></tr></thead>
+        <thead><tr><th>Asset</th><th>Stoa Rate</th><th>Orion CI Live</th><th>Net Annual Rent</th><th>Rental-Implied Value</th><th>Real Node Value</th><th>Implied ÷ Real</th><th>Payback</th></tr></thead>
         <tbody>${rentalRows}</tbody>
       </table></div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:8px">Assumptions: 70% utilization, 12% discount rate, 6-year life, $175/kW-month colo, PUE 1.35. Treat with caution — rental rates swing widely. H200 implied value (1.68×) reflects high demand relative to current node prices.</div>
