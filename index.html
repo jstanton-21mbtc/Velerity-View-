@@ -1912,7 +1912,7 @@ let gpaasLivePriced = false;
 
 async function gpaasLoadLivePricing() {
   try {
-    const res = await fetch('https://data.ornn.com/api/public-index/daily-index/all');
+    const res = await fetch('/ornn-api/api/public-index/daily-index/all');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
     if (!json.success || !Array.isArray(json.data)) throw new Error('Bad response');
