@@ -1109,6 +1109,7 @@ const RACK_REPORT = {
   dataThrough: 'October 2026',
   url: 'https://www.stoaexchange.com/intelligence/',
   gpuPrices: [
+    { asset:'B200 192GB SXM6', typical:63561, bulk:61000, low:58000, mom:'+N/A', yoy:'+N/A', dealerAsk:72000, liq:'D', limited:true },
     { asset:'H200 141GB SXM5', typical:40185, bulk:38800, low:36000, mom:'+N/A', yoy:'+N/A', dealerAsk:46000, liq:'C', limited:true },
     { asset:'H100 SXM5 80GB', typical:27200, bulk:26400, low:24500, mom:'+N/A', yoy:'+N/A', dealerAsk:31500, liq:'C', limited:true },
     { asset:'RTX Pro 6000 (Workstation)', typical:16500, bulk:15800, low:14200, mom:'+N/A', yoy:'+N/A', dealerAsk:17995, liq:'C', limited:true },
@@ -1211,6 +1212,7 @@ async function renderMarketPrices() {
   const vel80  = parseFloat(document.getElementById('vel-price-80')?.value)  || 110000;
   const velH1  = parseFloat(document.getElementById('vel-price-h1')?.value)  || 215000;
   const velH2  = parseFloat(document.getElementById('vel-price-h2')?.value)  || 360000;
+  const velB200   = parseFloat(document.getElementById('vel-price-b200')?.value)    || 480000;
   const velRtxWS  = parseFloat(document.getElementById('vel-price-rtxws')?.value)  || 14500;
   const velRtxSrv = parseFloat(document.getElementById('vel-price-rtxsrv')?.value) || 18500;
 
@@ -1238,6 +1240,12 @@ async function renderMarketPrices() {
       newOEM:   { price: 340000, note: 'Volume-order new indicative price — market reference' },
       used:     { price: 321483, note: 'Stoa Exchange Intelligence · Nov 2026 — point-of-trade realized price' },
       velerity: { price: velH2,  inputId: 'vel-price-h2', note: 'Certified refurbished · health report · seller warranty' },
+    },
+    {
+      label: 'HGX B200 8×192GB Node (SXM6)',
+      newOEM:   { price: 508484, note: 'Stoa Exchange Intelligence / NVIDIA pricing · Nov 2026 — new supply, liquid cooling required, 10,000 W+ facility power' },
+      used:     { price: 490000, note: 'Secondary market estimate · Nov 2026 — extremely limited supply; most units at or above new price' },
+      velerity: { price: velB200, inputId: 'vel-price-b200', note: 'New/early-access Blackwell · 8× B200 192GB SXM6 · NVLink 5.0 · 1,800 GB/s · FP4 · liquid cooling required' },
     },
     {
       label: 'RTX Pro 6000 Blackwell — Workstation (per card)',
@@ -2303,6 +2311,13 @@ const FLASHCARDS = [
   { q:'What is the minimum VRAM for running a 70B model at BF16 for inference?', a:'~140 GB (70B × 2 bytes + ~20% inference overhead ≈ 168 GB). Minimum: 2× H100/H200 80GB, or 1× H200 NVL (141 GB per die × 2 = 282 GB).' },
   { q:'What condition grades does Velerity use, and what does Grade A mean?', a:'Grade A: like new, minimal cosmetic wear, full diagnostics pass. Grade B: visible cosmetic wear, all components functional. Grade C: heavy wear or minor variance, passes core diagnostics.' },
   { q:'What is the NVLink bandwidth on the A100 SXM4?', a:'600 GB/s (NVLink 3.0). The H100/H200 SXM5 doubles this to 900 GB/s with NVLink 4.0.' },
+  { q:'What is the memory capacity, type, and bandwidth of the B200 SXM6?', a:'192 GB HBM3e per GPU at 8,000 GB/s — 76% more bandwidth than the H200 SXM (4,800 GB/s) and more than double the H100 SXM5 (3,350 GB/s). An 8-GPU HGX B200 node has 1,536 GB total GPU memory.' },
+  { q:'What is NVLink 5.0 bandwidth on the B200, and how does it compare to H100?', a:'1,800 GB/s per GPU (NVLink 5.0) — exactly 2× the H100/H200 SXM NVLink 4.0 bandwidth of 900 GB/s. Enables tighter all-to-all coupling across 8 GPUs via NVSwitch 4th gen.' },
+  { q:'What is the TDP of the B200 SXM6 and what cooling does it require?', a:'~1,000 W per GPU. Liquid cooling is mandatory — there is no air-cooled B200 SXM6 configuration. This is a hard facility qualification gate: buyers must have liquid cooling before the deal can progress.' },
+  { q:'How does B200 FP8 and FP4 throughput compare to H100 SXM5?', a:'B200 SXM6: 9,000 TOPS FP8 (18,000 w/ sparsity) and 18,000 TOPS FP4 (36,000 w/ sparsity). H100 SXM5: 3,958 TOPS FP8. That is ~4.5× more FP8 throughput. FP4 is not supported on H100/H200 at all — B200 introduced it with 2nd-gen Transformer Engine.' },
+  { q:'What does FP4 precision mean for AI workloads, and which Velerity GPU supports it?', a:'FP4 (4-bit floating point) halves model memory vs. FP8 and doubles throughput for inference serving. Supported on B200 SXM6 and B100 PCIe (Blackwell generation) and RTX Pro 6000 Blackwell. Not available on H100 or H200. Enables serving 2× the model capacity per GPU for quantized inference.' },
+  { q:'What is the key difference between B200 SXM6 and B100 PCIe?', a:'B200 SXM6: ~1,000W, NVLink 5.0 (1,800 GB/s), liquid cooling mandatory, SXM form factor for HGX/DGX chassis — the high-performance training variant. B100 PCIe: ~700W, no NVLink, air-cooled, standard PCIe slot — lower barrier for buyers without liquid cooling but significantly lower multi-GPU bandwidth.' },
+  { q:'What is the main sales pitch for a B200 DGX/HGX node over an H100 node?', a:'~4.5× more FP8 throughput, 2× NVLink bandwidth (1,800 vs. 900 GB/s), 2.4× more GPU memory (192 vs. 80 GB), and native FP4 support. Best pitch for buyers whose H100 clusters are saturated or who are building new training/inference capacity for frontier models. OEM lead times are 12–18+ months — Velerity early-access supply is high-value here. Gate: buyer must qualify for liquid cooling before this deal progresses.' },
   { q:'What is the VRAM and memory type of the RTX Pro 6000 Blackwell?', a:'96 GB GDDR7 ECC. This is the first workstation GPU to offer 96 GB — enough to run LLaMA 3 70B at full FP16 precision on a single card without quantization.' },
   { q:'How does RTX Pro 6000 Blackwell memory bandwidth compare to the H100 SXM5?', a:'RTX Pro 6000 Workstation: 1,792 GB/s (GDDR7). H100 SXM5: 3,350 GB/s (HBM3). The H100 has ~87% more bandwidth, making it faster for bandwidth-bound workloads, but the RTX Pro 6000 has 20% more raw VRAM capacity (96 GB vs. 80 GB).' },
   { q:'What GPU architecture powers the RTX Pro 6000 Blackwell?', a:'Blackwell 2.0 (GB202 die) with 24,064 CUDA cores and 5th-generation Tensor Cores. Supports FP4 precision — same generation as B200/B100 datacenter cards.' },
@@ -2358,7 +2373,7 @@ function fcPrev() { fcFlipped = false; fcIndex = (fcIndex - 1 + fcDeck.length) %
 // ── Quizzes ───────────────────────────────────────────────────────────────────
 const QUIZ_TRACKS = {
   gpu: {
-    title: 'GPU Specs', description: 'Test your knowledge of A100, H100, H200, and RTX Pro 6000 Blackwell specifications.',
+    title: 'GPU Specs', description: 'Test your knowledge of A100, H100, H200, B200, and RTX Pro 6000 Blackwell specifications.',
     questions: [
       { q:'What is the memory bandwidth of the H200 SXM?', opts:['3,350 GB/s','2,000 GB/s','4,800 GB/s','5,200 GB/s'], correct:2 },
       { q:'Which GPU first introduced the Transformer Engine and FP8 support?', opts:['A100 SXM4','H100 PCIe','H200 SXM','H100 SXM5'], correct:3 },
@@ -2368,6 +2383,10 @@ const QUIZ_TRACKS = {
       { q:'What is the NVLink bandwidth per GPU on H100/H200 SXM (NVLink 4.0)?', opts:['400 GB/s','600 GB/s','900 GB/s','1,200 GB/s'], correct:2 },
       { q:'How much VRAM does the H200 SXM have?', opts:['80 GB','94 GB','120 GB','141 GB'], correct:3 },
       { q:'What is the FP64 throughput of the A100 PCIe (40GB or 80GB)?', opts:['9.7 TFLOPS','19.5 TFLOPS','25.6 TFLOPS','33.5 TFLOPS'], correct:0 },
+      { q:'How much VRAM does the B200 SXM6 have, and what memory type?', opts:['141 GB HBM3e','192 GB HBM3','192 GB HBM3e','256 GB HBM3e'], correct:2 },
+      { q:'What is the NVLink bandwidth per GPU on the B200 SXM6?', opts:['900 GB/s','1,200 GB/s','1,800 GB/s','3,600 GB/s'], correct:2 },
+      { q:'What cooling is required for B200 SXM6 deployments?', opts:['Standard air cooling','Enhanced air cooling (high CFM)','Liquid cooling mandatory — no air-cooled config exists','Either air or liquid depending on OEM'], correct:2 },
+      { q:'Approximately how much more FP8 throughput does the B200 SXM6 deliver vs. the H100 SXM5?', opts:['1.5×','2×','3×','~4.5×'], correct:3 },
       { q:'How much VRAM does the RTX Pro 6000 Blackwell have, and what memory type?', opts:['80 GB HBM3','96 GB HBM3e','96 GB GDDR7 ECC','128 GB GDDR7 ECC'], correct:2 },
       { q:'What is the TDP of the RTX Pro 6000 Blackwell Workstation Edition?', opts:['300 W','400 W','500 W','600 W'], correct:3 },
       { q:'Which RTX Pro 6000 Blackwell variant supports MIG partitioning?', opts:['Workstation Edition','Max-Q Edition','Server Edition','All three variants'], correct:2 },
@@ -2385,6 +2404,7 @@ const QUIZ_TRACKS = {
       { q:'What is the best response when a prospect says "we\'ll just wait for Blackwell"?', opts:['Agree and follow up in 12 months','Blackwell enterprise availability is 12–18 months out; competitors are building capacity now on H100/H200','Tell them Blackwell won\'t be significantly better','Offer a large discount to close now'], correct:1 },
       { q:'What condition grade indicates "like new, minimal cosmetic wear, full diagnostics pass"?', opts:['Grade S','Grade A','Grade B','Grade 1'], correct:1 },
       { q:'A customer asks: "Can the RTX Pro 6000 Blackwell run a 70B model?" What is the correct answer?', opts:['No — 96 GB GDDR7 is insufficient for 70B models','Yes — 96 GB GDDR7 ECC fits LLaMA 3 70B at full FP16 on a single card with KV-cache headroom','Only with quantization (INT4/INT8)','Yes, but only with NVLink pairing'], correct:1 },
+      { q:'A prospect wants a B200 HGX node. What facility requirement must you qualify BEFORE advancing the deal?', opts:['At least 1 Gbps network uplink','PCIe Gen5 compatibility','Liquid cooling — B200 SXM6 has no air-cooled configuration','A minimum 32U rack enclosure'], correct:2 },
     ]
   },
   compliance: {
