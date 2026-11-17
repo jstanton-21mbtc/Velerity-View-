@@ -1354,7 +1354,6 @@ async function renderMarketPrices() {
 
   document.getElementById('prices-content').innerHTML = `
   <div style="max-width:900px;display:flex;flex-direction:column;gap:24px">
-    ${ornnLiveBlock}
     <div class="card" style="border-color:${activeTierColor}">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:4px">
         <div>
@@ -1367,6 +1366,8 @@ async function renderMarketPrices() {
         ${activeTiers.map(tierCard).join('')}
       </div>
     </div>
+
+    ${ornnLiveBlock}
 
     <div class="info-block">
       Data from <b>${R.source}, ${R.issue}</b> (through ${R.dataThrough}). All values are realized secondary-market transaction prices unless noted. <a href="${R.url}" target="_blank" style="color:var(--accent)">stoaexchange.com/intelligence</a> — for informational purposes only; not investment advice. * = limited sample, read direction not level.
