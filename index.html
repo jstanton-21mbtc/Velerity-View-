@@ -1218,48 +1218,65 @@ async function renderMarketPrices() {
 
   const pricingTiers = [
     {
+      model: 'A100',
       label: 'HGX A100 8×40GB Node',
       newOEM:   { price: 'N/A (discontinued)', note: 'No longer available new from OEM' },
       used:     { price: 59100,  note: 'Secondary market estimate (not separately tracked by Stoa Exchange)' },
       velerity: { price: vel40,  inputId: 'vel-price-40', note: 'Certified refurbished · health report · seller warranty' },
     },
     {
+      model: 'A100',
       label: 'HGX A100 8×80GB Node',
       newOEM:   { price: 199000, note: 'Approx. original MSRP at launch (2021) — unverified' },
       used:     { price: 105160,  note: 'Stoa Exchange Intelligence · Nov 2026 — point-of-trade realized price' },
       velerity: { price: vel80,  inputId: 'vel-price-80', note: 'Certified refurbished · health report · seller warranty' },
     },
     {
+      model: 'H100',
       label: 'HGX H100 8×80GB Node',
       newOEM:   { price: 'N/A (discontinued)', note: 'Superseded by H200/B200 — no longer available new from OEM' },
       used:     { price: 217603, note: 'Stoa Exchange Intelligence · Nov 2026 — point-of-trade realized price' },
       velerity: { price: velH1,  inputId: 'vel-price-h1', note: 'Certified refurbished · health report · seller warranty' },
     },
     {
+      model: 'H200',
       label: 'HGX H200 8×141GB Node',
       newOEM:   { price: 340000, note: 'Volume-order new indicative price — market reference' },
       used:     { price: 321483, note: 'Stoa Exchange Intelligence · Nov 2026 — point-of-trade realized price' },
       velerity: { price: velH2,  inputId: 'vel-price-h2', note: 'Certified refurbished · health report · seller warranty' },
     },
     {
+      model: 'B200',
       label: 'HGX B200 8×192GB Node (SXM6)',
       newOEM:   { price: 508484, note: 'Stoa Exchange Intelligence / NVIDIA pricing · Nov 2026 — new supply, liquid cooling required, 10,000 W+ facility power' },
       used:     { price: 490000, note: 'Secondary market estimate · Nov 2026 — extremely limited supply; most units at or above new price' },
       velerity: { price: velB200, inputId: 'vel-price-b200', note: 'New/early-access Blackwell · 8× B200 192GB SXM6 · NVLink 5.0 · 1,800 GB/s · FP4 · liquid cooling required' },
     },
     {
+      model: 'RTX Pro',
       label: 'RTX Pro 6000 Blackwell — Workstation (per card)',
       newOEM:   { price: 16000, note: 'NVIDIA official marketplace · Nov 2026 (+87% since March 2025 launch at $8,565)' },
       used:     { price: 16500, note: 'Secondary market estimate · Nov 2026 — Newegg $17,995; range $16,399–$19,999 (Workstation Edition)' },
       velerity: { price: velRtxWS, inputId: 'vel-price-rtxws', note: 'Certified · 96 GB GDDR7 ECC · Blackwell 2.0 · 5th-gen Tensor Cores · FP4 support' },
     },
     {
+      model: 'RTX Pro',
       label: 'RTX Pro 6000 Blackwell — Server Edition (per card)',
       newOEM:   { price: 20999, note: 'GPUPoet · Nov 2026 price (passive cooling, MIG up to 4 instances)' },
       used:     { price: 21000, note: 'Secondary market estimate · Nov 2026 — limited supply; range $20,999–$21,666' },
       velerity: { price: velRtxSrv, inputId: 'vel-price-rtxsrv', note: 'Certified · 96 GB GDDR7 ECC · passive · MIG-4 · PCIe Gen5 rack-ready' },
     },
   ];
+
+  const pricingModels = ['A100','H100','H200','B200','RTX Pro'];
+  const pricingModelColors = { A100:'var(--text-dim)', H100:'#22C55E', H200:'var(--accent)', B200:'#A78BFA', 'RTX Pro':'#F472B6' };
+  const activeTierColor = pricingModelColors[marketPriceTab] || 'var(--accent)';
+  const modelTabs = pricingModels.map(m => {
+    const isActive = m === marketPriceTab;
+    const c = pricingModelColors[m];
+    return `<div class="tab${isActive?' active':''}" onclick="marketPriceTab='${m}';renderMarketPrices()" style="${isActive?`color:${c};border-bottom-color:${c}`:`color:${c}60`}">${m}</div>`;
+  }).join('');
+  const activeTiers = pricingTiers.filter(t => t.model === marketPriceTab);
 
   const tierCard = (t) => {
     const usedSavings = t.newOEM.price !== 'N/A (discontinued)' ? Math.round((1 - t.used.price / t.newOEM.price) * 100) : null;
@@ -1338,11 +1355,16 @@ async function renderMarketPrices() {
   document.getElementById('prices-content').innerHTML = `
   <div style="max-width:900px;display:flex;flex-direction:column;gap:24px">
     ${ornnLiveBlock}
-    <div class="card" style="border-color:var(--accent)">
-      <div class="card-title" style="font-size:17px;margin-bottom:6px">AI Server Node Pricing — New vs. Used vs. Velerity Certified Refurbished</div>
-      <div class="card-sub" style="margin-bottom:20px">Edit the Velerity price fields to reflect current inventory pricing. Used market prices from Stoa Exchange Intelligence, November 2026.</div>
+    <div class="card" style="border-color:${activeTierColor}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:4px">
+        <div>
+          <div class="card-title" style="font-size:17px;margin-bottom:4px">AI Server Node Pricing — New vs. Used vs. Velerity</div>
+          <div class="card-sub">Edit Velerity price fields to reflect current inventory. Used prices from Stoa Exchange Intelligence, Nov 2026.</div>
+        </div>
+      </div>
+      <div class="tabs" style="margin-top:16px;margin-bottom:20px">${modelTabs}</div>
       <div style="display:flex;flex-direction:column;gap:16px">
-        ${pricingTiers.map(tierCard).join('')}
+        ${activeTiers.map(tierCard).join('')}
       </div>
     </div>
 
@@ -1399,6 +1421,7 @@ async function renderMarketPrices() {
 
 // ── Admin ──────────────────────────────────────────────────────────────────────
 let adminTab = 'gpu';
+let marketPriceTab = 'A100';
 let adminEdit = null; // id of item being edited
 
 function renderAdmin() {
