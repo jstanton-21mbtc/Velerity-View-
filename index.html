@@ -308,7 +308,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <button class="btn-copilot" onclick="toggleCopilot()">&#9733; Rep Copilot</button>
   </div>
   <div id="content">
-    <div id="s-academy-gpus" class="section active"><div class="section-header"><div class="section-title">GPU Reference</div><div class="section-sub">A100 · H100 · H200 · B200 — specifications, form factors, and what customers buy</div></div><div id="gpu-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
+    <div id="s-academy-gpus" class="section active"><div class="section-header"><div class="section-title">GPU Reference</div><div class="section-sub">A100 · H100 · H200 · B200 · RTX Pro 6000 Blackwell — specifications, form factors, and what customers buy</div></div><div id="gpu-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-academy-platforms" class="section"><div class="section-header"><div class="section-title">Platform Catalog</div><div class="section-sub">DGX, HGX, and OEM AI server platforms — certified for resale</div></div><div id="platform-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-academy-compare" class="section"><div class="section-header"><div class="section-title">Compare</div><div class="section-sub">Side-by-side GPU and platform comparison</div></div><div id="compare-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-academy-cert" class="section"><div class="section-header"><div class="section-title">Certification &amp; Refurbishment</div><div class="section-sub">How Velerity certifies and warranties AI hardware</div></div><div id="cert-content"></div></div>
@@ -580,6 +580,37 @@ const GPU_DATA = [
     platformContext:'PCIe 5.0 x16 slot. No NVLink — multi-GPU communication over PCIe. Drop-in upgrade path from H100/H200 PCIe infrastructure. Air-cooled support in standard server configurations. No DGX/HGX variant exists for B100.',
     buyWhy:'Mid-market enterprises upgrading PCIe-based inference clusters to Blackwell without infrastructure changes. Customers who need 192 GB VRAM per GPU but cannot support liquid cooling or NVLink. Often purchased as inference-only nodes alongside existing H100 SXM training clusters. Lower barrier to entry than B200 SXM6.',
     sourceUrl:'https://www.nvidia.com/en-us/data-center/b100/', verified:false },
+
+  // ── RTX Pro 6000 Blackwell ──
+  { id:'rtx-pro-6000-ws', gen:'RTX Pro', name:'RTX Pro 6000 Blackwell (Workstation)', badge:'RTX Pro',
+    memory:'96 GB GDDR7 ECC', memBW:'1,792 GB/s', tdp:'600 W', mig:false, te:true,
+    nvlink:'N/A (PCIe)',
+    perf:{ fp64:'~1.5 TFLOPS', fp32:'~120 TFLOPS', tf32:'~234 TFLOPS (~468 w/ sparsity)', bf16:'~504 TFLOPS (~1,008 w/ sparsity)', fp16:'~504 TFLOPS (~1,008 w/ sparsity)', fp8:'~1,008 TFLOPS (~2,015 w/ sparsity)', fp4:'~2,015 TFLOPS (~4,030 w/ sparsity)', int8:'~1,008 TOPS (~2,015 w/ sparsity)' },
+    bestFor:'Professional AI workstations running 70B parameter models at full FP16 without quantization; LLM inference, fine-tuning, and experimentation on a single card; 3D rendering and CAD alongside AI workloads. The 96 GB GDDR7 ECC fits LLaMA 3 70B at full precision with KV-cache headroom — the only single workstation GPU to do so.',
+    notes:'Blackwell 2.0 architecture (GB202). First workstation GPU with 5th-gen Tensor Cores and FP4 precision support. GDDR7 delivers lower raw bandwidth than HBM3 (1,792 vs. 3,350 GB/s on H100 SXM5) but the 96 GB capacity enables single-GPU 70B model inference H100 PCIe cannot match (80 GB). Active cooling, PCIe Gen5 x16. No MIG. Benchmarks show it competitive with H100 PCIe for single-GPU LLM serving with ~28% better cost-per-token at November 2026 market prices. Launch price $8,565 (March 2025); NVIDIA official price raised to $16,000 by Nov 2026 (+87%). Note: RTX Pro 6000 may be subject to EAR export controls depending on destination — escalate if buyer is in a restricted country.',
+    platformContext:'PCIe Gen5 x16 (backward compatible with Gen4). Active cooling — standard workstation form factor. Fits any workstation or PCIe server with a x16 slot and 600W per-card power delivery. No NVLink — multi-GPU only over PCIe. Not HGX or DGX compatible. Used in professional workstations (Dell Precision, HP Z-series, Lenovo ThinkStation) and 1–4 GPU PCIe tower/rack servers. Per-card product — not sold as an 8-GPU node.',
+    buyWhy:'Buyers needing 70B-parameter inference on a single card without committing to a full HGX node purchase. Common buyers: enterprise AI developers building internal tools, ML engineers who need a powerful local GPU, design/creative firms adding AI to 3D and rendering workflows, startups doing single-model production serving. Best pitch: the only single workstation GPU with 96 GB ECC VRAM — run LLaMA 3 70B at full FP16 on one card, no quantization. Price has risen sharply (launch $8,565 → $16,000 official by Nov 2026); certified refurb opportunities are emerging as early-adopter units enter secondary market. Units entering the used market now offer meaningful discount vs. a card that has been appreciating since launch.',
+    sourceUrl:'https://www.nvidia.com/en-us/products/workstations/professional-desktop-gpus/rtx-pro-6000-family/', verified:true },
+
+  { id:'rtx-pro-6000-srv', gen:'RTX Pro', name:'RTX Pro 6000 Blackwell (Server)', badge:'RTX Pro',
+    memory:'96 GB GDDR7 ECC', memBW:'1,597 GB/s', tdp:'600 W (passive)', mig:true, te:true,
+    nvlink:'N/A (PCIe)',
+    perf:{ fp64:'~1.5 TFLOPS', fp32:'~120 TFLOPS', tf32:'~234 TFLOPS (~468 w/ sparsity)', bf16:'~504 TFLOPS (~1,008 w/ sparsity)', fp16:'~504 TFLOPS (~1,008 w/ sparsity)', fp8:'~1,008 TFLOPS (~2,015 w/ sparsity)', fp4:'~2,015 TFLOPS (~4,030 w/ sparsity)', int8:'~1,008 TOPS (~2,015 w/ sparsity)' },
+    bestFor:'Dense rack inference deployments running 70B models; MIG-partitioned multi-tenant serving (up to 4 isolated instances per GPU); enterprise AI inference infrastructure on standard PCIe servers without datacenter-grade HBM cooling requirements.',
+    notes:'Identical Blackwell 2.0 compute die to the Workstation Edition but passively cooled for server rack density. MIG support allows up to 4 isolated GPU instances — enables multi-tenant inference serving at the per-card level. Slightly lower memory bandwidth (1,597 vs. 1,792 GB/s) due to passive thermal constraints. Passive cooling requires sufficient rack airflow — verify with DC Readiness checklist. Supported by Lenovo ThinkSystem SR-series and other PCIe Gen5 server platforms. New price ~$20,999–$21,666 (Nov 2026).',
+    platformContext:'PCIe Gen5 x16. Passively cooled — requires server rack with adequate front-to-back airflow (minimum 300 LFM typically required; check OEM spec). MIG partitioning into up to 4 instances. No NVLink — multi-GPU communication over PCIe only. Supported platforms: Lenovo ThinkSystem SR650 V3 / SR670 V3, PNY server configs, CDW-qualified server builds. Standard 1U–2U PCIe GPU server footprint — does not require HGX chassis or liquid cooling infrastructure.',
+    buyWhy:'Enterprises and regional cloud providers building multi-tenant inference infrastructure on standard PCIe servers. MIG partitioning means 4 isolated AI tenants per card — powerful pitch for cost-conscious IT buyers deploying departmental AI services. At $20,999+ new, certified refurb offers the same 96 GB GDDR7 capacity with meaningful discount. Best pitch: MIG-partitioned server GPU for 70B models on a standard 1U–2U rack footprint at a fraction of an HGX H100 node cost (~$217K secondary market for full H100 node vs. ~$21K per RTX Pro 6000 Server). Match the buyer carefully — this is single-model or lightly concurrent inference, not large-batch training.',
+    sourceUrl:'https://lenovopress.lenovo.com/lp2263-thinksystem-nvidia-rtx-pro-6000-blackwell-server-edition-pcie-gen5-gpu', verified:true },
+
+  { id:'rtx-pro-6000-maxq', gen:'RTX Pro', name:'RTX Pro 6000 Blackwell (Max-Q)', badge:'RTX Pro',
+    memory:'96 GB GDDR7 ECC', memBW:'~1,200 GB/s', tdp:'300 W', mig:false, te:true,
+    nvlink:'N/A (PCIe)',
+    perf:{ fp64:'~1.0 TFLOPS', fp32:'~80 TFLOPS', tf32:'~160 TFLOPS (~320 w/ sparsity)', bf16:'~320 TFLOPS (~640 w/ sparsity)', fp16:'~320 TFLOPS (~640 w/ sparsity)', fp8:'~640 TFLOPS (~1,280 w/ sparsity)', fp4:'~1,280 TFLOPS (~2,560 w/ sparsity)', int8:'~640 TOPS (~1,280 w/ sparsity)' },
+    bestFor:'Quiet workstations and mobile AI workstations where 300W TDP is a hard constraint; labs and studios needing 96 GB VRAM at reduced power and noise; edge deployments with power budget restrictions.',
+    notes:'Power-limited variant of the RTX Pro 6000 Blackwell. Same 96 GB GDDR7 ECC memory as full variants but runs at reduced clock speeds to target 300W TDP (vs. 600W full Workstation). Same Blackwell 2.0 die and 5th-gen Tensor Cores — lower throughput at same capacity. Active cooling. PCIe Gen5. Available at ~$8,299 (Newegg, Nov 2026) — the most price-accessible entry to 96 GB GDDR7 ECC. Useful when a buyer has power constraints but still needs 70B-class VRAM.',
+    platformContext:'PCIe Gen5 x16. Active cooling. 300W TDP enables use in systems where full 600W per-card power delivery is not available. Fits standard PCIe x16 workstations and servers with 300W+ PEG power. No NVLink, no MIG. Aimed at thin/quiet workstation form factors and power-constrained environments.',
+    buyWhy:'Power-constrained buyers who need 96 GB VRAM but cannot support 600W per card — older workstations, low-power office environments, edge servers. At ~$8,299 new (Nov 2026), it is the most affordable path to 96 GB GPU memory. Good upsell target for customers who start here and need more throughput later. Also the best pitch for buyers asking "is there a cheaper 70B-capable GPU?" — the answer is yes, at ~half the full Workstation price, same VRAM, 50% less compute throughput.',
+    sourceUrl:'https://www.nvidia.com/en-us/products/workstations/professional-desktop-gpus/rtx-pro-6000-family/', verified:true },
 ];
 
 let gpuGenFilter = 'A100';
@@ -587,15 +618,23 @@ let selectedGPU = null;
 
 function renderGPUs() {
   const el = document.getElementById('gpu-content');
-  const gens = ['A100','H100','H200','B200'];
+  const gens = ['A100','H100','H200','B200','RTX Pro'];
   const filtered = GPU_DATA.filter(g => g.gen === gpuGenFilter);
 
-  const genColors = { A100:'var(--text-dim)', H100:'#22C55E', H200:'var(--accent)', B200:'#A78BFA' };
-  const tabs = gens.map(g => `<div class="tab${g===gpuGenFilter?' active':''}" onclick="gpuGenFilter='${g}';selectedGPU=null;renderGPUs()" style="${g===gpuGenFilter?'':''}${g==='B200'&&gpuGenFilter!=='B200'?'color:#A78BFA80':''}">${g}${g==='B200'?'&nbsp;<span style="font-size:9px;background:rgba(167,139,250,.15);color:#A78BFA;border:1px solid rgba(167,139,250,.3);border-radius:3px;padding:1px 5px;vertical-align:middle">Blackwell</span>':''}</div>`).join('');
+  const genColors = { A100:'var(--text-dim)', H100:'#22C55E', H200:'var(--accent)', B200:'#A78BFA', 'RTX Pro':'#F472B6' };
+  const genBadges = {
+    B200: '&nbsp;<span style="font-size:9px;background:rgba(167,139,250,.15);color:#A78BFA;border:1px solid rgba(167,139,250,.3);border-radius:3px;padding:1px 5px;vertical-align:middle">Blackwell</span>',
+    'RTX Pro': '&nbsp;<span style="font-size:9px;background:rgba(244,114,182,.15);color:#F472B6;border:1px solid rgba(244,114,182,.3);border-radius:3px;padding:1px 5px;vertical-align:middle">Workstation</span>',
+  };
+  const tabs = gens.map(g => {
+    const c = genColors[g]; const isActive = g === gpuGenFilter;
+    const dimStyle = !isActive && (g==='B200'||g==='RTX Pro') ? `color:${c}80` : '';
+    return `<div class="tab${isActive?' active':''}" onclick="gpuGenFilter='${g}';selectedGPU=null;renderGPUs()" style="${dimStyle}">${g}${genBadges[g]||''}</div>`;
+  }).join('');
 
   const cards = filtered.map(g => {
-    const formTag = g.nvlink.startsWith('N/A') ? 'PCIe' : (g.id.includes('nvl') ? 'NVL' : 'SXM');
-    const formColor = formTag==='PCIe'?'#64748B':formTag==='NVL'?'#F59E0B':'#4AD0FA';
+    const formTag = g.gen==='RTX Pro' ? (g.id.includes('srv')?'Server':g.id.includes('maxq')?'Max-Q':'Workstation') : (g.nvlink.startsWith('N/A') ? 'PCIe' : (g.id.includes('nvl') ? 'NVL' : 'SXM'));
+    const formColor = formTag==='PCIe'?'#64748B':formTag==='NVL'?'#F59E0B':formTag==='Workstation'?'#F472B6':formTag==='Server'?'#E879F9':formTag==='Max-Q'?'#C084FC':'#4AD0FA';
     return `
     <div class="card" style="cursor:pointer;border-color:${selectedGPU===g.id?'var(--accent)':'var(--border)'}" onclick="selectedGPU='${g.id}';renderGPUs()">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
@@ -619,8 +658,8 @@ function renderGPUs() {
 
   const gpu = GPU_DATA.find(g => g.id === selectedGPU);
   const detail = gpu ? (() => {
-    const formTag = gpu.nvlink.startsWith('N/A') ? 'PCIe' : (gpu.id.includes('nvl') ? 'NVL' : 'SXM');
-    const formColor = formTag==='PCIe'?'#64748B':formTag==='NVL'?'#F59E0B':'#4AD0FA';
+    const formTag = gpu.gen==='RTX Pro' ? (gpu.id.includes('srv')?'Server':gpu.id.includes('maxq')?'Max-Q':'Workstation') : (gpu.nvlink.startsWith('N/A') ? 'PCIe' : (gpu.id.includes('nvl') ? 'NVL' : 'SXM'));
+    const formColor = formTag==='PCIe'?'#64748B':formTag==='NVL'?'#F59E0B':formTag==='Workstation'?'#F472B6':formTag==='Server'?'#E879F9':formTag==='Max-Q'?'#C084FC':'#4AD0FA';
     return `
     <div class="card" style="margin-top:24px;border-color:var(--accent)">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
@@ -1072,6 +1111,8 @@ const RACK_REPORT = {
   gpuPrices: [
     { asset:'H200 141GB SXM5', typical:40185, bulk:38800, low:36000, mom:'+N/A', yoy:'+N/A', dealerAsk:46000, liq:'C', limited:true },
     { asset:'H100 SXM5 80GB', typical:27200, bulk:26400, low:24500, mom:'+N/A', yoy:'+N/A', dealerAsk:31500, liq:'C', limited:true },
+    { asset:'RTX Pro 6000 (Workstation)', typical:16500, bulk:15800, low:14200, mom:'+N/A', yoy:'+N/A', dealerAsk:17995, liq:'C', limited:true },
+    { asset:'RTX Pro 6000 (Server)', typical:21000, bulk:20500, low:19500, mom:'+N/A', yoy:'+N/A', dealerAsk:21666, liq:'C', limited:true },
     { asset:'A100 80GB SXM4', typical:13145, bulk:12700, low:11200, mom:'+N/A', yoy:'+N/A', dealerAsk:16000, liq:'B', limited:true },
     { asset:'A100 40GB PCIe', typical:3200, bulk:3000, low:2400, mom:'+N/A', yoy:'+N/A', dealerAsk:5500, liq:'C', limited:true },
   ],
@@ -1087,6 +1128,9 @@ const RACK_REPORT = {
     { config:'HGX B200 8×180GB node (SXM6)', price:'$508,484' },
     { config:'GB300 NVL72 Rack System', price:'$5,499,340' },
     { config:'HGX H200 8×141GB (used/refurb reference)', price:'$321,483' },
+    { config:'RTX Pro 6000 Blackwell Workstation 96GB (per card, NVIDIA official)', price:'$16,000' },
+    { config:'RTX Pro 6000 Blackwell Server Edition 96GB (per card)', price:'$20,999–$21,666' },
+    { config:'RTX Pro 6000 Blackwell Max-Q 96GB (per card, Newegg)', price:'$8,299' },
   ],
   rentalImplied: [
     { asset:'A100 SXM', rentPerGPUHr:1.82, netAnnualRent:70854, rentalImpliedValue:63263, realNodeValue:105160, impliedVsReal:'0.60×', paybackYears:1.5, limited:true },
@@ -1097,6 +1141,7 @@ const RACK_REPORT = {
     { component:'GPU — Hopper (H100/H200)', index:94, mom:'+2.1%', yoy:null, volume:'4.1×', premium:'+12%', trend:'stable-rising', liq:'B', conf:'A' },
     { component:'GPU — Ampere (A100)', index:71, mom:'(1.8%)', yoy:null, volume:'2.9×', premium:'(8%)', trend:'declining', liq:'B', conf:'A' },
     { component:'GPU — Blackwell (B200/B300)', index:null, mom:'N/A', yoy:null, volume:null, premium:null, trend:'new supply, premium pricing', liq:'C', conf:'B' },
+    { component:'GPU — RTX Pro 6000 Blackwell (Workstation/Server)', index:null, mom:'N/A', yoy:null, volume:null, premium:null, trend:'rising; +87% since March 2025 launch', liq:'C', conf:'B' },
     { component:'Server CPU', index:52, mom:'+13.9%', yoy:null, volume:'2.7×', premium:'(24%)', trend:'declining', liq:'B', conf:'A' },
     { component:'Network Cards / DPU', index:null, mom:null, yoy:null, volume:null, premium:null, trend:'stable', liq:null, conf:null },
   ]
@@ -1166,6 +1211,8 @@ async function renderMarketPrices() {
   const vel80  = parseFloat(document.getElementById('vel-price-80')?.value)  || 110000;
   const velH1  = parseFloat(document.getElementById('vel-price-h1')?.value)  || 215000;
   const velH2  = parseFloat(document.getElementById('vel-price-h2')?.value)  || 360000;
+  const velRtxWS  = parseFloat(document.getElementById('vel-price-rtxws')?.value)  || 14500;
+  const velRtxSrv = parseFloat(document.getElementById('vel-price-rtxsrv')?.value) || 18500;
 
   const pricingTiers = [
     {
@@ -1191,6 +1238,18 @@ async function renderMarketPrices() {
       newOEM:   { price: 340000, note: 'Volume-order new indicative price — market reference' },
       used:     { price: 321483, note: 'Stoa Exchange Intelligence · Nov 2026 — point-of-trade realized price' },
       velerity: { price: velH2,  inputId: 'vel-price-h2', note: 'Certified refurbished · health report · seller warranty' },
+    },
+    {
+      label: 'RTX Pro 6000 Blackwell — Workstation (per card)',
+      newOEM:   { price: 16000, note: 'NVIDIA official marketplace · Nov 2026 (+87% since March 2025 launch at $8,565)' },
+      used:     { price: 16500, note: 'Secondary market estimate · Nov 2026 — Newegg $17,995; range $16,399–$19,999 (Workstation Edition)' },
+      velerity: { price: velRtxWS, inputId: 'vel-price-rtxws', note: 'Certified · 96 GB GDDR7 ECC · Blackwell 2.0 · 5th-gen Tensor Cores · FP4 support' },
+    },
+    {
+      label: 'RTX Pro 6000 Blackwell — Server Edition (per card)',
+      newOEM:   { price: 20999, note: 'GPUPoet · Nov 2026 price (passive cooling, MIG up to 4 instances)' },
+      used:     { price: 21000, note: 'Secondary market estimate · Nov 2026 — limited supply; range $20,999–$21,666' },
+      velerity: { price: velRtxSrv, inputId: 'vel-price-rtxsrv', note: 'Certified · 96 GB GDDR7 ECC · passive · MIG-4 · PCIe Gen5 rack-ready' },
     },
   ];
 
@@ -2244,6 +2303,13 @@ const FLASHCARDS = [
   { q:'What is the minimum VRAM for running a 70B model at BF16 for inference?', a:'~140 GB (70B × 2 bytes + ~20% inference overhead ≈ 168 GB). Minimum: 2× H100/H200 80GB, or 1× H200 NVL (141 GB per die × 2 = 282 GB).' },
   { q:'What condition grades does Velerity use, and what does Grade A mean?', a:'Grade A: like new, minimal cosmetic wear, full diagnostics pass. Grade B: visible cosmetic wear, all components functional. Grade C: heavy wear or minor variance, passes core diagnostics.' },
   { q:'What is the NVLink bandwidth on the A100 SXM4?', a:'600 GB/s (NVLink 3.0). The H100/H200 SXM5 doubles this to 900 GB/s with NVLink 4.0.' },
+  { q:'What is the VRAM and memory type of the RTX Pro 6000 Blackwell?', a:'96 GB GDDR7 ECC. This is the first workstation GPU to offer 96 GB — enough to run LLaMA 3 70B at full FP16 precision on a single card without quantization.' },
+  { q:'How does RTX Pro 6000 Blackwell memory bandwidth compare to the H100 SXM5?', a:'RTX Pro 6000 Workstation: 1,792 GB/s (GDDR7). H100 SXM5: 3,350 GB/s (HBM3). The H100 has ~87% more bandwidth, making it faster for bandwidth-bound workloads, but the RTX Pro 6000 has 20% more raw VRAM capacity (96 GB vs. 80 GB).' },
+  { q:'What GPU architecture powers the RTX Pro 6000 Blackwell?', a:'Blackwell 2.0 (GB202 die) with 24,064 CUDA cores and 5th-generation Tensor Cores. Supports FP4 precision — same generation as B200/B100 datacenter cards.' },
+  { q:'What is the TDP and form factor of the RTX Pro 6000 Blackwell Workstation Edition?', a:'600W TDP. PCIe Gen5 x16 form factor. Active cooling. The Max-Q variant targets 300W for quieter/constrained environments. No NVLink support across all variants.' },
+  { q:'What is the key difference between the RTX Pro 6000 Workstation and Server Edition?', a:'Server Edition is passively cooled (requires rack airflow) and supports MIG partitioning into up to 4 isolated GPU instances. Workstation Edition is actively cooled with no MIG. Both have 96 GB GDDR7 ECC; Server Edition has slightly lower memory bandwidth (1,597 vs. 1,792 GB/s).' },
+  { q:'How has RTX Pro 6000 Blackwell pricing moved since launch?', a:'Launched March 2025 at $8,565 (MSRP). NVIDIA official price rose to $16,000 by November 2026 — an 87% increase. Newegg Workstation Edition: $17,995. Server Edition: $20,999–$21,666. Max-Q: $8,299. Units entering the secondary market now offer certified refurb opportunity.' },
+  { q:'For what use cases is the RTX Pro 6000 Blackwell the right recommendation over an H100?', a:'Single-GPU inference on 70B-parameter models at full FP16 (96 GB fits LLaMA 3 70B with KV-cache headroom — H100 PCIe at 80 GB cannot). Professional workstation buyers who also need 3D/rendering/CAD. Power-constrained environments (Max-Q at 300W). Budget-sensitive single-node inference with ~28% better cost-per-token vs. H100 PCIe at current prices. NOT recommended over H100 for multi-GPU training or high-concurrency serving.' },
 ];
 
 let fcIndex = 0;
@@ -2292,7 +2358,7 @@ function fcPrev() { fcFlipped = false; fcIndex = (fcIndex - 1 + fcDeck.length) %
 // ── Quizzes ───────────────────────────────────────────────────────────────────
 const QUIZ_TRACKS = {
   gpu: {
-    title: 'GPU Specs', description: 'Test your knowledge of A100, H100, and H200 specifications.',
+    title: 'GPU Specs', description: 'Test your knowledge of A100, H100, H200, and RTX Pro 6000 Blackwell specifications.',
     questions: [
       { q:'What is the memory bandwidth of the H200 SXM?', opts:['3,350 GB/s','2,000 GB/s','4,800 GB/s','5,200 GB/s'], correct:2 },
       { q:'Which GPU first introduced the Transformer Engine and FP8 support?', opts:['A100 SXM4','H100 PCIe','H200 SXM','H100 SXM5'], correct:3 },
@@ -2302,6 +2368,10 @@ const QUIZ_TRACKS = {
       { q:'What is the NVLink bandwidth per GPU on H100/H200 SXM (NVLink 4.0)?', opts:['400 GB/s','600 GB/s','900 GB/s','1,200 GB/s'], correct:2 },
       { q:'How much VRAM does the H200 SXM have?', opts:['80 GB','94 GB','120 GB','141 GB'], correct:3 },
       { q:'What is the FP64 throughput of the A100 PCIe (40GB or 80GB)?', opts:['9.7 TFLOPS','19.5 TFLOPS','25.6 TFLOPS','33.5 TFLOPS'], correct:0 },
+      { q:'How much VRAM does the RTX Pro 6000 Blackwell have, and what memory type?', opts:['80 GB HBM3','96 GB HBM3e','96 GB GDDR7 ECC','128 GB GDDR7 ECC'], correct:2 },
+      { q:'What is the TDP of the RTX Pro 6000 Blackwell Workstation Edition?', opts:['300 W','400 W','500 W','600 W'], correct:3 },
+      { q:'Which RTX Pro 6000 Blackwell variant supports MIG partitioning?', opts:['Workstation Edition','Max-Q Edition','Server Edition','All three variants'], correct:2 },
+      { q:'What GPU architecture is the RTX Pro 6000 Blackwell based on?', opts:['Hopper','Ada Lovelace','Blackwell 2.0 (GB202)','Ampere'], correct:2 },
     ]
   },
   sales: {
@@ -2314,6 +2384,7 @@ const QUIZ_TRACKS = {
       { q:'Which competitive path involves unknown provenance and no warranty?', opts:['Path 1 — New OEM','Path 2 — Cloud GPU','Path 3 — Gray market','Path 4 — Certified refurbished'], correct:2 },
       { q:'What is the best response when a prospect says "we\'ll just wait for Blackwell"?', opts:['Agree and follow up in 12 months','Blackwell enterprise availability is 12–18 months out; competitors are building capacity now on H100/H200','Tell them Blackwell won\'t be significantly better','Offer a large discount to close now'], correct:1 },
       { q:'What condition grade indicates "like new, minimal cosmetic wear, full diagnostics pass"?', opts:['Grade S','Grade A','Grade B','Grade 1'], correct:1 },
+      { q:'A customer asks: "Can the RTX Pro 6000 Blackwell run a 70B model?" What is the correct answer?', opts:['No — 96 GB GDDR7 is insufficient for 70B models','Yes — 96 GB GDDR7 ECC fits LLaMA 3 70B at full FP16 on a single card with KV-cache headroom','Only with quantization (INT4/INT8)','Yes, but only with NVLink pairing'], correct:1 },
     ]
   },
   compliance: {
