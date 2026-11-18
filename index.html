@@ -3301,6 +3301,109 @@ const TARGET_MARKETS = [
       },
     ]
   },
+  ,
+  {
+    id: 'b200', gpu: 'B200 192GB SXM6 / HGX B200', badge: 'B200',
+    headline: 'Frontier training and next-gen inference — for buyers whose H100/H200 clusters are saturated or who are building Blackwell-first infrastructure',
+    pricePoint: '~$460K–$490K per 8-GPU node (early access / new)',
+    verticals: [
+      {
+        industry: 'Hyperscalers & Tier-1 AI Labs',
+        useCases: ['Frontier model pre-training at GPT-4 scale and beyond', 'Mixture-of-Experts training requiring maximum VRAM per GPU (192 GB)', 'Dense, high-throughput inference for LLM API services at hyperscale', 'Speculative decoding and advanced inference optimization infrastructure', 'Reasoning model training (o1/o3-class, chain-of-thought distillation)'],
+        buyers: 'VP AI Infrastructure, Head of Training Infrastructure, Distinguished Engineer, CTO',
+        signals: 'Frontier model launches, $1B+ AI CapEx announcements, DC buildout press releases, GPU cluster CapEx disclosures, hyperscaler earnings guidance on AI spend',
+        dealSize: '128–1,024+ nodes ($60M–$500M+)',
+        competitive: 'vs. H100/H200: 4.5× FP8 throughput, 2× NVLink bandwidth (1,800 GB/s), 192 GB HBM3e — mandatory for training models beyond ~100B parameters efficiently. vs. AMD MI300X: NVIDIA CUDA ecosystem and NVLink all-to-all bandwidth are decisive. Supply is THE constraint — Velerity early access in weeks vs. OEM 12–18 months is the entire pitch at this tier.',
+      },
+      {
+        industry: 'Neocloud / GPU Cloud Providers',
+        useCases: ['B200 GPU-as-a-service SKU for inference API customers', 'Blackwell-native training clusters for enterprise customers', 'High-throughput inference for reasoning model serving (DeepSeek R1, o3-class)', 'AI agent infrastructure hosting and managed ML platforms'],
+        buyers: 'CEO/CTO, VP Infrastructure, Head of Supply Chain, Founder',
+        signals: 'Blackwell tier launch announcements, Series B+ neocloud funding rounds, DC lease expansions, Blackwell infra engineer job postings, "GPU waitlist" blog posts',
+        dealSize: '32–256 nodes ($15M–$125M)',
+        competitive: 'Neoclouds that can\'t get B200 inventory lose customers to competitors offering it. Lead time is the ENTIRE deal — 5 weeks vs. 12–18 months OEM is a direct revenue unlock. Health reports are required for enterprise SLA credibility. This is Velerity\'s highest-value B200 ICP — close fast when you have allocation.',
+      },
+      {
+        industry: 'Frontier AI Companies (Series B–D)',
+        useCases: ['Pre-training proprietary foundation models (7B–100B+)', 'RLHF and reasoning model development at scale', 'Continued pre-training on domain-specific data at frontier scale', 'Multi-modal model training — text, vision, audio, code combined'],
+        buyers: 'Head of AI Infrastructure, VP Engineering, CTO, CEO (Series B–C)',
+        signals: '$50M+ funding rounds, model release announcements, "leaving cloud" press coverage, InfiniBand/SLURM infra job posts, GPU cluster CapEx disclosures, AI safety buildouts',
+        dealSize: '16–128 nodes ($8M–$65M)',
+        competitive: 'vs. Cloud: a 50-node H100 cloud bill runs $4–6M/year — owned B200 at equivalent throughput pays back in under 2 years. vs. H200: B200\'s 4.5× FP8 throughput means significantly less hardware for equivalent training throughput at frontier scale. vs. OEM: 12–18 month lead times kill model release timelines.',
+      },
+      {
+        industry: 'Sovereign AI & Government Programs',
+        useCases: ['National LLM foundation model training on sovereign data', 'Sovereign AI cloud for government services — healthcare, immigration, courts', 'Air-gapped national security AI and intelligence platforms', 'EU/Asia-Pacific national AI infrastructure programs requiring on-premises control'],
+        buyers: 'Minister/Director of Digital, National AI Office, Defense AI program manager, System integrator PM',
+        signals: 'National AI strategy announcements, sovereign AI fund deployments (France, UAE, Singapore, Canada), government LLM RFPs, state AI platform tenders, EU AI Act compliance programs',
+        dealSize: '32–128 nodes ($15M–$65M)',
+        competitive: 'vs. Cloud: data sovereignty is non-negotiable for government workloads — hyperscaler cloud is frequently not approved. vs. H100/H200: governments building a 5+ year national AI platform want frontier architecture. COMPLIANCE NOTE: Export control review is mandatory for all government/defense B200 opportunities — coordinate with compliance team before advancing past Discovery.',
+      },
+      {
+        industry: 'Large Enterprise AI (Fortune 500)',
+        useCases: ['Private LLM deployment on proprietary data (financial, legal, clinical records)', 'Agentic AI automation infrastructure requiring maximum throughput', 'Enterprise multimodal AI for complex document understanding at scale', 'High-throughput RAG and retrieval infrastructure for enterprise AI products'],
+        buyers: 'VP AI/ML, Head of AI Infrastructure, CDO, CTO, Head of Enterprise Architecture',
+        signals: 'Private AI announcements, AI CapEx disclosures, large enterprise LLM partnerships, AI Center of Excellence buildouts, data sovereignty mandates, "AI factory" initiatives',
+        dealSize: '8–32 nodes ($4M–$16M)',
+        competitive: 'vs. Cloud: enterprise data privacy, regulatory compliance, and predictable cost at scale drive on-prem. vs. H100: B200 delivers 4.5× FP8 throughput — dramatically lower per-token cost for enterprise inference APIs at scale. FACILITY GATE: Liquid cooling qualification is mandatory before quoting B200 — do not advance this deal without confirming cooling infrastructure.',
+      },
+    ]
+  },
+  {
+    id: 'rtx-pro', gpu: 'RTX Pro 6000 Blackwell', badge: 'RTX Pro',
+    headline: 'Professional AI workstations, edge inference, and per-card server deployment — the only single GPU to run 70B models at full FP16',
+    pricePoint: '$14,500–$21,000 per card (Workstation / Server Edition)',
+    verticals: [
+      {
+        industry: 'Enterprise AI Engineering & Data Science',
+        useCases: ['Local 70B model development and testing at full FP16 precision — single card, no quantization', 'Enterprise AI copilot and RAG system development without cloud GPU queues', 'ML experiment iteration and fine-tuning before scaling to cluster', 'Agentic AI development workflows requiring large local context windows'],
+        buyers: 'ML Engineer, Data Scientist, AI Platform Engineer, VP Engineering, Head of AI',
+        signals: 'Teams hitting cloud GPU budget limits, job posts requiring local development GPU, internal AI tooling RFPs, AI Center of Excellence buildouts, shadow-cloud cost reduction programs',
+        dealSize: '1–20 cards ($14K–$420K)',
+        competitive: 'vs. Cloud: no latency, no egress, no GPU queue — the development GPU always available. vs. H100 PCIe: RTX Pro 6000 is the only single GPU that fits LLaMA 3 70B at full FP16 (96 GB vs. 80 GB — H100 PCIe cannot do this without quantization). vs. consumer RTX: ECC memory, PCIe Gen5, 5th-gen Tensor Cores, FP4 support — enterprise-grade reliability.',
+      },
+      {
+        industry: 'Architecture, Engineering & Construction (AEC)',
+        useCases: ['BIM and generative design AI — real-time structural and material optimization', 'AI-assisted CAD in AutoCAD, Revit, SolidWorks with large model contexts', 'Digital twin simulation at high fidelity alongside 3D rendering', 'Ray-traced architectural visualization with simultaneous AI design tools'],
+        buyers: 'Director of Digital Design, Head of BIM, VP Technology, Principal Architect, IT Director',
+        signals: 'Digital transformation programs, BIM mandate compliance (UK, EU, federal), Autodesk AI tool rollouts, smart city project RFPs, AEC firm AI strategy announcements',
+        dealSize: '5–50 cards ($70K–$1.05M fleet)',
+        competitive: 'vs. standard RTX: 96 GB GDDR7 ECC handles full-scale BIM models AND AI simultaneously — no memory compromise. vs. Cloud: AEC firms cannot put client project IP in public cloud. vs. older Quadro: Blackwell FP4 enables real-time AI-assisted generative design that prior-gen GPUs could not deliver.',
+      },
+      {
+        industry: 'Media, Entertainment & Creative Production',
+        useCases: ['AI-accelerated VFX rendering — Blender, Maya, Houdini, Nuke at studio quality', 'Generative AI for 3D assets, characters, backgrounds, and environments', 'Real-time AI upscaling, color grading, and video enhancement pipelines', 'AI dubbing, lip sync, and localization for global content distribution'],
+        buyers: 'Head of Technology, VFX Supervisor, Head of Pipeline, CTO, Studio IT Director',
+        signals: 'AI studio formation, streaming platform production AI buildouts, VFX firm expansions, generative AI creative tool adoptions, real-time production pipeline modernization',
+        dealSize: '5–30 cards ($70K–$630K)',
+        competitive: 'vs. consumer RTX 5090: RTX Pro 6000 has 96 GB ECC vs. 32 GB — handles multi-layer AI compositing workflows that overflow consumer GPU memory. vs. Cloud GPU render farm: IP-sensitive productions cannot use external cloud; latency and control matter on set. ECC memory prevents silent data corruption in long render jobs.',
+      },
+      {
+        industry: 'Healthcare & Life Sciences Research',
+        useCases: ['On-premises genomic sequencing and bioinformatics pipelines (PHI compliance)', 'Medical imaging AI development — radiology, pathology, ophthalmology workstations', 'Drug discovery: local protein structure modeling and molecular dynamics simulation', 'AI-assisted diagnostics at the clinical workstation with real-time inference'],
+        buyers: 'Head of Computational Biology, Radiologist AI Lead, Research Computing Director, PI, CDO',
+        signals: 'FDA AI/ML SaMD submissions, hospital AI workstation RFPs, genomics lab expansions, pharmaceutical AI platform buildouts, Epic/Oracle Health AI integrations',
+        dealSize: '2–20 cards ($28K–$420K)',
+        competitive: 'vs. Cloud: PHI/HIPAA data cannot leave the clinical environment — on-prem is mandatory. vs. A100 PCIe: RTX Pro 6000\'s 96 GB fits large genomics and imaging models locally that overflow 80 GB. vs. prior-gen workstation GPU: Blackwell FP4 reduces inference time for real-time clinical AI by ~2× vs. prior generation.',
+      },
+      {
+        industry: 'Legal & Professional Services',
+        useCases: ['On-premises LLM for privileged document review, contract analysis, and M&A due diligence', 'AI legal research assistant — 70B model at full precision, no quantization compromise', 'Compliance document AI for financial, regulatory, and audit workflows', 'Secure AI for confidential client matters — data never leaves the firm network'],
+        buyers: 'Chief Knowledge Officer, Director of Legal Technology, IT Director, Practice Technology Partner',
+        signals: 'Legal AI platform RFPs, BigLaw AI strategy announcements, e-discovery AI tool procurement, compliance AI buildouts, attorney-client privilege policy reviews blocking cloud AI adoption',
+        dealSize: '2–20 cards ($28K–$420K)',
+        competitive: 'vs. Cloud: attorney-client privilege is non-negotiable — data cannot leave firm infrastructure. vs. smaller/quantized GPUs: 70B at full FP16 precision on a single card; quantized models introduce hallucination risk in high-stakes legal work. vs. older workstation GPU: Blackwell generation is the first to make serious legal AI viable on a single desk-side card.',
+      },
+      {
+        industry: 'Regional Cloud & MSP (Server Edition)',
+        useCases: ['Multi-tenant AI inference hosting — MIG partitioning enables 4 isolated customer instances per card', 'Managed 70B model API service for SMB and mid-market customers', 'AI-as-a-service for local/regional clients who need data sovereignty from hyperscalers', 'GPU workstation-as-a-service and virtual GPU hosting for professional workloads'],
+        buyers: 'CTO, Head of Product, VP Infrastructure, Founder',
+        signals: 'MSP AI service launches, regional GPU cloud expansion, DC buildouts below $50M scale, managed AI service RFPs, local sovereign cloud tender wins',
+        dealSize: '4–24 cards ($74K–$504K)',
+        competitive: 'vs. HGX H100 node: RTX Pro 6000 Server is a fraction of total system cost ($21K/card vs. $217K for a full H100 node) while delivering 70B inference capability. MIG-4 partitioning enables 4 isolated revenue-generating tenants per card — a compelling unit economics story for regional AI cloud operators. No liquid cooling required.',
+      },
+    ]
+  },
 ];
 
 function renderTargetMarket() {
