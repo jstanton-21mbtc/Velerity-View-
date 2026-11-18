@@ -1063,41 +1063,236 @@ function renderCert() {
 
 // ── Export Control ────────────────────────────────────────────────────────────
 function renderExport() {
-  document.getElementById('export-content').innerHTML = `
-  <div style="max-width:780px;display:flex;flex-direction:column;gap:18px">
-    <div class="warn-block"><b>Important:</b> This is a high-level primer for sales reps only — not legal advice. Always escalate borderline situations to your compliance team before advancing a deal past Compliance Screening.</div>
+  const TABS = [
+    { id:'overview', label:'Overview' },
+    { id:'groupA',   label:'Group A — Allies' },
+    { id:'groupB',   label:'Group B — General' },
+    { id:'groupD',   label:'Group D — Restricted' },
+    { id:'groupE',   label:'Group E — Embargoed' },
+  ];
+  const tabBar = `<div class="tabs" style="margin-bottom:0">${TABS.map(t=>`<div class="tab${exportTab===t.id?' active':''}" onclick="exportTab='${t.id}';renderExport()">${t.label}</div>`).join('')}</div>`;
 
+  const gpill = (n,c,bg) => `<span style="display:inline-flex;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;background:${bg};color:${c};border:1px solid ${c}30;margin:2px 2px 2px 0">${n}</span>`;
+  const aPill = n => gpill(n,'#22C55E','rgba(34,197,94,.08)');
+  const bPill = n => gpill(n,'var(--accent)','rgba(74,208,250,.06)');
+  const dPill = n => gpill(n,'#F59E0B','rgba(245,158,11,.08)');
+  const ePill = n => gpill(n,'#EF4444','rgba(239,68,68,.1)');
+  const pills = (arr,fn) => `<div style="display:flex;flex-wrap:wrap;gap:0;margin-top:8px">${arr.map(fn).join('')}</div>`;
+
+  const warn = `<div class="warn-block" style="margin-bottom:18px"><b>Important:</b> This is a high-level primer for sales reps only — not legal advice. Always escalate borderline situations to your compliance team before advancing a deal past Compliance Screening.</div>`;
+
+  let body = '';
+
+  if (exportTab === 'overview') {
+    body = `
     <div class="card">
       <div class="card-title" style="font-size:16px;margin-bottom:14px">Why Advanced GPUs Are Controlled</div>
       <div style="font-size:13px;color:var(--text-dim);line-height:1.7">
-        <p>High-performance GPUs — including the A100, H100, and H200 — are subject to US Export Administration Regulations (EAR) administered by the Bureau of Industry and Security (BIS). These regulations exist because advanced AI compute can have military and national security applications.</p>
-        <p style="margin-top:10px">Since October 2022, BIS has enacted multiple rounds of controls restricting export of chips above certain compute thresholds to specific countries and end-users. Penalties for violations include fines, denial orders, and criminal prosecution.</p>
-        <p style="margin-top:10px"><b>This applies to physical shipment, re-export, transfer within a country, and sometimes deemed exports (sharing with foreign nationals on US soil).</b></p>
+        <p>High-performance GPUs — including the A100, H100, H200, B200, and RTX Pro 6000 — are subject to US Export Administration Regulations (EAR) administered by the Bureau of Industry and Security (BIS). These regulations exist because advanced AI compute can have military and national security applications.</p>
+        <p style="margin-top:10px">Since October 2022, BIS has enacted multiple rounds of controls restricting export of chips above certain compute performance thresholds (TPP) to specific countries and end-users. The October 2023 rules tightened this further — any chip above half the A100's TPP now requires licensing for restricted destinations. Penalties for violations include fines, denial orders, and criminal prosecution.</p>
+        <p style="margin-top:10px"><b>This applies to physical shipment, re-export, transfer within a country, and sometimes deemed exports (sharing technology with foreign nationals on US soil).</b></p>
       </div>
     </div>
-
     <div class="card">
       <div class="card-title" style="font-size:16px;margin-bottom:14px">What Reps Need to Know</div>
       ${[
         ['Buyers are screened before orders close','Velerity\'s compliance program screens every buyer — company, country, end-use, and UBO — before a deal advances past Compliance Screening. This is mandatory, not optional.'],
-        ['Country matters','Some countries are subject to export restrictions or require a license. The rep\'s job is to record the deployment country accurately on the deal. Do not proceed if the buyer will re-ship to a third country without disclosing that.'],
-        ['End-use matters','AI research at a university is different from military AI development. The rep should record the stated workload and flag anything that sounds like it could involve weapons, surveillance of civilian populations, or military end-use.'],
-        ['Red flags to escalate','Buyer refuses to state end-use. Buyer asks about removing serial numbers or health reports. Payment routing through unfamiliar third parties. Requests to ship to a freight forwarder in a third country. Any mention of government military or intelligence agencies.'],
-      ].map(([t,d]) => `<div style="margin-bottom:16px"><div style="font-size:14px;font-weight:600;color:var(--accent);margin-bottom:6px">${t}</div><div style="font-size:13px;color:var(--text-dim);line-height:1.65">${d}</div></div>`).join('')}
+        ['Country group determines your starting posture','Every country is assigned a BIS Country Group (A through E). Group A countries have the fewest restrictions. Group D/E countries require escalation and often a license. Use the tabs above to look up any country before quoting.'],
+        ['End-use matters as much as destination','AI research at a university is different from military AI development. Record the stated workload. Flag anything involving weapons, autonomous targeting, surveillance of civilian populations, or military end-use.'],
+        ['Re-export and third-country routing is a red flag','If the buyer discloses shipping to a different country, or uses a freight forwarder in a third country, escalate. The final destination — not the first shipper — determines what controls apply.'],
+      ].map(([t,d])=>`<div style="margin-bottom:16px"><div style="font-size:14px;font-weight:600;color:var(--accent);margin-bottom:6px">${t}</div><div style="font-size:13px;color:var(--text-dim);line-height:1.65">${d}</div></div>`).join('')}
     </div>
-
     <div class="danger-block">
       <b>Red Flags — Escalate Immediately:</b><br>
-      Buyer won't disclose end-use &bull; Request to alter or omit serial numbers &bull; Payment through unknown third parties &bull; Ship-to address is a freight forwarder in a different country &bull; Buyer mentions military, intelligence, or government weapons programs &bull; Buyer is on or affiliated with a BIS Entity List company
+      Buyer won't disclose end-use &bull; Request to alter or omit serial numbers &bull; Payment through unknown third parties &bull; Ship-to is a freight forwarder in a different country &bull; Buyer mentions military, intelligence, or government weapons programs &bull; Buyer is on or affiliated with a BIS Entity List company &bull; Buyer or destination is in Group D:5 or Group E
     </div>
-
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">Country Group Quick Reference</div>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:8px"><span style="font-weight:700;color:#22C55E;min-width:80px">Group A</span><span style="color:var(--text-dim)">Allied nations & multilateral regime partners — most favorable treatment. License exceptions generally available.</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(74,208,250,.05);border:1px solid rgba(74,208,250,.2);border-radius:8px"><span style="font-weight:700;color:var(--accent);min-width:80px">Group B</span><span style="color:var(--text-dim)">General trade partners — standard EAR treatment. License exceptions available; end-use screening required.</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(100,116,139,.06);border:1px solid rgba(100,116,139,.2);border-radius:8px"><span style="font-weight:700;color:var(--text-muted);min-width:80px">Group C</span><span style="color:var(--text-dim)">Reserved — not currently used by BIS.</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:8px"><span style="font-weight:700;color:#F59E0B;min-width:80px">Group D</span><span style="color:var(--text-dim)">Countries of concern — elevated restrictions by subcategory (D:1–D:5). Many require a license. Escalate all D-group opportunities to compliance.</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px"><span style="font-weight:700;color:#EF4444;min-width:80px">Group E</span><span style="color:var(--text-dim)">Embargoed — Cuba, Iran, North Korea, Syria. No GPU exports. Escalate immediately if any connection to E-group country.</span></div>
+      </div>
+    </div>
     <div class="card">
       <div class="card-title" style="margin-bottom:10px">Official Resources</div>
       <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
-        <a href="https://www.bis.doc.gov/" target="_blank" style="color:var(--accent)">BIS Official Website — bis.doc.gov</a>
-        <a href="https://www.bis.doc.gov/index.php/regulations/export-administration-regulations-ear" target="_blank" style="color:var(--accent)">Export Administration Regulations (EAR)</a>
-        <a href="https://www.bis.doc.gov/index.php/policy-guidance/lists-of-parties-of-concern" target="_blank" style="color:var(--accent)">BIS Lists of Parties of Concern (Entity List, Denied Persons, etc.)</a>
+        <a href="https://www.bis.gov/licensing/country-guidance" target="_blank" style="color:var(--accent)">BIS Country Guidance — bis.gov</a>
+        <a href="https://www.ecfr.gov/current/title-15/subtitle-B/chapter-VII/subchapter-C/part-740/appendix-Supplement%20No.%201%20to%20Part%20740" target="_blank" style="color:var(--accent)">eCFR Supplement No. 1 to Part 740 — Official Country Groups Table</a>
+        <a href="https://www.bis.doc.gov/index.php/policy-guidance/lists-of-parties-of-concern" target="_blank" style="color:var(--accent)">BIS Lists of Parties of Concern (Entity List, Denied Persons, Unverified List)</a>
+        <a href="https://www.bis.doc.gov/index.php/regulations/export-administration-regulations-ear" target="_blank" style="color:var(--accent)">Export Administration Regulations (EAR) — Full Text</a>
       </div>
+    </div>`;
+
+  } else if (exportTab === 'groupA') {
+    const a1 = ['Argentina','Australia','Austria','Belgium','Bulgaria','Canada','Croatia','Czech Republic','Denmark','Estonia','Finland','France','Germany','Greece','Hungary','India','Ireland','Italy','Japan','Latvia','Lithuania','Luxembourg','Mexico','Netherlands','New Zealand','Norway','Poland','Portugal','Romania','Slovakia','Slovenia','South Africa','South Korea','Spain','Sweden','Switzerland','Turkey','United Kingdom','United States'];
+    const a5 = ['Australia','Canada','Denmark','France','Germany','Italy','Japan','Netherlands','New Zealand','Norway','South Korea','Spain','Sweden','Switzerland','United Kingdom'];
+    const a6 = ['Austria','Belgium','Bulgaria','Croatia','Czech Republic','Estonia','Finland','Greece','Hungary','Ireland','Latvia','Lithuania','Luxembourg','Poland','Portugal','Romania','Slovakia','Slovenia'];
+    body = `
+    <div class="info-block">Group A countries are members of one or more multilateral export control regimes (Wassenaar Arrangement, MTCR, Australia Group, NSG). They receive the most favorable treatment under the EAR. Advanced GPUs can generally be exported to Group A countries under license exceptions, subject to standard Velerity compliance screening.</div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="card-title" style="font-size:15px">A:1 — Wassenaar Arrangement Members</div>
+        <span style="font-size:11px;color:var(--text-muted)">${a1.length} countries</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">The Wassenaar Arrangement controls exports of conventional arms and dual-use goods (including advanced chips). Note: Malta, Russia, and Ukraine are Wassenaar members but excluded from A:1 for EAR purposes. Russia and Ukraine removed due to geopolitical status; Malta exempted by US policy.</div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">GPU Sales Implication</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">License exceptions (including STA) generally available. Standard Velerity compliance screening required. No country-level license typically required — but end-use and end-user verification is still mandatory.</div>
+      ${pills(a1, aPill)}
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="card-title" style="font-size:15px">A:5 — STA Tier 1 (Most Favorable)</div>
+        <span style="font-size:11px;color:var(--text-muted)">${a5.length} countries</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">Strategic Trade Authorization (STA) Tier 1 — closest US allies and trading partners. These countries are eligible for the broadest license exceptions under EAR. Primarily NATO members and key Pacific allies. Fewest restrictions for advanced chip exports.</div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">GPU Sales Implication</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">Most expansive license exception coverage. Standard end-use/end-user screening applies. Deals to A:5 countries are the lowest compliance burden in Velerity's portfolio.</div>
+      ${pills(a5, aPill)}
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="card-title" style="font-size:15px">A:6 — STA Tier 2</div>
+        <span style="font-size:11px;color:var(--text-muted)">${a6.length} countries</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">STA Tier 2 — primarily EU member states not in A:5. These countries receive favorable but slightly narrower license exception coverage compared to A:5. Still considered allied and low-risk for advanced GPU exports.</div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">GPU Sales Implication</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">License exceptions available. Standard compliance screening applies. Very low compliance burden — treat similarly to A:5 for GPU deals.</div>
+      ${pills(a6, aPill)}
+    </div>
+    <div class="info-block" style="font-size:12px">Source: 15 CFR Part 740 Supplement No. 1 — Country Groups. Verify current membership at <a href="https://www.ecfr.gov/current/title-15/subtitle-B/chapter-VII/subchapter-C/part-740/appendix-Supplement%20No.%201%20to%20Part%20740" target="_blank" style="color:var(--accent)">eCFR</a> before quoting. Country group membership can change via Federal Register rule.</div>`;
+
+  } else if (exportTab === 'groupB') {
+    const bAmericas = ['Antigua & Barbuda','Bahamas','Barbados','Belize','Bolivia','Brazil','Chile','Colombia','Costa Rica','Dominican Republic','Ecuador','El Salvador','Guatemala','Guyana','Haiti','Honduras','Jamaica','Panama','Paraguay','Peru','Trinidad & Tobago','Uruguay'];
+    const bMiddleEast = ['Bahrain','Israel','Jordan','Kuwait','Lebanon','Oman','Qatar','Saudi Arabia','Tunisia','United Arab Emirates'];
+    const bAsiaPac = ['Bangladesh','Bhutan','Brunei','Cambodia','Indonesia','Malaysia','Maldives','Mongolia','Nepal','Philippines','Singapore','Sri Lanka','Taiwan','Thailand','Vietnam'];
+    const bAfrica = ['Algeria','Angola','Botswana','Côte d\'Ivoire','Egypt','Ethiopia','Gabon','Ghana','Kenya','Morocco','Mozambique','Namibia','Nigeria','Rwanda','Senegal','Tanzania','Uganda','Zambia'];
+    const bEurope = ['Albania','Armenia','Bosnia & Herzegovina','Georgia','Kosovo','Moldova','Montenegro','North Macedonia','Serbia','Ukraine'];
+    body = `
+    <div class="info-block">Group B is the default category for most countries in the world that are not in specialized groups A, D, or E. These countries receive standard EAR treatment — many license exceptions are available, but end-use and end-user screening is required for every deal. Group B does not mean "unrestricted." Always check the Entity List and verify end-use.</div>
+    <div class="card">
+      <div class="card-title" style="font-size:15px;margin-bottom:8px">GPU Sales Implications for Group B</div>
+      ${[
+        ['License exceptions generally available','Most EAR license exceptions (LVS, GBS, TSR, etc.) apply to Group B countries. Advanced GPUs can typically be exported without an individual validated license.'],
+        ['End-use and end-user screening required','Every deal to a Group B country must include: (1) verification of stated end-use — no military, WMD, or dual-use applications, (2) Entity List and BIS denied parties check on buyer, end-user, and UBO.'],
+        ['Watch for re-export risk','Many Group B countries border or trade heavily with Group D/E countries. If a buyer in a Group B country is purchasing for re-export or use by a foreign entity, escalate to compliance.'],
+        ['Taiwan is a special case','Taiwan is treated as Group B but has a close US relationship. GPU sales to Taiwan require standard end-use screening but no additional country-level license. Many major AI hardware companies are based in Taiwan.'],
+      ].map(([t,d])=>`<div style="margin-bottom:14px"><div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:4px">${t}</div><div style="font-size:12px;color:var(--text-dim);line-height:1.6">${d}</div></div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-title" style="font-size:15px;margin-bottom:4px">Americas <span style="font-size:11px;color:var(--text-muted);font-weight:400">(representative — not exhaustive)</span></div>
+      ${pills(bAmericas, bPill)}
+    </div>
+    <div class="card">
+      <div class="card-title" style="font-size:15px;margin-bottom:4px">Middle East & North Africa <span style="font-size:11px;color:var(--text-muted);font-weight:400">(representative)</span></div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px">Note: Several MENA countries are in Group D (see Group D tab) — including Iraq, Lebanon, Libya, Sudan, Syria, and Yemen. Confirm group before quoting any MENA deal.</div>
+      ${pills(bMiddleEast, bPill)}
+    </div>
+    <div class="card">
+      <div class="card-title" style="font-size:15px;margin-bottom:4px">Asia-Pacific <span style="font-size:11px;color:var(--text-muted);font-weight:400">(representative)</span></div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px">Note: China is NOT Group B — it is Group D:1 and D:5 and subject to special AI chip controls. Burma (Myanmar) is D:5. Confirm group for every APAC deal.</div>
+      ${pills(bAsiaPac, bPill)}
+    </div>
+    <div class="card">
+      <div class="card-title" style="font-size:15px;margin-bottom:4px">Sub-Saharan Africa <span style="font-size:11px;color:var(--text-muted);font-weight:400">(representative)</span></div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px">Note: Several African nations are in Group D:5 (arms embargo) — including DRC, Eritrea, Somalia, South Sudan, Sudan, Zimbabwe. Confirm group for every Africa deal.</div>
+      ${pills(bAfrica, bPill)}
+    </div>
+    <div class="card">
+      <div class="card-title" style="font-size:15px;margin-bottom:4px">Europe (non-A:1) <span style="font-size:11px;color:var(--text-muted);font-weight:400">(representative)</span></div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px">These European countries are Group B — not Wassenaar members or excluded from A:1. Ukraine was removed from A:1 and is now Group B. Standard screening applies.</div>
+      ${pills(bEurope, bPill)}
+    </div>
+    <div class="warn-block" style="font-size:12px">Group B is not exhaustive here — approximately 150+ countries fall in Group B. This list shows commonly encountered countries in GPU sales. Always verify at <a href="https://www.ecfr.gov/current/title-15/subtitle-B/chapter-VII/subchapter-C/part-740/appendix-Supplement%20No.%201%20to%20Part%20740" target="_blank" style="color:var(--accent)">eCFR Part 740 Supplement 1</a> before quoting any new country.</div>`;
+
+  } else if (exportTab === 'groupD') {
+    const d5 = ['Afghanistan','Belarus','Burma (Myanmar)','Central African Republic','China (PRC)','Cuba','Dem. Rep. of Congo','Eritrea','Haiti','Iran','Iraq','Lebanon','Libya','Nicaragua','North Korea','Russia','Somalia','South Sudan','Sudan','Syria','Venezuela','Zimbabwe'];
+    const d1notable = ['China (PRC)','Russia','Belarus','Burma (Myanmar)','Cambodia','Laos','Macau','Mongolia','Vietnam'];
+    body = `
+    <div class="danger-block">Group D countries require heightened compliance review. All Group D opportunities must be escalated to your compliance team before advancing past Discovery. Do not quote or advance a Group D deal without explicit compliance sign-off.</div>
+    <div class="card">
+      <div class="card-title" style="font-size:15px;margin-bottom:12px">Group D Subcategories — Overview</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">
+        ${[
+          ['D:1','National Security','Broad national security controls. Includes China — subject to special AI chip licensing rules since October 2023.','#F59E0B'],
+          ['D:2','Nuclear','Countries of nuclear proliferation concern. License required for items with nuclear applications.','#F97316'],
+          ['D:3','Chemical & Biological','Countries of CW/BW concern. Generally not GPU-specific, but indicates elevated risk on any deal.','#F97316'],
+          ['D:4','Missile Technology','Countries with missile proliferation concerns. Rarely GPU-specific but flags overall end-user risk.','#F97316'],
+          ['D:5','Arms Embargo','US arms-embargoed countries — highest restriction in Group D. Includes China, Russia, Belarus. License nearly always denied for advanced GPUs.','#EF4444'],
+        ].map(([sub,name,desc,color])=>`<div style="background:var(--surface);border:1px solid ${color}40;border-radius:8px;padding:14px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="font-size:14px;font-weight:700;color:${color}">${sub}</span>
+            <span style="font-size:12px;font-weight:600;color:var(--text-dim)">${name}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.55">${desc}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="card" style="border-color:rgba(239,68,68,.4)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div class="card-title" style="font-size:15px;color:#EF4444">D:5 — US Arms Embargoed Countries</div>
+        <span style="font-size:11px;color:var(--text-muted)">${d5.length} countries</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">D:5 countries are subject to US arms embargoes. Export of advanced GPUs to D:5 countries requires a BIS license — and licenses are presumed denied for restricted AI chip categories. <b style="color:#EF4444">Any buyer with a D:5 country connection — including parent company, end-user, or shipper — must be escalated to compliance immediately.</b></div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">D:5 Countries (as of November 2026)</div>
+      ${pills(d5, ePill)}
+      <div style="font-size:11px;color:var(--text-muted);margin-top:10px">Note: Cambodia was removed from D:5 in February 2026 (BIS Federal Register rule). Cuba, Iran, North Korea, and Syria are also in Group E (see Group E tab).</div>
+    </div>
+    <div class="card" style="border-color:rgba(245,158,11,.4)">
+      <div class="card-title" style="font-size:15px;color:#F59E0B;margin-bottom:8px">D:1 — National Security (Notable Countries for GPU Sales)</div>
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">D:1 is a broad list of countries subject to national security-based export restrictions. The most GPU-relevant D:1 country is China, which is subject to additional specific AI chip controls layered on top of D:1 and D:5 treatment.</div>
+      ${pills(d1notable, dPill)}
+      <div style="margin-top:14px;padding:12px 14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.25);border-radius:8px">
+        <div style="font-size:12px;font-weight:700;color:#EF4444;margin-bottom:6px">China (PRC) — Special AI Chip Controls</div>
+        <div style="font-size:12px;color:var(--text-dim);line-height:1.6">China is simultaneously D:1 and D:5. Under BIS October 2023 rules, advanced AI chips (A100, H100, H200, B200, RTX Pro 6000) above specific Total Processing Performance (TPP) thresholds require an individual validated export license for China — and that license is <b>presumed denied</b>. No standard license exceptions apply. This covers direct export AND re-export via third countries. Any opportunity with a China end-user, Chinese-owned entity, or deployment intended for China must be escalated before any deal activity.</div>
+      </div>
+      <div style="margin-top:10px;padding:12px 14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.25);border-radius:8px">
+        <div style="font-size:12px;font-weight:700;color:#EF4444;margin-bottom:6px">Russia &amp; Belarus — Embargoed Since 2022</div>
+        <div style="font-size:12px;color:var(--text-dim);line-height:1.6">Russia and Belarus are in D:1 and D:5. Following the February 2022 invasion of Ukraine, BIS enacted sweeping export restrictions on Russia. Advanced GPUs are effectively prohibited to Russia and Belarus. No license exceptions apply. Escalate immediately.</div>
+      </div>
+    </div>
+    <div class="info-block" style="font-size:12px">D:1–D:4 country lists are extensive. Only the most GPU-relevant countries are shown above. Verify full D-group membership at <a href="https://www.ecfr.gov/current/title-15/subtitle-B/chapter-VII/subchapter-C/part-740/appendix-Supplement%20No.%201%20to%20Part%20740" target="_blank" style="color:var(--accent)">eCFR Part 740 Supplement 1</a>.</div>`;
+
+  } else if (exportTab === 'groupE') {
+    body = `
+    <div class="danger-block"><b>Group E countries are subject to comprehensive US embargoes. Export of ANY advanced GPU to these countries is prohibited. If a buyer has any connection — direct or indirect — to a Group E country, escalate to compliance immediately. Do not quote. Do not advance the deal.</b></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+      ${[
+        { country:'Cuba', group:'E:1', flag:'🇨🇺', status:'Comprehensive US embargo since 1962. Subject to OFAC Cuba sanctions and EAR Group E:1. No export of advanced computing equipment permitted. Any Cuban connection in a deal — buyer, end-user, financier, or shipper — is an immediate escalation.', treaties:'EAR E:1 · OFAC Cuba Sanctions · Trading with the Enemy Act' },
+        { country:'Iran', group:'E:1', flag:'🇮🇷', status:'Comprehensive US sanctions since 1979. EAR Group E:1. Subject to OFAC Iran sanctions and IEEPA. Export of advanced GPUs is prohibited. Iranian nationals or Iranian-owned entities anywhere in the transaction are red flags regardless of their physical location.', treaties:'EAR E:1 · OFAC Iran Sanctions · IEEPA · ITSR' },
+        { country:'North Korea', group:'E:2', flag:'🇰🇵', status:'Comprehensive US embargo. EAR Group E:2. Subject to OFAC DPRK sanctions and multiple UN Security Council resolutions. Zero tolerance — any DPRK connection triggers immediate escalation and likely deal termination.', treaties:'EAR E:2 · OFAC DPRK Sanctions · UN Security Council Resolutions' },
+        { country:'Syria', group:'E:2', flag:'🇸🇾', status:'Comprehensive US sanctions since 2004 (expanded significantly post-2011). EAR Group E:2. Subject to OFAC Syria sanctions. Export of advanced computing equipment is prohibited. Escalate any Syrian connection in the deal.', treaties:'EAR E:2 · OFAC Syria Sanctions · Syria Accountability Act' },
+      ].map(c=>`<div class="card" style="border-color:rgba(239,68,68,.5)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <span style="font-size:28px">${c.flag}</span>
+          <div>
+            <div style="font-size:17px;font-weight:700;color:#EF4444">${c.country}</div>
+            <span style="font-size:11px;font-weight:600;padding:1px 7px;border-radius:4px;background:rgba(239,68,68,.12);color:#EF4444;border:1px solid rgba(239,68,68,.3)">${c.group} — Embargoed</span>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text-dim);line-height:1.65;margin-bottom:10px">${c.status}</div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Applicable Frameworks</div>
+        <div style="font-size:11px;color:var(--text-muted)">${c.treaties}</div>
+      </div>`).join('')}
+    </div>
+    <div class="card" style="margin-top:0">
+      <div class="card-title" style="font-size:15px;margin-bottom:12px">Deemed Export Rules — Foreign Nationals in the US</div>
+      <div style="font-size:13px;color:var(--text-dim);line-height:1.65">
+        <p>A "deemed export" occurs when controlled technology is shared with a foreign national on US soil. If the foreign national is a citizen or permanent resident of a Group E country, transferring controlled AI chip specifications, software, or know-how to them may constitute a deemed export violation — even if no hardware leaves the US.</p>
+        <p style="margin-top:10px">In practice: If a buyer's technical team includes nationals of Cuba, Iran, North Korea, or Syria who will have access to controlled GPU technology, escalate to compliance before proceeding.</p>
+      </div>
+    </div>
+    <div class="warn-block" style="font-size:12px">The E-group country list can change via Federal Register rule or State Department designation. Verify current status at <a href="https://home.treasury.gov/policy-issues/financial-sanctions/sanctions-programs-and-country-information" target="_blank" style="color:var(--accent)">OFAC Sanctions Programs</a> and <a href="https://www.bis.gov/licensing/country-guidance" target="_blank" style="color:var(--accent)">BIS Country Guidance</a> before any Group E-adjacent deal.</div>`;
+  }
+
+  document.getElementById('export-content').innerHTML = `
+  <div style="max-width:900px">
+    ${tabBar}
+    <div style="margin-top:18px;display:flex;flex-direction:column;gap:16px">
+      ${warn}
+      ${body}
     </div>
   </div>`;
 }
@@ -1423,6 +1618,7 @@ async function renderMarketPrices() {
 // ── Admin ──────────────────────────────────────────────────────────────────────
 let adminTab = 'gpu';
 let marketPriceTab = 'A100';
+let exportTab = 'overview';
 let adminEdit = null; // id of item being edited
 
 function renderAdmin() {
