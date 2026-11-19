@@ -2925,7 +2925,7 @@ function openAccountModal(id) {
         <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="m-acc-title" value="${acc?.title||''}" placeholder="VP Engineering"></div>
         <div class="form-group"><label class="form-label">GPU Interest</label>
           <select class="form-select" id="m-acc-gpu">
-            ${['A100 40GB PCIe','A100 80GB PCIe','A100 80GB SXM4','H100 80GB PCIe','H100 80GB SXM5','H100 NVL 94GB','H200 141GB SXM','H200 141GB NVL','Multiple / TBD'].map(g=>`<option${(acc?.gpuInterest||'H100 80GB SXM5')===g?' selected':''}>${g}</option>`).join('')}
+            ${['A100 40GB PCIe','A100 80GB PCIe','A100 80GB SXM4','H100 80GB PCIe','H100 80GB SXM5','H100 NVL 94GB','H200 141GB SXM','H200 141GB NVL','B200 192GB SXM6','B100 192GB PCIe','RTX Pro 6000 (Workstation)','RTX Pro 6000 (Server)','RTX Pro 6000 (Max-Q)','Multiple / TBD'].map(g=>`<option${(acc?.gpuInterest||'H100 80GB SXM5')===g?' selected':''}>${g}</option>`).join('')}
           </select>
         </div>
       </div>
@@ -2978,7 +2978,7 @@ function openDealModal(id, preAccountId) {
       <div class="form-row">
         <div class="form-group"><label class="form-label">GPU Type</label>
           <select class="form-select" id="m-deal-gpu">
-            ${['A100 40GB PCIe','A100 80GB PCIe','A100 80GB SXM4','H100 80GB PCIe','H100 80GB SXM5','H100 NVL 94GB','H200 141GB SXM','H200 141GB NVL'].map(g=>`<option${(deal?.gpuType||'H100 80GB SXM5')===g?' selected':''}>${g}</option>`).join('')}
+            ${['A100 40GB PCIe','A100 80GB PCIe','A100 80GB SXM4','H100 80GB PCIe','H100 80GB SXM5','H100 NVL 94GB','H200 141GB SXM','H200 141GB NVL','B200 192GB SXM6','B100 192GB PCIe','RTX Pro 6000 (Workstation)','RTX Pro 6000 (Server)','RTX Pro 6000 (Max-Q)','Multiple / TBD'].map(g=>`<option${(deal?.gpuType||'H100 80GB SXM5')===g?' selected':''}>${g}</option>`).join('')}
           </select>
         </div>
         <div class="form-group"><label class="form-label">GPU Count</label><input class="form-input" id="m-deal-gpucount" type="number" value="${deal?.gpuCount||8}" min="1"></div>
