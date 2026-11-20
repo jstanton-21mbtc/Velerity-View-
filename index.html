@@ -3570,7 +3570,7 @@ const TARGET_MARKETS = [
     ]
   },
   {
-    id: 'h200', gpu: 'H200 141GB SXM5', badge: 'H200',
+    id: 'h200', gpu: 'H200 141GB SXM', badge: 'H200',
     headline: 'Frontier model training, memory-bandwidth-intensive inference, and maximum VRAM deployments',
     pricePoint: '$310K–$340K per 8-GPU node (certified refurb)',
     verticals: [
@@ -3722,7 +3722,8 @@ const TARGET_MARKETS = [
 ];
 
 function renderTargetMarket() {
-  const data = TARGET_MARKETS.find(t => t.id === targetMarketGPU);
+  let data = TARGET_MARKETS.find(t => t.id === targetMarketGPU);
+  if (!data) { targetMarketGPU = TARGET_MARKETS[0].id; data = TARGET_MARKETS[0]; }
 
   const gpuTabs = TARGET_MARKETS.map(t =>
     `<div class="tab${t.id===targetMarketGPU?' active':''}" onclick="targetMarketGPU='${t.id}';renderTargetMarket()">${t.badge}</div>`
