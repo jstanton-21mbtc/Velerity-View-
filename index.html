@@ -486,6 +486,14 @@ const GPU_DATA = [
     notes:'PCIe form factor — fits standard GPU servers without NVLink fabric. Lower FP64 than SXM4; good for HPC-light workloads.',
     platformContext:'PCIe. Drops into any standard PCIe x16 slot. No NVLink — used in 1U–4U PCIe GPU servers, not in DGX or HGX systems.',
     buyWhy:'Budget-conscious inference buyers; research institutions; MIG multi-tenant deployments serving multiple teams off one GPU. Competitive vs. cloud for sustained, low-VRAM workloads. Best pitch: lowest per-GPU entry price in the A100 family.',
+    migMaxInstances: 7,
+    migProfiles: [
+      { profile:'1g.5gb',  count:7, vramEach:'5 GB',  totalUsed:'35 GB' },
+      { profile:'2g.10gb', count:3, vramEach:'10 GB', totalUsed:'30 GB' },
+      { profile:'3g.20gb', count:2, vramEach:'20 GB', totalUsed:'40 GB' },
+      { profile:'4g.20gb', count:1, vramEach:'20 GB', totalUsed:'20 GB' },
+      { profile:'7g.40gb', count:1, vramEach:'40 GB', totalUsed:'40 GB (full)' },
+    ],
     sourceUrl:'https://www.nvidia.com/en-us/data-center/a100/', verified:true },
 
   { id:'a100-80-pcie', gen:'A100', name:'A100 80GB PCIe', badge:'A100',
@@ -496,6 +504,14 @@ const GPU_DATA = [
     notes:'Same compute as 40GB PCIe but with double the VRAM. Memory bandwidth slightly higher due to HBM2e.',
     platformContext:'PCIe. Standard PCIe x16 slot. No NVLink — multi-GPU communication over PCIe. Used in PCIe GPU servers, not in DGX or HGX systems.',
     buyWhy:'Teams running LLaMA-70B or Falcon-180B inference without DGX infrastructure. Common in university AI labs, regional cloud providers, and enterprise IT departments with existing PCIe server racks. Upgrade from 40GB when models no longer fit.',
+    migMaxInstances: 7,
+    migProfiles: [
+      { profile:'1g.10gb', count:7, vramEach:'10 GB', totalUsed:'70 GB' },
+      { profile:'2g.20gb', count:3, vramEach:'20 GB', totalUsed:'60 GB' },
+      { profile:'3g.40gb', count:2, vramEach:'40 GB', totalUsed:'80 GB' },
+      { profile:'4g.40gb', count:1, vramEach:'40 GB', totalUsed:'40 GB' },
+      { profile:'7g.80gb', count:1, vramEach:'80 GB', totalUsed:'80 GB (full)' },
+    ],
     sourceUrl:'https://www.nvidia.com/en-us/data-center/a100/', verified:true },
 
   { id:'a100-80-sxm4', gen:'A100', name:'A100 80GB SXM4', badge:'A100',
@@ -506,6 +522,14 @@ const GPU_DATA = [
     notes:'2× the FP64 and BF16 throughput vs. PCIe variant due to higher TDP and NVLink fabric. The workhorse of the 2021–2023 AI boom.',
     platformContext:'SXM4. Mounts on HGX A100 baseboard inside DGX A100 (NVIDIA) or OEM HGX systems (Dell XE8545, HPE XL675d, Lenovo SR670 V2, Gigabyte G492). NVSwitch fabric enables all-to-all GPU connectivity. Not PCIe-compatible.',
     buyWhy:'Core of certified refurb DGX A100 and HGX A100 clusters — Velerity\'s highest-volume A100 SKU. Customers buying refurb DGX A100 systems at 50–60% below new H100 pricing for workloads that fit in 80 GB. Large installed base drives multi-unit expansion sales. Best pitch: same training capability as 2022 state-of-the-art at a fraction of new H100 cost.',
+    migMaxInstances: 7,
+    migProfiles: [
+      { profile:'1g.10gb', count:7, vramEach:'10 GB', totalUsed:'70 GB' },
+      { profile:'2g.20gb', count:3, vramEach:'20 GB', totalUsed:'60 GB' },
+      { profile:'3g.40gb', count:2, vramEach:'40 GB', totalUsed:'80 GB' },
+      { profile:'4g.40gb', count:1, vramEach:'40 GB', totalUsed:'40 GB' },
+      { profile:'7g.80gb', count:1, vramEach:'80 GB', totalUsed:'80 GB (full)' },
+    ],
     sourceUrl:'https://www.nvidia.com/en-us/data-center/a100/', verified:true },
 
   // ── H100 ──
@@ -517,6 +541,14 @@ const GPU_DATA = [
     notes:'Hopper architecture with Transformer Engine (FP8). ~2.4× BF16 throughput vs. A100 80GB PCIe. Lower memory bandwidth than SXM5 due to HBM2e vs. HBM3.',
     platformContext:'PCIe. Drops into any PCIe x16 slot. No NVLink — multi-GPU over PCIe. Direct drop-in upgrade path from A100 PCIe infrastructure without buying a new HGX chassis.',
     buyWhy:'Customers upgrading from A100 PCIe infrastructure who want 2.4× more throughput without a new HGX chassis. Common in enterprises with existing PCIe GPU servers. Inference shops buying as slot-for-slot upgrades in serving farms. Good deal for buyers who can\'t justify DGX/HGX cost.',
+    migMaxInstances: 7,
+    migProfiles: [
+      { profile:'1g.10gb', count:7, vramEach:'10 GB', totalUsed:'70 GB' },
+      { profile:'2g.20gb', count:3, vramEach:'20 GB', totalUsed:'60 GB' },
+      { profile:'3g.40gb', count:2, vramEach:'40 GB', totalUsed:'80 GB' },
+      { profile:'4g.40gb', count:1, vramEach:'40 GB', totalUsed:'40 GB' },
+      { profile:'7g.80gb', count:1, vramEach:'80 GB', totalUsed:'80 GB (full)' },
+    ],
     sourceUrl:'https://www.nvidia.com/en-us/data-center/h100/', verified:true },
 
   { id:'h100-80-sxm5', gen:'H100', name:'H100 80GB SXM5', badge:'H100',
@@ -527,6 +559,14 @@ const GPU_DATA = [
     notes:'The flagship AI training GPU. HBM3 delivers 68% more memory bandwidth vs. A100 SXM4. NVLink 4.0 at 900 GB/s enables tight 8-GPU coupling. Transformer Engine accelerates FP8 training.',
     platformContext:'SXM5. Mounts on HGX H100 baseboard inside DGX H100 (NVIDIA) or OEM HGX systems (Dell XE9680, Supermicro SYS-821GE, HPE Cray XD670, Lenovo SR675 V3). NVSwitch 3.0 for all-to-all GPU connectivity. Not PCIe-compatible.',
     buyWhy:'The highest-demand GPU in market today. Bought by neoclouds (CoreWeave, Lambda, Vast.ai), enterprise AI teams, and research labs. 8-GPU DGX/HGX nodes are the standard training configuration. OEM lead times of 6–9 months make Velerity certified refurb extremely competitive at 20–35% discount. Best pitch: same delivery in 5 weeks at a 25% discount vs. waiting 9 months for new.',
+    migMaxInstances: 7,
+    migProfiles: [
+      { profile:'1g.10gb', count:7, vramEach:'10 GB', totalUsed:'70 GB' },
+      { profile:'2g.20gb', count:3, vramEach:'20 GB', totalUsed:'60 GB' },
+      { profile:'3g.40gb', count:2, vramEach:'40 GB', totalUsed:'80 GB' },
+      { profile:'4g.40gb', count:1, vramEach:'40 GB', totalUsed:'40 GB' },
+      { profile:'7g.80gb', count:1, vramEach:'80 GB', totalUsed:'80 GB (full)' },
+    ],
     sourceUrl:'https://www.nvidia.com/en-us/data-center/h100/', verified:true },
 
   { id:'h100-nvl', gen:'H100', name:'H100 NVL 94GB', badge:'H100',
@@ -537,6 +577,15 @@ const GPU_DATA = [
     notes:'Two H100 dies connected via NVLink on a single PCIe card. 94 GB per die (188 GB total addressable). Lower NVLink BW than SXM5. Good for memory-constrained inference.',
     platformContext:'PCIe card (dual-die). Two H100 GPU dies unified as 188 GB addressable via NVLink. Fits a standard PCIe x16 slot. Used in PCIe servers — not an HGX/DGX component.',
     buyWhy:'Customers needing >80 GB VRAM per GPU in a PCIe form factor. Typically inference teams running very long context (128K+ token) models or large VLMs like LLaMA 405B on fewer cards. NVL pairs sold as 2-die units — natural upsell for teams already buying H100 PCIe infrastructure.',
+    migMaxInstances: 7,
+    migNote: 'MIG is per GPU die (94 GB each). Both dies on a single NVL card can run independent MIG configurations — up to 14 total isolated instances across the full 188 GB card.',
+    migProfiles: [
+      { profile:'1g.12gb', count:7, vramEach:'12 GB', totalUsed:'84 GB / die' },
+      { profile:'2g.24gb', count:3, vramEach:'24 GB', totalUsed:'72 GB / die' },
+      { profile:'3g.47gb', count:2, vramEach:'47 GB', totalUsed:'94 GB / die' },
+      { profile:'4g.47gb', count:1, vramEach:'47 GB', totalUsed:'47 GB / die' },
+      { profile:'7g.94gb', count:1, vramEach:'94 GB', totalUsed:'94 GB / die (full)' },
+    ],
     sourceUrl:'https://www.nvidia.com/en-us/data-center/h100/', verified:false },
 
   // ── H200 ──
@@ -548,6 +597,14 @@ const GPU_DATA = [
     notes:'Same Hopper compute die as H100 SXM5 — the upgrade is memory: 141 GB HBM3e at 4,800 GB/s (43% more BW vs. H100). Memory-bandwidth-bound workloads see the biggest gains.',
     platformContext:'SXM form factor. Mounts on HGX H200 baseboard inside DGX H200 (NVIDIA) or OEM HGX H200 systems (Lenovo SR680a V3, Dell XE9680 H200 config). Drop-in upgrade on same chassis as H100 SXM5 for most OEMs.',
     buyWhy:'Labs and enterprises serving frontier models (Llama 3 405B, DeepSeek R1, Mixtral 8×22B). The upgrade path from H100 DGX/HGX — same chassis, 76% more GPU memory and 43% more bandwidth. Hyperscalers and neoclouds buying in multi-node clusters for production inference. Key pitch: H200 fits in your existing H100 rack and doubles the models you can serve.',
+    migMaxInstances: 7,
+    migProfiles: [
+      { profile:'1g.20gb',  count:7, vramEach:'20 GB',  totalUsed:'140 GB' },
+      { profile:'2g.40gb',  count:3, vramEach:'40 GB',  totalUsed:'120 GB' },
+      { profile:'3g.70gb',  count:2, vramEach:'70 GB',  totalUsed:'140 GB' },
+      { profile:'4g.70gb',  count:1, vramEach:'70 GB',  totalUsed:'70 GB' },
+      { profile:'7g.141gb', count:1, vramEach:'141 GB', totalUsed:'141 GB (full)' },
+    ],
     sourceUrl:'https://www.nvidia.com/en-us/data-center/h200/', verified:true },
 
   { id:'h200-nvl', gen:'H200', name:'H200 NVL 141GB', badge:'H200',
@@ -558,6 +615,15 @@ const GPU_DATA = [
     notes:'NVL variant pairs two H200 dies for 282 GB addressable memory. Premium option for the most memory-constrained use cases.',
     platformContext:'PCIe card (dual-die). Two H200 GPU dies unified as 282 GB addressable via NVLink. Fits a standard PCIe x16 slot. Different from the SXM variant used in DGX/HGX systems.',
     buyWhy:'Niche top-of-market use case — customers running 1T+ parameter models or massive MoE serving who need maximum per-node GPU memory in PCIe form factor. Very limited supply; premium pricing. Good for deal size but rare buyer profile. Qualify carefully before pitching.',
+    migMaxInstances: 7,
+    migNote: 'MIG is per GPU die (141 GB each). Both dies on a single NVL card can run independent MIG configurations — up to 14 total isolated instances across the full 282 GB card.',
+    migProfiles: [
+      { profile:'1g.20gb',  count:7, vramEach:'20 GB',  totalUsed:'140 GB / die' },
+      { profile:'2g.40gb',  count:3, vramEach:'40 GB',  totalUsed:'120 GB / die' },
+      { profile:'3g.70gb',  count:2, vramEach:'70 GB',  totalUsed:'140 GB / die' },
+      { profile:'4g.70gb',  count:1, vramEach:'70 GB',  totalUsed:'70 GB / die' },
+      { profile:'7g.141gb', count:1, vramEach:'141 GB', totalUsed:'141 GB / die (full)' },
+    ],
     sourceUrl:'https://www.nvidia.com/en-us/data-center/h200/', verified:false },
 
   // ── B200 / Blackwell ──
@@ -569,6 +635,14 @@ const GPU_DATA = [
     notes:'Blackwell architecture — 2nd-gen Transformer Engine with FP4 precision. NVLink 5.0 at 1,800 GB/s (2× H100). ~4.5× more FP8 throughput vs. H100 SXM5. Liquid cooling mandatory — no air-cooled B200 SXM6 configuration supported. 192 GB HBM3e enables serving GPT-4-class models on a single node.',
     platformContext:'SXM6. Mounts on HGX B200 baseboard inside DGX B200 (NVIDIA), OEM HGX B200 systems (Dell XE9780, Supermicro B200), or GB200 NVL72 rack (as GB200 Superchip pairing one Grace CPU + 2 B200 dies). Liquid cooling required for all SXM6 deployments.',
     buyWhy:'Hyperscalers and frontier AI labs building next-generation training clusters. Enterprises buying to serve GPT-4-class models where H200 memory or compute is insufficient. Key trigger: H100/H200 clusters are saturated and teams need 4–5× more throughput. OEM lead times 12–18+ months — Velerity certified supply is high-value here.',
+    migMaxInstances: 7,
+    migProfiles: [
+      { profile:'1g.24gb',  count:7, vramEach:'24 GB',  totalUsed:'168 GB' },
+      { profile:'2g.48gb',  count:3, vramEach:'48 GB',  totalUsed:'144 GB' },
+      { profile:'3g.96gb',  count:2, vramEach:'96 GB',  totalUsed:'192 GB' },
+      { profile:'4g.96gb',  count:1, vramEach:'96 GB',  totalUsed:'96 GB' },
+      { profile:'7g.192gb', count:1, vramEach:'192 GB', totalUsed:'192 GB (full)' },
+    ],
     sourceUrl:'https://www.nvidia.com/en-us/data-center/b200/', verified:true },
 
   { id:'b100-pcie', gen:'B200', name:'B100 192GB PCIe', badge:'B200',
@@ -579,6 +653,14 @@ const GPU_DATA = [
     notes:'PCIe 5.0 form factor. Same 192 GB HBM3e memory as B200 SXM6 but lower TDP and no NVLink. Fits standard PCIe GPU servers — does not require liquid cooling. Good entry point to Blackwell generation without facility upgrades.',
     platformContext:'PCIe 5.0 x16 slot. No NVLink — multi-GPU communication over PCIe. Drop-in upgrade path from H100/H200 PCIe infrastructure. Air-cooled support in standard server configurations. No DGX/HGX variant exists for B100.',
     buyWhy:'Mid-market enterprises upgrading PCIe-based inference clusters to Blackwell without infrastructure changes. Customers who need 192 GB VRAM per GPU but cannot support liquid cooling or NVLink. Often purchased as inference-only nodes alongside existing H100 SXM training clusters. Lower barrier to entry than B200 SXM6.',
+    migMaxInstances: 7,
+    migProfiles: [
+      { profile:'1g.24gb',  count:7, vramEach:'24 GB',  totalUsed:'168 GB' },
+      { profile:'2g.48gb',  count:3, vramEach:'48 GB',  totalUsed:'144 GB' },
+      { profile:'3g.96gb',  count:2, vramEach:'96 GB',  totalUsed:'192 GB' },
+      { profile:'4g.96gb',  count:1, vramEach:'96 GB',  totalUsed:'96 GB' },
+      { profile:'7g.192gb', count:1, vramEach:'192 GB', totalUsed:'192 GB (full)' },
+    ],
     sourceUrl:'https://www.nvidia.com/en-us/data-center/b100/', verified:false },
 
   // ── RTX Pro 6000 Blackwell ──
@@ -600,6 +682,13 @@ const GPU_DATA = [
     notes:'Identical Blackwell 2.0 compute die to the Workstation Edition but passively cooled for server rack density. MIG support allows up to 4 isolated GPU instances — enables multi-tenant inference serving at the per-card level. Slightly lower memory bandwidth (1,597 vs. 1,792 GB/s) due to passive thermal constraints. Passive cooling requires sufficient rack airflow — verify with DC Readiness checklist. Supported by Lenovo ThinkSystem SR-series and other PCIe Gen5 server platforms. New price ~$20,999–$21,666 (Nov 2026).',
     platformContext:'PCIe Gen5 x16. Passively cooled — requires server rack with adequate front-to-back airflow (minimum 300 LFM typically required; check OEM spec). MIG partitioning into up to 4 instances. No NVLink — multi-GPU communication over PCIe only. Supported platforms: Lenovo ThinkSystem SR650 V3 / SR670 V3, PNY server configs, CDW-qualified server builds. Standard 1U–2U PCIe GPU server footprint — does not require HGX chassis or liquid cooling infrastructure.',
     buyWhy:'Enterprises and regional cloud providers building multi-tenant inference infrastructure on standard PCIe servers. MIG partitioning means 4 isolated AI tenants per card — powerful pitch for cost-conscious IT buyers deploying departmental AI services. At $20,999+ new, certified refurb offers the same 96 GB GDDR7 capacity with meaningful discount. Best pitch: MIG-partitioned server GPU for 70B models on a standard 1U–2U rack footprint at a fraction of an HGX H100 node cost (~$217K secondary market for full H100 node vs. ~$21K per RTX Pro 6000 Server). Match the buyer carefully — this is single-model or lightly concurrent inference, not large-batch training.',
+    migMaxInstances: 4,
+    migNote: 'RTX Pro 6000 Server Edition supports up to 4 MIG instances — unlike the 7-instance maximum on datacenter GPUs (A100/H100/H200/B200). Three profile sizes available.',
+    migProfiles: [
+      { profile:'1g.24gb', count:4, vramEach:'24 GB', totalUsed:'96 GB' },
+      { profile:'2g.48gb', count:2, vramEach:'48 GB', totalUsed:'96 GB' },
+      { profile:'4g.96gb', count:1, vramEach:'96 GB', totalUsed:'96 GB (full)' },
+    ],
     sourceUrl:'https://lenovopress.lenovo.com/lp2263-thinksystem-nvidia-rtx-pro-6000-blackwell-server-edition-pcie-gen5-gpu', verified:true },
 
   { id:'rtx-pro-6000-maxq', gen:'RTX Pro', name:'RTX Pro 6000 Blackwell (Max-Q)', badge:'RTX Pro',
@@ -651,7 +740,7 @@ function renderGPUs() {
         <div><b style="color:var(--text-muted)">Memory:</b> ${g.memory}</div>
         <div><b style="color:var(--text-muted)">BW:</b> ${g.memBW} &nbsp;·&nbsp; <b style="color:var(--text-muted)">TDP:</b> ${g.tdp}</div>
         <div><b style="color:var(--text-muted)">NVLink:</b> ${g.nvlink}</div>
-        <div style="margin-top:4px"><b style="color:var(--text-muted)">MIG:</b> ${g.mig?'Yes':'No'} &nbsp;·&nbsp; <b style="color:var(--text-muted)">TE / FP8:</b> ${g.te?'Yes':'No'} &nbsp;·&nbsp; <b style="color:var(--text-muted)">FP4:</b> ${g.perf.fp4&&g.perf.fp4!=='Not supported'?'Yes':'No'}</div>
+        <div style="margin-top:4px"><b style="color:var(--text-muted)">MIG:</b> ${g.mig?(g.migMaxInstances?`Yes — up to ${g.migMaxInstances} instances`:'Yes'):'No'} &nbsp;·&nbsp; <b style="color:var(--text-muted)">TE / FP8:</b> ${g.te?'Yes':'No'} &nbsp;·&nbsp; <b style="color:var(--text-muted)">FP4:</b> ${g.perf.fp4&&g.perf.fp4!=='Not supported'?'Yes':'No'}</div>
       </div>
     </div>`;
   }).join('');
@@ -691,6 +780,36 @@ function renderGPUs() {
         <div class="spec-grid">
           ${Object.entries(gpu.perf).map(([k,v])=>`<div class="spec-item"><div class="spec-key">${k.toUpperCase()}</div><div class="spec-val" style="font-size:12px">${v}</div></div>`).join('')}
         </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">MIG Partitioning${gpu.mig&&gpu.migMaxInstances?' — Up to '+gpu.migMaxInstances+' Isolated Instances':''}</div>
+        ${gpu.mig && gpu.migProfiles && gpu.migProfiles.length ? `
+          ${gpu.migNote ? `<div style="font-size:12px;color:var(--accent);background:rgba(74,208,250,.06);border:1px solid rgba(74,208,250,.15);border-radius:6px;padding:8px 12px;margin-bottom:10px;line-height:1.5">${gpu.migNote}</div>` : ''}
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="border-bottom:1px solid var(--border)">
+                  <th style="text-align:left;padding:7px 10px;color:var(--text-muted);font-weight:600;white-space:nowrap">Profile</th>
+                  <th style="text-align:center;padding:7px 10px;color:var(--text-muted);font-weight:600;white-space:nowrap">Max Instances</th>
+                  <th style="text-align:center;padding:7px 10px;color:var(--text-muted);font-weight:600;white-space:nowrap">VRAM / Instance</th>
+                  <th style="text-align:center;padding:7px 10px;color:var(--text-muted);font-weight:600;white-space:nowrap">Total VRAM Used</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${gpu.migProfiles.map((p,i) => `
+                <tr style="border-bottom:1px solid rgba(30,58,95,.4);background:${i%2===0?'rgba(0,5,19,.3)':'transparent'}">
+                  <td style="padding:7px 10px;font-family:monospace;color:var(--accent);font-weight:600">${p.profile}</td>
+                  <td style="padding:7px 10px;text-align:center;font-weight:600">${p.count}×</td>
+                  <td style="padding:7px 10px;text-align:center">${p.vramEach}</td>
+                  <td style="padding:7px 10px;text-align:center;color:var(--text-muted)">${p.totalUsed}</td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:7px">Profile format: <code style="font-family:monospace;background:rgba(74,208,250,.08);padding:1px 5px;border-radius:3px">Xg.Ygb</code> — X = GPU compute slices used, Y = VRAM allocated. Only one profile type active per GPU at a time.</div>
+        ` : gpu.mig ? `<div class="info-block" style="margin-bottom:0">MIG supported — profile details not yet documented.</div>` : `
+          <div style="background:rgba(100,116,139,.06);border:1px solid rgba(100,116,139,.2);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--text-dim)">Not supported on this GPU variant. The GPU runs as a single undivided resource — not partitionable for multi-tenant workloads.</div>`}
       </div>
 
       <div style="margin-bottom:14px">
@@ -958,7 +1077,7 @@ function renderCompare() {
         ['Mem Bandwidth', i => i.memBW],
         ['TDP', i => i.tdp],
         ['NVLink', i => i.nvlink],
-        ['MIG', i => i.mig ? 'Yes' : 'No'],
+        ['MIG', i => i.mig ? (i.migMaxInstances ? `Yes (up to ${i.migMaxInstances} instances)` : 'Yes') : 'No'],
         ['Transformer Engine', i => i.te ? 'Yes' : 'No'],
         ['FP64', i => i.perf.fp64],
         ['FP32', i => i.perf.fp32],
@@ -2515,7 +2634,7 @@ async function renderGPUaaS() {
 const FLASHCARDS = [
   { q:'What is the memory capacity and type of the H100 SXM5?', a:'80 GB HBM3 with 3,350 GB/s bandwidth — 68% more bandwidth than the A100 SXM4.' },
   { q:'What is the memory capacity and type of the H200 SXM?', a:'141 GB HBM3e with 4,800 GB/s bandwidth — 76% more bandwidth than H100 SXM5.' },
-  { q:'What does MIG stand for, and which GPUs support it?', a:'Multi-Instance GPU. Supported on A100, H100, and H200. Allows one GPU to be partitioned into up to 7 isolated instances for multi-tenant inference.' },
+  { q:'What does MIG stand for, and which GPUs support it?', a:'Multi-Instance GPU. Supported on A100, H100, H200, B200, B100, and RTX Pro 6000 Server Edition. Datacenter GPUs (A100/H100/H200/B200/B100) support up to 7 isolated instances. The RTX Pro 6000 Server Edition supports up to 4 instances. Each instance gets dedicated VRAM, compute slices, and memory bandwidth — no cross-tenant interference.' },
   { q:'What is the Transformer Engine, and which GPU generation introduced it?', a:'Hardware in Hopper (H100/H200) that accelerates FP8 mixed-precision training. Introduced with H100 — not present on A100.' },
   { q:'What is the TDP of the H100 SXM5?', a:'700 W per GPU. An 8-GPU HGX H100 system draws approximately 10,200 W total.' },
   { q:'What is NVLink 4.0 bandwidth on H100/H200 SXM?', a:'900 GB/s per GPU (bidirectional). Connects all 8 GPUs in a node via NVSwitch for all-to-all communication.' },
@@ -2597,7 +2716,7 @@ const QUIZ_TRACKS = {
     questions: [
       { q:'What is the memory bandwidth of the H200 SXM?', opts:['3,350 GB/s','2,000 GB/s','4,800 GB/s','5,200 GB/s'], correct:2 },
       { q:'Which GPU first introduced the Transformer Engine and FP8 support?', opts:['A100 SXM4','H100 PCIe','H200 SXM','H100 SXM5'], correct:3 },
-      { q:'How many MIG instances can a single A100 or H100 be partitioned into?', opts:['4','7','8','16'], correct:1 },
+      { q:'How many MIG instances can a single A100 or H100 be partitioned into (datacenter GPUs)?', opts:['4','7','8','16'], correct:1 },
       { q:'What is the TDP of the H100 SXM5?', opts:['400 W','500 W','600 W','700 W'], correct:3 },
       { q:'What memory type does the H100 SXM5 use?', opts:['HBM2','HBM2e','HBM3','HBM3e'], correct:2 },
       { q:'What is the NVLink bandwidth per GPU on H100/H200 SXM (NVLink 4.0)?', opts:['400 GB/s','600 GB/s','900 GB/s','1,200 GB/s'], correct:2 },
