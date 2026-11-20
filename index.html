@@ -311,7 +311,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <button class="btn-copilot" onclick="toggleCopilot()">&#9733; Rep Copilot</button>
   </div>
   <div id="content">
-    <div id="s-academy-gpus" class="section active"><div class="section-header"><div class="section-title">GPU Reference</div><div class="section-sub">A100 · H100 · H200 · B200 · RTX Pro 6000 Blackwell — specifications, form factors, and what customers buy</div></div><div id="gpu-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
+    <div id="s-academy-gpus" class="section active"><div class="section-header"><div class="section-title">GPU Reference</div><div class="section-sub">A100 · H100 · H200 · B200 · RTX Pro · B300 Blackwell Ultra · Vera Rubin — specifications, form factors, and what customers buy</div></div><div id="gpu-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-academy-platforms" class="section"><div class="section-header"><div class="section-title">Platform Catalog</div><div class="section-sub">DGX, HGX, and OEM AI server platforms — certified for resale</div></div><div id="platform-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-academy-compare" class="section"><div class="section-header"><div class="section-title">Compare</div><div class="section-sub">Side-by-side GPU and platform comparison</div></div><div id="compare-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-academy-cert" class="section"><div class="section-header"><div class="section-title">Certification &amp; Refurbishment</div><div class="section-sub">How Velerity certifies and warranties AI hardware</div></div><div id="cert-content"></div></div>
@@ -668,6 +668,45 @@ const GPU_DATA = [
     ],
     sourceUrl:'https://www.nvidia.com/en-us/data-center/b100/', verified:false },
 
+  // ── B300 / Blackwell Ultra ──
+  { id:'b300-sxm', gen:'B300', name:'B300 288GB SXM7', badge:'B300',
+    memory:'288 GB HBM3e', memBW:'~10,000 GB/s', tdp:'~1,400 W', mig:true, te:true,
+    nvlink:'1,800 GB/s (NVLink 5.0)',
+    perf:{ fp64:'~60 TFLOPS', fp32:'~120 TFLOPS', tf32:'~3,500 TFLOPS (~7,000 w/ sparsity)', bf16:'~6,000 TFLOPS (~12,000 w/ sparsity)', fp16:'~6,000 TFLOPS (~12,000 w/ sparsity)', fp8:'~12,000 TOPS (~24,000 w/ sparsity)', fp4:'~24,000 TOPS (~48,000 w/ sparsity)', int8:'~24,000 TOPS (~48,000 w/ sparsity)' },
+    bestFor:'Next-generation training and large-scale inference beyond B200 capacity; frontier AI workloads requiring 288 GB VRAM per GPU; upgrading saturated B200 clusters without changing liquid cooling infrastructure.',
+    notes:'Blackwell Ultra architecture — the generation step above B200. Same NVLink 5.0 (1,800 GB/s) and liquid cooling requirement as B200 SXM6. 50% more VRAM (288 vs. 192 GB) and ~1.3× estimated compute performance improvement. Maintains full HGX chassis compatibility with B200 deployments. All performance figures are pre-production estimates based on NVIDIA announcements.',
+    platformContext:'SXM7 form factor. Compatible with HGX B300 baseboard and DGX B300 chassis. Liquid cooling required (same CDU infrastructure as B200). Key OEM platforms: Dell XE9790 (expected), Supermicro B300 chassis. Also available in GB300 NVL72 rack-scale system (36 Grace CPUs + 72 B300 dies).',
+    buyWhy:'Enterprises and hyperscalers whose B200 deployments are already capacity-constrained, or who are building new AI infrastructure and want to skip B200 for the latest generation. 288 GB VRAM per GPU = 2,304 GB per 8-GPU node — fits models up to ~1T parameters at BF16 on a single node. Liquid cooling infrastructure already installed for B200 carries forward with no changes. OEM lead times 12–18 months — Velerity early-access supply is high-value.',
+    migMaxInstances: 7,
+    migProfiles: [
+      { profile:'1g.36gb',  count:7, vramEach:'36 GB',  totalUsed:'252 GB' },
+      { profile:'2g.72gb',  count:3, vramEach:'72 GB',  totalUsed:'216 GB' },
+      { profile:'3g.144gb', count:2, vramEach:'144 GB', totalUsed:'288 GB' },
+      { profile:'4g.144gb', count:1, vramEach:'144 GB', totalUsed:'144 GB' },
+      { profile:'7g.288gb', count:1, vramEach:'288 GB', totalUsed:'288 GB (full)' },
+    ],
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/b300/', verified:false },
+
+  // ── Vera Rubin / Rubin architecture ──
+  { id:'r100-sxm', gen:'Rubin', name:'R100 288GB SXM8', badge:'Rubin',
+    memory:'288 GB HBM4', memBW:'~15,000 GB/s', tdp:'~1,500 W (est.)', mig:true, te:true,
+    nvlink:'3,600 GB/s (NVLink 6.0)',
+    perf:{ fp64:'~100 TFLOPS (est.)', fp32:'~200 TFLOPS (est.)', tf32:'~8,000 TFLOPS (est.)', bf16:'~15,000 TFLOPS (est.)', fp16:'~15,000 TFLOPS (est.)', fp8:'~30,000 TOPS (est.)', fp4:'~60,000 TOPS (est.)', int8:'~60,000 TOPS (est.)' },
+    bestFor:'Frontier AI training at scales that exceed Blackwell capacity; next-generation inference for trillion-parameter models; hyperscaler and sovereign AI programs building 2026+ AI infrastructure.',
+    notes:'Rubin (Vera Rubin) architecture — NVIDIA\'s next generation after Blackwell. Announced at GTC March 2025 for 2026 delivery. HBM4 memory delivers ~50% more bandwidth than B200\'s HBM3e. NVLink 6.0 at 3,600 GB/s doubles B200 inter-GPU bandwidth. All performance figures are NVIDIA announcements and pre-production estimates — confirm specs before quoting. Pairs with the NVIDIA Vera CPU in the GR200 NVL72 rack-scale system.',
+    platformContext:'SXM8 form factor (new socket — not backward compatible with SXM6/SXM7). Requires new HGX R100 baseboard and liquid cooling. Available in DGX R100 (8-GPU standalone) and GR200 NVL72 rack (36 Vera CPUs + 72 R100 GPU dies as GR200 Superchip). No air-cooled configuration. New DC infrastructure required — not a drop-in upgrade from B200/B300.',
+    buyWhy:'Hyperscalers, sovereign AI programs, and frontier AI labs building 2026–2027 era AI infrastructure. Buyers for whom B200/B300 compute is already the bottleneck on new capacity planning. OEM lead times expected to exceed 18 months — earliest buyers are those in NVIDIA\'s design partner program. Velerity early-access positioning is the pitch here.',
+    migMaxInstances: 7,
+    migNote: 'MIG profile sizes are pre-production estimates based on NVIDIA architecture announcements. Confirm with NVIDIA prior to deployment planning.',
+    migProfiles: [
+      { profile:'1g.36gb',  count:7, vramEach:'36 GB',  totalUsed:'252 GB' },
+      { profile:'2g.72gb',  count:3, vramEach:'72 GB',  totalUsed:'216 GB' },
+      { profile:'3g.144gb', count:2, vramEach:'144 GB', totalUsed:'288 GB' },
+      { profile:'4g.144gb', count:1, vramEach:'144 GB', totalUsed:'144 GB' },
+      { profile:'7g.288gb', count:1, vramEach:'288 GB', totalUsed:'288 GB (full)' },
+    ],
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/vera-rubin/', verified:false },
+
   // ── RTX Pro 6000 Blackwell ──
   { id:'rtx-pro-6000-ws', gen:'RTX Pro', name:'RTX Pro 6000 Blackwell (Workstation)', badge:'RTX Pro',
     memory:'96 GB GDDR7 ECC', memBW:'1,792 GB/s', tdp:'600 W', mig:false, te:true,
@@ -712,17 +751,19 @@ let selectedGPU = null;
 
 function renderGPUs() {
   const el = document.getElementById('gpu-content');
-  const gens = ['A100','H100','H200','B200','RTX Pro'];
+  const gens = ['A100','H100','H200','B200','RTX Pro','B300','Rubin'];
   const filtered = GPU_DATA.filter(g => g.gen === gpuGenFilter);
 
-  const genColors = { A100:'var(--text-dim)', H100:'#22C55E', H200:'var(--accent)', B200:'#A78BFA', 'RTX Pro':'#F472B6' };
+  const genColors = { A100:'var(--text-dim)', H100:'#22C55E', H200:'var(--accent)', B200:'#A78BFA', 'RTX Pro':'#F472B6', B300:'#F97316', Rubin:'#06B6D4' };
   const genBadges = {
     B200: '&nbsp;<span style="font-size:9px;background:rgba(167,139,250,.15);color:#A78BFA;border:1px solid rgba(167,139,250,.3);border-radius:3px;padding:1px 5px;vertical-align:middle">Blackwell</span>',
     'RTX Pro': '&nbsp;<span style="font-size:9px;background:rgba(244,114,182,.15);color:#F472B6;border:1px solid rgba(244,114,182,.3);border-radius:3px;padding:1px 5px;vertical-align:middle">Workstation</span>',
+    B300: '&nbsp;<span style="font-size:9px;background:rgba(249,115,22,.15);color:#F97316;border:1px solid rgba(249,115,22,.3);border-radius:3px;padding:1px 5px;vertical-align:middle">Ultra</span>',
+    Rubin: '&nbsp;<span style="font-size:9px;background:rgba(6,182,212,.15);color:#06B6D4;border:1px solid rgba(6,182,212,.3);border-radius:3px;padding:1px 5px;vertical-align:middle">2026</span>',
   };
   const tabs = gens.map(g => {
     const c = genColors[g]; const isActive = g === gpuGenFilter;
-    const dimStyle = !isActive && (g==='B200'||g==='RTX Pro') ? `color:${c}80` : '';
+    const dimStyle = !isActive && ['B200','RTX Pro','B300','Rubin'].includes(g) ? `color:${c}80` : '';
     return `<div class="tab${isActive?' active':''}" onclick="gpuGenFilter='${g}';selectedGPU=null;renderGPUs()" style="${dimStyle}">${g}${genBadges[g]||''}</div>`;
   }).join('');
 
@@ -949,6 +990,23 @@ const PLATFORM_DATA = [
     whosBuying:'Value-focused cloud builders and GPU rental providers. Lower-cost alternative to Dell/HPE with comparable GPU performance. Common in smaller neoclouds and research groups building cost-optimized training clusters. Buyers self-manage; want lowest per-GPU cost in a supported OEM form factor.',
     sourceUrl:'https://www.gigabyte.com/Enterprise/GPU-Server', verified:false },
 
+  // ── DGX / HGX B300 (Blackwell Ultra) ──
+  { id:'dgx-b300', oem:'NVIDIA', name:'DGX B300', gpuType:'B300 288GB SXM7', gpuCount:8, formFactor:'10U', category:'DGX',
+    cpu:'2× Intel Xeon (Clearwater Forest, est.) or AMD EPYC Turin', ram:'~2.3 TB LPDDR5X (est.)', storage:'30+ TB NVMe',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-8), 2× 10GbE mgmt', power:'~16,000 W (est.)', cooling:'Direct liquid cooling required',
+    weight:'~350+ kg (est.)', nvlink:'NVLink 5.0 (1,800 GB/s per GPU)',
+    notes:'NVIDIA Blackwell Ultra flagship training server. Liquid cooling mandatory. NVSwitch 4th gen for all-to-all GPU connectivity. Total GPU memory: 2,304 GB (288 GB × 8) — 50% more per node than DGX B200. ~1.3× estimated performance improvement over DGX B200. All specs are pre-production estimates based on NVIDIA GTC 2025 announcements.',
+    whosBuying:'Hyperscalers and frontier AI labs building Blackwell Ultra infrastructure. Enterprises upgrading existing B200 liquid-cooled deployments — same CDU infrastructure carries forward. Buyers for whom the B200\'s 192 GB VRAM is already a bottleneck. OEM lead times expected 12–18+ months.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/dgx-b300/', verified:false },
+
+  { id:'hgx-b300', oem:'NVIDIA', name:'HGX B300 (OEM Baseboard)', gpuType:'B300 288GB SXM7', gpuCount:8, formFactor:'Varies (OEM)', category:'HGX',
+    cpu:'OEM-defined (Intel Clearwater Forest or AMD EPYC Turin)', ram:'OEM-configured', storage:'OEM-configured',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-8) or 400GbE', power:'~16,000 W (GPUs, est.)', cooling:'Direct liquid cooling required',
+    weight:'Varies by OEM', nvlink:'NVLink 5.0 (1,800 GB/s per GPU)',
+    notes:'NVIDIA HGX B300 baseboard for OEM integration. Same CDU and liquid cooling infrastructure as HGX B200. Expected OEM platforms: Dell XE9790, Supermicro B300, HPE Cray XD690, Lenovo SR685a V3 (names estimated pending OEM announcements). Liquid cooling mandatory for all SXM7 B300 configurations.',
+    whosBuying:'Enterprises and neoclouds with existing OEM vendor relationships wanting Blackwell Ultra in their existing DLC-equipped infrastructure. If a site already has HGX B200 liquid cooling, the transition to HGX B300 is straightforward.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/hgx/', verified:false },
+
   // ── NVL72 (Rack-scale Blackwell) ──
   { id:'gb200-nvl72', oem:'NVIDIA', name:'GB200 NVL72', gpuType:'B200 192GB SXM6', gpuCount:72, formFactor:'Full rack (77U)', category:'NVL72',
     cpu:'36× NVIDIA Grace ARM CPU (72-core per chip) — integrated on GB200 Superchip', ram:'17.3 TB LPDDR5X (CPU) + 13.8 TB HBM3e (GPU)', storage:'External (OEM-configured)',
@@ -957,6 +1015,32 @@ const PLATFORM_DATA = [
     notes:'Rack-scale AI system: 36× GB200 Superchips (each = 1 Grace CPU + 2 B200 GPU dies). Full rack treats all 72 GPUs as a single compute unit. 1.44 exaFLOPS FP8 per rack. Requires new facility build-out: liquid CDU, reinforced floors, dedicated power. Not a drop-in upgrade.',
     whosBuying:'Hyperscalers (Microsoft, Google, Amazon, Meta, Oracle) and sovereign AI programs building purpose-built AI data centers. Minimum procurement is typically multi-rack. Not suitable for most enterprise data centers without facility modification. Sales approach: qualify DC readiness (power, cooling, floor load) before engaging on NVL72. Any prospect without 120 kW/rack liquid cooling is not an NVL72 buyer.',
     sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', verified:false },
+
+  // ── NVL72 (Rack-scale Blackwell Ultra) ──
+  { id:'gb300-nvl72', oem:'NVIDIA', name:'GB300 NVL72', gpuType:'B300 288GB SXM7', gpuCount:72, formFactor:'Full rack (77U)', category:'NVL72',
+    cpu:'36× NVIDIA Grace ARM CPU (72-core per chip) — integrated on GB300 Superchip', ram:'~20.7 TB LPDDR5X (CPU) + ~20.7 TB HBM4 (GPU, est.)', storage:'External (OEM-configured)',
+    networking:'NDR InfiniBand or 400GbE spine; NVLink Switch 5th gen within rack', power:'~160,000 W per rack (est.)', cooling:'Direct liquid cooling required (CDU)',
+    weight:'~2,000+ kg (full rack)', nvlink:'NVLink Switch 5th gen — 1.8 TB/s per GPU (all-to-all within rack)',
+    notes:'Rack-scale Blackwell Ultra system: 36× GB300 Superchips (each = 1 Grace CPU + 2 B300 GPU dies). Successor to GB200 NVL72. Full rack treats all 72 GPU dies as a single compute unit. Total GPU memory: ~20.7 TB per rack. All specs pre-production estimates based on NVIDIA GTC 2025 announcements. Requires new facility build-out for the increased power envelope.',
+    whosBuying:'Same buyer profile as GB200 NVL72 — hyperscalers building purpose-built Blackwell Ultra AI data centers. Sites that already deployed GB200 NVL72 and are expanding with the next generation. Requires qualification of upgraded liquid cooling CDU capacity (higher per-rack power vs. GB200).',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/gb300-nvl72/', verified:false },
+
+  // ── Vera Rubin (Rubin architecture, 2026+) ──
+  { id:'dgx-r100', oem:'NVIDIA', name:'DGX R100 (Vera Rubin)', gpuType:'R100 288GB SXM8', gpuCount:8, formFactor:'10U (est.)', category:'DGX',
+    cpu:'2× NVIDIA Vera ARM CPU (next-gen after Grace)', ram:'TBD', storage:'TBD',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-9, est.) or 800Gb XDR', power:'~16,000+ W (est.)', cooling:'Direct liquid cooling required',
+    weight:'TBD', nvlink:'NVLink 6.0 (3,600 GB/s per GPU)',
+    notes:'NVIDIA Vera Rubin era flagship AI server — next architecture after Blackwell Ultra. Announced at GTC March 2025 for 2026 delivery. R100 GPU with 288 GB HBM4 and NVLink 6.0 (3,600 GB/s — 2× B200). Total GPU memory per node: ~2,304 GB. All specs are NVIDIA announcement-stage estimates. New SXM8 socket — not backward compatible with Blackwell infrastructure.',
+    whosBuying:'Frontier AI labs, hyperscalers, and sovereign AI programs planning 2026–2027 infrastructure. Buyers for whom B200/B300 capacity is already the ceiling on model scale ambitions. Very limited early supply — OEM lead times expected to exceed 18 months from announcement.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/vera-rubin/', verified:false },
+
+  { id:'gr200-nvl72', oem:'NVIDIA', name:'GR200 NVL72 (Vera Rubin)', gpuType:'R100 288GB SXM8', gpuCount:72, formFactor:'Full rack (77U, est.)', category:'NVL72',
+    cpu:'36× NVIDIA Vera ARM CPU — integrated on GR200 Superchip', ram:'TBD (HBM4 + LPDDR)', storage:'External (OEM-configured)',
+    networking:'NDR/XDR InfiniBand or 400GbE spine; NVLink Switch 6th gen within rack', power:'~200,000 W per rack (est.)', cooling:'Direct liquid cooling required',
+    weight:'TBD', nvlink:'NVLink Switch 6th gen — 3,600 GB/s per GPU (all-to-all within rack)',
+    notes:'Rack-scale Vera Rubin system: 36× GR200 Superchips (each = 1 Vera CPU + 2 R100 GPU dies). Successor to GB300 NVL72. Full rack treats all 72 GPU dies as a single compute unit. All specs are NVIDIA announcement-stage estimates for 2026 delivery. Requires new purpose-built data center infrastructure for the power envelope.',
+    whosBuying:'Hyperscalers building 2026+ purpose-built AI data centers. Only accessible to buyers in NVIDIA\'s early access and design partner programs at this stage. Sovereign AI programs planning national AI infrastructure at the frontier scale.',
+    sourceUrl:'https://www.nvidia.com/en-us/data-center/vera-rubin/', verified:false },
 ];
 
 let platformFilter = 'All';
@@ -1212,7 +1296,7 @@ function renderExport() {
     <div class="card">
       <div class="card-title" style="font-size:16px;margin-bottom:14px">Why Advanced GPUs Are Controlled</div>
       <div style="font-size:13px;color:var(--text-dim);line-height:1.7">
-        <p>High-performance GPUs — including the A100, H100, H200, B200, and RTX Pro 6000 — are subject to US Export Administration Regulations (EAR) administered by the Bureau of Industry and Security (BIS). These regulations exist because advanced AI compute can have military and national security applications.</p>
+        <p>High-performance GPUs — including the A100, H100, H200, B200, B300 (Blackwell Ultra), Vera Rubin (R100), and RTX Pro 6000 — are subject to US Export Administration Regulations (EAR) administered by the Bureau of Industry and Security (BIS). These regulations exist because advanced AI compute can have military and national security applications. The B300 and Vera Rubin represent the highest compute performance thresholds of any GPU Velerity sells — they carry the most stringent export restrictions and require mandatory compliance review for any non-Group-A buyer.</p>
         <p style="margin-top:10px">Since October 2022, BIS has enacted multiple rounds of controls restricting export of chips above certain compute performance thresholds (TPP) to specific countries and end-users. The October 2023 rules tightened this further — any chip above half the A100's TPP now requires licensing for restricted destinations. Penalties for violations include fines, denial orders, and criminal prosecution.</p>
         <p style="margin-top:10px"><b>This applies to physical shipment, re-export, transfer within a country, and sometimes deemed exports (sharing technology with foreign nationals on US soil).</b></p>
       </div>
@@ -1532,6 +1616,8 @@ async function renderMarketPrices() {
   const velH1  = parseFloat(document.getElementById('vel-price-h1')?.value)  || 215000;
   const velH2  = parseFloat(document.getElementById('vel-price-h2')?.value)  || 360000;
   const velB200   = parseFloat(document.getElementById('vel-price-b200')?.value)    || 480000;
+  const velB300   = parseFloat(document.getElementById('vel-price-b300')?.value)    || 680000;
+  const velR100   = parseFloat(document.getElementById('vel-price-r100')?.value)    || 1100000;
   const velRtxWS  = parseFloat(document.getElementById('vel-price-rtxws')?.value)  || 14500;
   const velRtxSrv = parseFloat(document.getElementById('vel-price-rtxsrv')?.value) || 18500;
 
@@ -1585,10 +1671,24 @@ async function renderMarketPrices() {
       used:     { price: 21000, note: 'Secondary market estimate · Nov 2026 — limited supply; range $20,999–$21,666' },
       velerity: { price: velRtxSrv, inputId: 'vel-price-rtxsrv', note: 'Certified · 96 GB GDDR7 ECC · passive · MIG-4 · PCIe Gen5 rack-ready' },
     },
+    {
+      model: 'B300',
+      label: 'HGX B300 8×288GB Node (SXM7) — Blackwell Ultra',
+      newOEM:   { price: 720000, note: 'NVIDIA/OEM estimated · 2026 — Blackwell Ultra, liquid cooling required, 2,304 GB GPU memory per node' },
+      used:     { price: 'N/A — Early Access', note: 'No significant secondary market yet (Nov 2026) — new generation' },
+      velerity: { price: velB300, inputId: 'vel-price-b300', note: 'Early-access Blackwell Ultra · 8× B300 288GB SXM7 · NVLink 5.0 · FP4 · liquid cooling required' },
+    },
+    {
+      model: 'Rubin',
+      label: 'DGX R100 8×288GB Node (SXM8) — Vera Rubin',
+      newOEM:   { price: 1200000, note: 'NVIDIA estimated · 2026–2027 — Vera Rubin architecture, HBM4, NVLink 6.0' },
+      used:     { price: 'N/A — Early Access', note: 'No secondary market (pre-production / initial production phase)' },
+      velerity: { price: velR100, inputId: 'vel-price-r100', note: 'Early-access Vera Rubin · 8× R100 288GB SXM8 · NVLink 6.0 · HBM4 · liquid cooling required' },
+    },
   ];
 
-  const pricingModels = ['A100','H100','H200','B200','RTX Pro'];
-  const pricingModelColors = { A100:'var(--text-dim)', H100:'#22C55E', H200:'var(--accent)', B200:'#A78BFA', 'RTX Pro':'#F472B6' };
+  const pricingModels = ['A100','H100','H200','B200','RTX Pro','B300','Rubin'];
+  const pricingModelColors = { A100:'var(--text-dim)', H100:'#22C55E', H200:'var(--accent)', B200:'#A78BFA', 'RTX Pro':'#F472B6', B300:'#F97316', Rubin:'#06B6D4' };
   const activeTierColor = pricingModelColors[marketPriceTab] || 'var(--accent)';
   const modelTabs = pricingModels.map(m => {
     const isActive = m === marketPriceTab;
@@ -1598,10 +1698,13 @@ async function renderMarketPrices() {
   const activeTiers = pricingTiers.filter(t => t.model === marketPriceTab);
 
   const tierCard = (t) => {
-    const usedSavings = t.newOEM.price !== 'N/A (discontinued)' ? Math.round((1 - t.used.price / t.newOEM.price) * 100) : null;
-    const velSavings = t.newOEM.price !== 'N/A (discontinued)' ? Math.round((1 - t.velerity.price / t.newOEM.price) * 100) : null;
-    const velVsUsed = Math.round((t.velerity.price / t.used.price - 1) * 100);
-    const newDisplay = t.newOEM.price === 'N/A (discontinued)' ? t.newOEM.price : '$' + t.newOEM.price.toLocaleString();
+    const newIsNum  = typeof t.newOEM.price === 'number';
+    const usedIsNum = typeof t.used.price  === 'number';
+    const usedSavings = newIsNum && usedIsNum ? Math.round((1 - t.used.price / t.newOEM.price) * 100) : null;
+    const velSavings  = newIsNum ? Math.round((1 - t.velerity.price / t.newOEM.price) * 100) : null;
+    const velVsUsed   = usedIsNum ? Math.round((t.velerity.price / t.used.price - 1) * 100) : null;
+    const newDisplay  = newIsNum  ? '$' + t.newOEM.price.toLocaleString() : t.newOEM.price;
+    const usedDisplay = usedIsNum ? '$' + t.used.price.toLocaleString()   : t.used.price;
 
     return `<div class="card" style="margin-bottom:0">
       <div class="card-title" style="font-size:16px;margin-bottom:18px">${t.label}</div>
@@ -1614,7 +1717,7 @@ async function renderMarketPrices() {
         </div>
         <div style="background:var(--surface);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:16px">
           <div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--warning);margin-bottom:8px">Used (Secondary Market)</div>
-          <div style="font-size:20px;font-weight:700">$${t.used.price.toLocaleString()}</div>
+          <div style="font-size:20px;font-weight:700">${usedDisplay}</div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.5">${t.used.note}</div>
           ${usedSavings ? `<div style="margin-top:10px;font-size:12px;color:var(--success);font-weight:600">${usedSavings}% below new OEM</div>` : ''}
           <div style="margin-top:6px;font-size:11px;color:var(--danger)">No certification · No health report · No warranty</div>
@@ -1627,7 +1730,7 @@ async function renderMarketPrices() {
           </div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px;line-height:1.5">${t.velerity.note}</div>
           ${velSavings ? `<div style="margin-top:10px;font-size:12px;color:var(--success);font-weight:600">${velSavings}% below new OEM</div>` : ''}
-          <div style="margin-top:6px;font-size:11px;color:var(--accent)">+${velVsUsed}% vs. bare used · certified &amp; warranted</div>
+          ${velVsUsed !== null ? `<div style="margin-top:6px;font-size:11px;color:var(--accent)">+${velVsUsed}% vs. bare used · certified &amp; warranted</div>` : `<div style="margin-top:6px;font-size:11px;color:var(--accent)">No secondary market yet · early access pricing</div>`}
         </div>
       </div>
       <div style="margin-top:14px;font-size:12px;color:var(--text-muted);line-height:1.6">
@@ -2299,12 +2402,14 @@ function renderObjections() {
 const ORION_CI_RATES = {
   'a100-40-pcie':1.59,'a100-80-pcie':2.06,'a100-80-sxm4':2.75,
   'h100-80-pcie':2.39,'h100-80-sxm5':3.19,'h100-nvl':4.49,
-  'h200-sxm':4.79,'h200-nvl':5.49,'b200-sxm6':8.49,'b100-pcie':5.99
+  'h200-sxm':4.79,'h200-nvl':5.49,'b200-sxm6':8.49,'b100-pcie':5.99,
+  'b300-sxm':11.49,'r100-sxm':18.99
 };
 const GPAAS_HW_DEFAULTS = {
   'a100-40-pcie':4500,'a100-80-pcie':7200,'a100-80-sxm4':11500,
   'h100-80-pcie':14500,'h100-80-sxm5':24000,'h100-nvl':28000,
-  'h200-sxm':34000,'h200-nvl':38000,'b200-sxm6':62000,'b100-pcie':42000
+  'h200-sxm':34000,'h200-nvl':38000,'b200-sxm6':62000,'b100-pcie':42000,
+  'b300-sxm':85000,'r100-sxm':140000
 };
 // Two-party surplus-sharing model: Velerity = Infrastructure Investment Partner,
 // DC Partner = operator (hosts servers, no upfront capital required).
@@ -2344,6 +2449,10 @@ async function gpaasLoadLivePricing() {
       } else if (item.gpu_type === 'B200') {
         ORION_CI_RATES['b200-sxm6'] = r;
         ORION_CI_RATES['b100-pcie']  = +(r * 0.68).toFixed(2);
+      } else if (item.gpu_type === 'B300') {
+        ORION_CI_RATES['b300-sxm'] = r;
+      } else if (item.gpu_type === 'R100' || item.gpu_type === 'Rubin') {
+        ORION_CI_RATES['r100-sxm'] = r;
       }
     }
     gpaasLivePriced = true;
@@ -2639,7 +2748,7 @@ async function renderGPUaaS() {
 const FLASHCARDS = [
   { q:'What is the memory capacity and type of the H100 SXM5?', a:'80 GB HBM3 with 3,350 GB/s bandwidth — 68% more bandwidth than the A100 SXM4.' },
   { q:'What is the memory capacity and type of the H200 SXM?', a:'141 GB HBM3e with 4,800 GB/s bandwidth — 76% more bandwidth than H100 SXM5.' },
-  { q:'What does MIG stand for, and which GPUs support it?', a:'Multi-Instance GPU. Supported on A100, H100, H200, B200, B100, and RTX Pro 6000 Server Edition. Datacenter GPUs (A100/H100/H200/B200/B100) support up to 7 isolated instances. The RTX Pro 6000 Server Edition supports up to 4 instances. Each instance gets dedicated VRAM, compute slices, and memory bandwidth — no cross-tenant interference.' },
+  { q:'What does MIG stand for, and which GPUs support it?', a:'Multi-Instance GPU. Supported on A100, H100, H200, B200, B100, B300, Vera Rubin (R100), and RTX Pro 6000 Server Edition. Datacenter GPUs (A100/H100/H200/B200/B100/B300/R100) support up to 7 isolated instances; B300 smallest instance is 1g.36gb (36 GB each). The RTX Pro 6000 Server Edition supports up to 4 instances (1g.24gb × 4). Each instance gets dedicated VRAM, compute slices, and memory bandwidth — no cross-tenant interference.' },
   { q:'What is the Transformer Engine, and which GPU generation introduced it?', a:'Hardware in Hopper (H100/H200) that accelerates FP8 mixed-precision training. Introduced with H100 — not present on A100.' },
   { q:'What is the TDP of the H100 SXM5?', a:'700 W per GPU. An 8-GPU HGX H100 system draws approximately 10,200 W total.' },
   { q:'What is NVLink 4.0 bandwidth on H100/H200 SXM?', a:'900 GB/s per GPU (bidirectional). Connects all 8 GPUs in a node via NVSwitch for all-to-all communication.' },
@@ -2669,6 +2778,14 @@ const FLASHCARDS = [
   { q:'What is the key difference between the RTX Pro 6000 Workstation and Server Edition?', a:'Server Edition is passively cooled (requires rack airflow) and supports MIG partitioning into up to 4 isolated GPU instances. Workstation Edition is actively cooled with no MIG. Both have 96 GB GDDR7 ECC; Server Edition has slightly lower memory bandwidth (1,597 vs. 1,792 GB/s).' },
   { q:'How has RTX Pro 6000 Blackwell pricing moved since launch?', a:'Launched March 2025 at $8,565 (MSRP). NVIDIA official price rose to $16,000 by November 2026 — an 87% increase. Newegg Workstation Edition: $17,995. Server Edition: $20,999–$21,666. Max-Q: $8,299. Units entering the secondary market now offer certified refurb opportunity.' },
   { q:'For what use cases is the RTX Pro 6000 Blackwell the right recommendation over an H100?', a:'Single-GPU inference on 70B-parameter models at full FP16 (96 GB fits LLaMA 3 70B with KV-cache headroom — H100 PCIe at 80 GB cannot). Professional workstation buyers who also need 3D/rendering/CAD. Power-constrained environments (Max-Q at 300W). Budget-sensitive single-node inference with ~28% better cost-per-token vs. H100 PCIe at current prices. NOT recommended over H100 for multi-GPU training or high-concurrency serving.' },
+  { q:'What is the memory capacity, type, and bandwidth of the B300 SXM7 (Blackwell Ultra)?', a:'288 GB HBM3e per GPU at ~10,000 GB/s — 50% more VRAM than B200 (192 GB) and 25% more bandwidth. An 8-GPU B300 node carries 2,304 GB total GPU memory. All figures are pre-production estimates based on NVIDIA announcements.' },
+  { q:'What is the NVLink generation and bandwidth on the B300 SXM7?', a:'NVLink 5.0 — same generation as the B200 SXM6 at 1,800 GB/s per GPU. The B300 reuses the same NVLink 5.0 / NVSwitch 4th-gen interconnect fabric as B200, so existing B200 liquid cooling and NVLink infrastructure is fully forward-compatible.' },
+  { q:'What cooling does the B300 SXM7 require, and how does that affect the sales process?', a:'Liquid cooling is mandatory at ~1,400W TDP — same infrastructure requirement as B200 SXM6. The sales implication is the same gate: qualify liquid cooling BEFORE quoting B300. The good news for existing B200 customers is that CDU infrastructure already installed for B200 carries forward with no changes — B300 drops into the same chassis.' },
+  { q:'What is the GB300 NVL72, and how does it differ from an 8-GPU DGX B300?', a:'GB300 NVL72 is a rack-scale system combining 36 Grace CPUs and 72 B300 GPU dies (effectively 36 GB300 Superchips, each pairing 1 Grace CPU with 2 B300 dies). Total: 72 × 288 GB = 20,736 GB GPU memory per rack. A DGX B300 is an 8-GPU node (~1,400W × 8 = ~16,000W). GB300 NVL72 is a full-rack dense AI factory (~160 kW) targeting hyperscalers building frontier training clusters.' },
+  { q:'What is the Vera Rubin R100, and when is it expected?', a:'Vera Rubin (R100 SXM8) is NVIDIA\'s next GPU generation after Blackwell Ultra, expected 2026/2027. Key specs (pre-production estimates): 288 GB HBM4, ~15,000 GB/s bandwidth, NVLink 6.0 (3,600 GB/s — 2× B300), ~30,000 TOPS FP8, ~1,500W TDP, liquid cooling mandatory. The GR200 NVL72 rack pairs 36 Vera CPUs with 72 R100 dies.' },
+  { q:'How does the R100 (Vera Rubin) NVLink bandwidth compare to previous generations?', a:'NVLink 6.0 at 3,600 GB/s per GPU — 2× the B200/B300 NVLink 5.0 (1,800 GB/s), 4× the H100/H200 NVLink 4.0 (900 GB/s), and 6× the A100 NVLink 3.0 (600 GB/s). Each generation of NVLink has roughly doubled interconnect bandwidth.' },
+  { q:'What is the MIG profile structure for the B300 SXM7, and what VRAM does each instance get?', a:'Up to 7 MIG instances. Full-instance: 7g.288gb (288 GB). Half: 3g.144gb × 2 (144 GB each). Quarter: 2g.72gb × 3 (72 GB each). Seventh: 1g.36gb × 7 (36 GB each). Note: 36 GB per smallest instance vs. 10 GB on A100/H100 or 24 GB on B200 — B300 MIG instances each have enough VRAM for a 13B model at BF16.' },
+  { q:'What is the main sales pitch for a B300 node over a B200 node?', a:'50% more VRAM per GPU (288 vs. 192 GB), same NVLink 5.0 / NVSwitch interconnect and liquid cooling infrastructure — a drop-in upgrade for buyers already qualified on B200. For buyers building new Blackwell infrastructure, B300 fits models up to ~1T parameters at BF16 on a single 8-GPU node. OEM lead times are 12–18+ months — Velerity early-access supply is high-value. Best pitch: B300 is the right generation for buyers whose B200 deployments are already capacity-constrained OR who want to build on frontier hardware without retooling cooling.' },
 ];
 
 let fcIndex = 0;
@@ -2717,7 +2834,7 @@ function fcPrev() { fcFlipped = false; fcIndex = (fcIndex - 1 + fcDeck.length) %
 // ── Quizzes ───────────────────────────────────────────────────────────────────
 const QUIZ_TRACKS = {
   gpu: {
-    title: 'GPU Specs', description: 'Test your knowledge of A100, H100, H200, B200, and RTX Pro 6000 Blackwell specifications.',
+    title: 'GPU Specs', description: 'Test your knowledge of A100, H100, H200, B200, RTX Pro 6000 Blackwell, B300 Blackwell Ultra, and Vera Rubin specifications.',
     questions: [
       { q:'What is the memory bandwidth of the H200 SXM?', opts:['3,350 GB/s','2,000 GB/s','4,800 GB/s','5,200 GB/s'], correct:2 },
       { q:'Which GPU first introduced the Transformer Engine and FP8 support?', opts:['A100 SXM4','H100 PCIe','H200 SXM','H100 SXM5'], correct:3 },
@@ -2735,6 +2852,12 @@ const QUIZ_TRACKS = {
       { q:'What is the TDP of the RTX Pro 6000 Blackwell Workstation Edition?', opts:['300 W','400 W','500 W','600 W'], correct:3 },
       { q:'Which RTX Pro 6000 Blackwell variant supports MIG partitioning?', opts:['Workstation Edition','Max-Q Edition','Server Edition','All three variants'], correct:2 },
       { q:'What GPU architecture is the RTX Pro 6000 Blackwell based on?', opts:['Hopper','Ada Lovelace','Blackwell 2.0 (GB202)','Ampere'], correct:2 },
+      { q:'How much VRAM does the B300 SXM7 (Blackwell Ultra) have, and what memory type?', opts:['192 GB HBM3e','256 GB HBM3e','288 GB HBM3e','288 GB HBM4'], correct:2 },
+      { q:'What is the NVLink generation and bandwidth per GPU on the B300 SXM7?', opts:['NVLink 4.0 — 900 GB/s','NVLink 5.0 — 1,800 GB/s','NVLink 5.0 — 3,600 GB/s','NVLink 6.0 — 1,800 GB/s'], correct:1 },
+      { q:'What cooling is required for the B300 SXM7?', opts:['High-CFM air cooling','Standard air cooling','Liquid cooling mandatory — same CDU as B200','Either air or liquid'], correct:2 },
+      { q:'What memory type does the Vera Rubin R100 SXM8 use, and what is its estimated bandwidth?', opts:['HBM3e at ~10,000 GB/s','HBM4 at ~12,000 GB/s','HBM4 at ~15,000 GB/s','HBM4e at ~20,000 GB/s'], correct:2 },
+      { q:'What NVLink generation does the Vera Rubin R100 use, and how does its bandwidth compare to B300?', opts:['NVLink 5.0 — same as B300','NVLink 6.0 — 2× the B300 bandwidth (3,600 vs. 1,800 GB/s)','NVLink 6.0 — same bandwidth as B300','NVLink 7.0 — 4× the B300 bandwidth'], correct:1 },
+      { q:'How many components does a GB300 NVL72 rack contain?', opts:['8 B300 GPUs + 2 Grace CPUs','36 Grace CPUs + 72 B300 GPU dies','72 Grace CPUs + 36 B300 GPU dies','16 B300 GPUs only'], correct:1 },
     ]
   },
   sales: {
@@ -3049,7 +3172,7 @@ function openAccountModal(id) {
         <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="m-acc-title" value="${acc?.title||''}" placeholder="VP Engineering"></div>
         <div class="form-group"><label class="form-label">GPU Interest</label>
           <select class="form-select" id="m-acc-gpu">
-            ${['A100 40GB PCIe','A100 80GB PCIe','A100 80GB SXM4','H100 80GB PCIe','H100 80GB SXM5','H100 NVL 94GB','H200 141GB SXM','H200 141GB NVL','B200 192GB SXM6','B100 192GB PCIe','RTX Pro 6000 (Workstation)','RTX Pro 6000 (Server)','RTX Pro 6000 (Max-Q)','Multiple / TBD'].map(g=>`<option${(acc?.gpuInterest||'H100 80GB SXM5')===g?' selected':''}>${g}</option>`).join('')}
+            ${['A100 40GB PCIe','A100 80GB PCIe','A100 80GB SXM4','H100 80GB PCIe','H100 80GB SXM5','H100 NVL 94GB','H200 141GB SXM','H200 141GB NVL','B200 192GB SXM6','B100 192GB PCIe','B300 288GB SXM7','R100 288GB SXM8 (Vera Rubin)','RTX Pro 6000 (Workstation)','RTX Pro 6000 (Server)','RTX Pro 6000 (Max-Q)','Multiple / TBD'].map(g=>`<option${(acc?.gpuInterest||'H100 80GB SXM5')===g?' selected':''}>${g}</option>`).join('')}
           </select>
         </div>
       </div>
@@ -3102,7 +3225,7 @@ function openDealModal(id, preAccountId) {
       <div class="form-row">
         <div class="form-group"><label class="form-label">GPU Type</label>
           <select class="form-select" id="m-deal-gpu">
-            ${['A100 40GB PCIe','A100 80GB PCIe','A100 80GB SXM4','H100 80GB PCIe','H100 80GB SXM5','H100 NVL 94GB','H200 141GB SXM','H200 141GB NVL','B200 192GB SXM6','B100 192GB PCIe','RTX Pro 6000 (Workstation)','RTX Pro 6000 (Server)','RTX Pro 6000 (Max-Q)','Multiple / TBD'].map(g=>`<option${(deal?.gpuType||'H100 80GB SXM5')===g?' selected':''}>${g}</option>`).join('')}
+            ${['A100 40GB PCIe','A100 80GB PCIe','A100 80GB SXM4','H100 80GB PCIe','H100 80GB SXM5','H100 NVL 94GB','H200 141GB SXM','H200 141GB NVL','B200 192GB SXM6','B100 192GB PCIe','B300 288GB SXM7','R100 288GB SXM8 (Vera Rubin)','RTX Pro 6000 (Workstation)','RTX Pro 6000 (Server)','RTX Pro 6000 (Max-Q)','Multiple / TBD'].map(g=>`<option${(deal?.gpuType||'H100 80GB SXM5')===g?' selected':''}>${g}</option>`).join('')}
           </select>
         </div>
         <div class="form-group"><label class="form-label">GPU Count</label><input class="form-input" id="m-deal-gpucount" type="number" value="${deal?.gpuCount||8}" min="1"></div>
@@ -4001,6 +4124,94 @@ const PLAYBOOK_DATA = [
     ],
   },
 
+  // ── B300 SXM7 ──
+  { id:'b300-sxm', name:'B300 288GB SXM7', badge:'B300', gen:'B300', color:'#F97316',
+    headline:'Blackwell Ultra — 288GB HBM3e, NVLink 5.0, liquid cooling mandatory. Drop-in capacity upgrade for saturated B200 deployments.',
+    prep:[
+      'B300 key specs: 288 GB HBM3e · ~10,000 GB/s bandwidth · ~1,400W TDP · NVLink 5.0 (1,800 GB/s) · SXM7 · liquid cooling mandatory',
+      'MIG: up to 7 instances — 1g.36gb ×7 · 2g.72gb ×3 · 3g.144gb ×2 · 7g.288gb ×1 (full)',
+      'Liquid cooling gate: CDU infrastructure from B200 deployments carries forward — same cooling requirement',
+      'vs. B200: 50% more VRAM per GPU (288 vs. 192 GB), same NVLink 5.0 and liquid cooling — no retooling for existing B200 buyers',
+      'OEM lead time: 12–18+ months; Velerity early-access supply is the entire value proposition',
+    ],
+    sections:[
+      { title:'Workload Qualification', questions:[
+        { q:'What models are you training or serving, and what are their parameter counts?', why:'288 GB per GPU = ~1T-parameter models at BF16 on a single 8-GPU node. If their models don\'t justify 288 GB, B200 or H200 may be the right fit at lower cost. Confirm whether they are capacity-constrained on B200.', key:true },
+        { q:'Are you currently running B200 and hitting VRAM or throughput limits?', why:'The B300 pitch is strongest to buyers already on B200 who have outgrown 192 GB per GPU. If they are not on B200 yet, ask why they are skipping B200 — the answer reveals priorities.', key:true },
+        { q:'Training, fine-tuning, inference, or a mix?', why:'Training on frontier models (100B+) is the clearest B300 use case. Inference at scale also benefits from 288 GB (more of the KV cache fits, fewer inter-node round trips). MoE models especially benefit.' },
+        { q:'What is your target batch size and sequence length for training or serving?', why:'Large batch + long context = highest VRAM demand. If they are running 128k+ context windows or batch sizes >512, 288 GB per GPU becomes a hard requirement.' },
+        { q:'Are you running Mixture-of-Experts (MoE) models?', why:'MoE models with large expert counts require maximum VRAM to avoid expert offloading. B300 288 GB is the highest single-GPU VRAM available — this is the strongest MoE argument.' },
+        { q:'What is your current utilization on existing H100/H200/B200 hardware?', why:'>80% GPU utilization = justified upgrade. <60% = they may not need B300 capacity yet. Utilization data gives you an objective justification for the investment.' },
+      ]},
+      { title:'Infrastructure & Chassis', questions:[
+        { q:'Do you have HGX B200 chassis already deployed?', why:'B300 uses SXM7 and HGX B300 baseboard — but the CDU and rack infrastructure is the same as B200. Existing B200 customers have the most frictionless path to B300.', key:true },
+        { q:'Are you planning a DGX B300 (turnkey NVIDIA) or an HGX B300 OEM build?', why:'DGX B300 is NVIDIA\'s turnkey system (like DGX H100). HGX B300 is an OEM baseboard build (Dell, Supermicro, etc.). Both take the same GPU. DGX is simpler but less customizable and higher list price.' },
+        { q:'What OEM platform are you targeting — Dell, Supermicro, HPE, or other?', why:'Dell XE9790 (expected), Supermicro B300 chassis are the anticipated B300 OEM platforms. If the buyer has an existing OEM relationship, confirm the B300 chassis roadmap with that vendor.' },
+        { q:'What networking fabric are you running — InfiniBand NDR (400Gb) or Ethernet?', why:'B300 DGX comes with ConnectX-8 (400Gb NDR InfiniBand). Multi-node B300 clusters will need NDR fabric. If they are on HDR (200Gb), confirm whether a fabric upgrade is in scope.' },
+        { q:'Are you planning a GB300 NVL72 rack-scale system, or discrete 8-GPU nodes?', why:'GB300 NVL72 (36 Grace CPUs + 72 B300 dies) is a full-rack AI factory deployment — different buying center and procurement process vs. individual DGX/HGX nodes. Confirm scope.' },
+      ]},
+      { title:'Power & Cooling', questions:[
+        { q:'Do you have a liquid cooling distribution unit (CDU) already installed for B200?', why:'B300 at ~1,400W per GPU requires liquid cooling — same as B200. If they already have CDU for B200, B300 is a direct upgrade. If not, this is a facility qualification gate that must be resolved before the deal advances.', key:true },
+        { q:'What is the total power budget per rack and per CDU loop?', why:'8× B300 ≈ 16,000W GPU power + ~4,000W for CPUs and other components = ~20 kW per node. GB300 NVL72 is ~160 kW per rack. Confirm power budget before quoting at scale.' },
+        { q:'Who owns the CDU and facility cooling infrastructure — you or the datacenter?', why:'Colocation buyers need to confirm the colo DC has CDU-ready racks or rear-door heat exchangers. Owned DC buyers control the upgrade path. The answer determines whether facility work is needed.' },
+        { q:'What is your datacenter\'s maximum per-rack kW rating?', why:'Standard DC racks are rated at 10–20 kW. B300 deployments require 20–25 kW per node. GB300 NVL72 is ~160 kW — requires a dedicated high-density zone. Confirm before quoting rack-scale systems.' },
+      ]},
+      { title:'Networking & Scale', questions:[
+        { q:'What is your target cluster size — number of nodes and total GPUs?', why:'Cluster size determines InfiniBand switch requirements, spine/leaf topology, and total deal value. 8 nodes = 64 GPUs. 128 nodes = 1,024 GPUs. At 128+ nodes, ask about InfiniBand spine topology and DragonFly+ routing.' },
+        { q:'Are you planning to link multiple B300 nodes via NVLink Switch (rail-optimized topology)?', why:'NVLink Switch (the rack-to-rack NVLink extension) enables low-latency GPU-to-GPU communication across nodes beyond a single NVSwitch domain. This is the GB300 NVL72 architecture — worth asking if they are planning rack-scale deployments.' },
+        { q:'What RDMA fabric are you running or planning — InfiniBand or RoCE?', why:'B300 DGX ships with ConnectX-8 supporting 400Gb NDR InfiniBand and RoCE. For multi-node training, InfiniBand NDR is recommended. Confirm whether a fabric upgrade is included in scope or a separate line item.' },
+      ]},
+      { title:'MIG & Partitioning', questions:[
+        { q:'Are you planning to use MIG partitioning on B300?', why:'B300 supports up to 7 MIG instances. At 36 GB per smallest instance, even the smallest B300 MIG partition has enough VRAM for 13B-parameter inference. If they are using MIG, confirm workload isolation and security requirements.' },
+        { q:'What is the smallest workload or tenant you need to serve?', why:'MIG profile matching: 1g.36gb (36 GB) · 2g.72gb (72 GB) · 3g.144gb (144 GB) · 7g.288gb (full). If they serve many small tenants, 7-instance MIG is powerful. If they run a few large models, full or half instances are the right fit.' },
+        { q:'Do you need strict memory isolation between workloads (security/compliance)?', why:'MIG provides hardware-level memory isolation — not just software scheduling. For multi-tenant deployments serving external customers, MIG isolation is a compliance and security requirement.' },
+      ]},
+      { title:'Competitive & Current Setup', questions:[
+        { q:'What GPU generation are you running today, and what is driving the upgrade decision?', why:'B200 → B300 is a capacity upgrade (50% more VRAM, same cooling). H100/H200 → B300 is a generational leap. The upgrade trigger reveals urgency and budget timeline.', key:true },
+        { q:'Have you received quotes from OEM vendors (Dell, HPE, Supermicro) for B300?', why:'OEM lead times are 12–18+ months. If they have quotes, Velerity\'s lead time advantage (weeks vs. months) is the closing argument. Ask when they need the hardware live.' },
+        { q:'Are you comparing B300 to continuing to expand B200 capacity?', why:'B200 vs. B300: B300 is 50% more VRAM at approximately 40% higher price per node. If they are cost-sensitive, B200 may be the right near-term answer. If they are VRAM-constrained, B300 is the only option in the same cooling footprint.' },
+        { q:'What is your decision timeline and what are the gates — budget cycle, board approval, facility readiness?', why:'Understanding the decision gates helps you sequence the conversation. Facility gate (liquid cooling) may be the longest lead item. Budget cycle determines urgency.', key:true },
+      ]},
+    ],
+  },
+
+  // ── Vera Rubin R100 SXM8 ──
+  { id:'r100-sxm', name:'R100 288GB SXM8 (Vera Rubin)', badge:'Rubin', gen:'Rubin', color:'#06B6D4',
+    headline:'Vera Rubin — 288GB HBM4, NVLink 6.0 at 3,600 GB/s, ~15,000 GB/s bandwidth. Next generation beyond Blackwell Ultra. Expected 2026–2027.',
+    prep:[
+      'R100 key specs (pre-production estimates): 288 GB HBM4 · ~15,000 GB/s bandwidth · ~1,500W TDP · NVLink 6.0 (3,600 GB/s) · SXM8 · liquid cooling mandatory',
+      'MIG: up to 7 instances — 1g.36gb ×7 · 2g.72gb ×3 · 3g.144gb ×2 · 7g.288gb ×1 (full) [pre-production profile estimates]',
+      'GR200 NVL72: 36 Vera CPUs + 72 R100 dies, ~200 kW per rack, ~20,736 GB total GPU memory per rack',
+      'NVLink 6.0 bandwidth: 3,600 GB/s per GPU — 2× B300/B200 (1,800 GB/s), 4× H100/H200 (900 GB/s)',
+      'All specs are pre-production estimates based on NVIDIA announcements — flag this clearly with every prospect',
+    ],
+    sections:[
+      { title:'Workload Qualification', questions:[
+        { q:'What workloads are driving the need for Rubin-class hardware, and why isn\'t B300 sufficient?', why:'Rubin is the right answer for buyers whose models or workloads exceed what B300 can deliver — especially bandwidth-bound workloads (NVLink 6.0 at 3,600 GB/s is 2× B300) and buyers planning for 2027+ model generations. If B300 is sufficient, Rubin is premature.', key:true },
+        { q:'Are you planning infrastructure today for model generations that don\'t exist yet?', why:'Most Rubin early adopters are building strategic capacity for future models. The pitch is "architecture you won\'t outgrow in 5 years." If they are deploying for current models, B300 may be better ROI.' },
+        { q:'What is the target scale — number of parameters, batch size, cluster size?', why:'Rubin\'s 15,000 GB/s bandwidth and NVLink 6.0 (3,600 GB/s) are most valuable at the largest scales — 500B+ parameter training, 1T-parameter inference, and multi-rack all-to-all communication patterns.' },
+        { q:'Are you comparing Rubin to B300, or is Rubin the baseline for your 2027+ roadmap?', why:'If Rubin is the baseline, your job is positioning early-access supply and helping them plan facility infrastructure now. If they are comparing Rubin to B300, build the ROI case around bandwidth and longevity.' },
+      ]},
+      { title:'Infrastructure & Facility Planning', questions:[
+        { q:'Do you have liquid cooling infrastructure currently deployed or planned?', why:'R100 at ~1,500W requires liquid cooling — same as B300/B200. If they have CDU infrastructure from B300 or B200 deployments, Rubin is a direct next-generation upgrade. If not, facility qualification is a prerequisite.', key:true },
+        { q:'Are you planning a GR200 NVL72 rack-scale system, or discrete DGX R100 nodes?', why:'GR200 NVL72 (36 Vera CPUs + 72 R100 dies, ~200 kW) is a full AI factory deployment — fundamentally different procurement, facility, and buying center vs. individual DGX nodes. Establish scope early.' },
+        { q:'What is your target datacenter\'s per-rack kW budget?', why:'DGX R100 (8 GPU): ~20–25 kW. GR200 NVL72: ~200 kW per rack. Standard DCs max at 20–30 kW. GR200 requires a high-density zone or purpose-built DC. Confirm before engaging on rack-scale.' },
+        { q:'What is your 2027 capacity plan, and how does Rubin fit into it?', why:'Rubin buyers are almost always planning 2–3 years ahead. Understanding their capacity roadmap helps you size the opportunity and identify whether this is a pilot, a cluster, or a full AI factory buildout.' },
+      ]},
+      { title:'Procurement & Timeline', questions:[
+        { q:'What is your target deployment date for Rubin-class hardware?', why:'R100 expected availability is 2026–2027. If they need capacity now, B300 is the answer. If they are planning 2027+, Rubin early-access positioning is high-value.', key:true },
+        { q:'Have you spoken with NVIDIA or OEM vendors about R100 timelines?', why:'OEM lead times for Rubin will likely be 18–24+ months from availability. Velerity early-access supply is the differentiator. If they have OEM quotes, ask about their timeline and use Velerity\'s lead time as the close.' },
+        { q:'What budget envelope are you working with for 2027+ AI infrastructure?', why:'Rubin nodes are estimated at ~$1.1M per 8-GPU DGX. GR200 NVL72 is significantly higher. Confirm budget before spec\'ing rack-scale deployments.' },
+        { q:'Who are the decision-makers for infrastructure at this scale?', why:'At Rubin price points ($1M+ per node), deals typically require CFO, CEO, or board-level approval alongside the technical champion. Mapping the buying committee is critical.', key:true },
+      ]},
+      { title:'Competitive & Export', questions:[
+        { q:'Are you comparing Rubin to continuing to expand B300 capacity?', why:'B300 vs. R100: same VRAM (288 GB), but R100 delivers 50% more bandwidth (15,000 vs. 10,000 GB/s) and 2× NVLink bandwidth (3,600 vs. 1,800 GB/s). For bandwidth-bound workloads, R100 is a generational improvement. For VRAM-bound workloads, they are equivalent.' },
+        { q:'Are there any export control considerations — buyer country, end-use, or government involvement?', why:'Rubin will carry the highest compute performance restriction of any GPU sold. All Rubin opportunities with non-Group-A buyers, government buyers, or defense-adjacent use cases require IMMEDIATE compliance escalation before any further engagement.', key:true },
+        { q:'What is the end-use for the Rubin hardware, and can you confirm in writing?', why:'For the most advanced AI hardware in the world, documented end-use is non-negotiable. Buyer must provide written confirmation of end-use for the compliance file. No exceptions.' },
+      ]},
+    ],
+  },
+
   // ── RTX Pro 6000 Max-Q ──
   { id:'rtx-pro-maxq', name:'RTX Pro 6000 Blackwell (Max-Q)', badge:'RTX Pro', gen:'RTX Pro', color:'#C084FC',
     headline:'96GB GDDR7 ECC at 300W — same VRAM as full Workstation at half the power draw.',
@@ -4038,8 +4249,8 @@ let playbookSection = null; // expanded section id, null = all collapsed
 function renderPlaybook() {
   const el = document.getElementById('playbook-content');
 
-  const gens = ['A100','H100','H200','B200','RTX Pro'];
-  const genColors = { A100:'var(--text-dim)', H100:'#22C55E', H200:'var(--accent)', B200:'#A78BFA', 'RTX Pro':'#F472B6' };
+  const gens = ['A100','H100','H200','B200','RTX Pro','B300','Rubin'];
+  const genColors = { A100:'var(--text-dim)', H100:'#22C55E', H200:'var(--accent)', B200:'#A78BFA', 'RTX Pro':'#F472B6', B300:'#F97316', Rubin:'#06B6D4' };
 
   // GPU selector — grouped by gen
   const selectorHTML = gens.map(g => {
@@ -4365,6 +4576,76 @@ const TARGET_MARKETS = [
         signals: 'MSP AI service launches, regional GPU cloud expansion, DC buildouts below $50M scale, managed AI service RFPs, local sovereign cloud tender wins',
         dealSize: '4–24 cards ($74K–$504K)',
         competitive: 'vs. HGX H100 node: RTX Pro 6000 Server is a fraction of total system cost ($21K/card vs. $217K for a full H100 node) while delivering 70B inference capability. MIG-4 partitioning enables 4 isolated revenue-generating tenants per card — a compelling unit economics story for regional AI cloud operators. No liquid cooling required.',
+      },
+    ]
+  },
+  {
+    id: 'b300', gpu: 'B300 288GB SXM7 / HGX B300', badge: 'B300',
+    headline: 'Blackwell Ultra — 288 GB HBM3e, NVLink 5.0, liquid cooling required. The drop-in capacity upgrade for saturated B200 deployments.',
+    pricePoint: '~$680K per 8-GPU node (early access / est.)',
+    verticals: [
+      {
+        industry: 'Hyperscalers & Tier-1 AI Labs',
+        useCases: ['Frontier model training beyond the capacity of B200 clusters (288 GB VRAM fits ~1T-parameter models at BF16 on a single node)', 'Mixture-of-Experts (MoE) training with extreme expert VRAM requirements', 'Dense inference serving at throughputs that have saturated B200 fleet capacity', 'Reasoning model training (chain-of-thought distillation, RL fine-tuning) at frontier scale'],
+        buyers: 'VP AI Infrastructure, Distinguished Engineer, Head of Training Infrastructure, CTO',
+        signals: 'B200 cluster saturation signals in earnings calls, $1B+ AI CapEx announcements, DC buildout press releases, GB300 NVL72 RFPs, GPU cluster CapEx disclosures, hyperscaler earnings guidance exceeding current B200 projections',
+        dealSize: '64–1,024+ nodes ($43M–$700M+)',
+        competitive: 'vs. B200: 50% more VRAM per GPU (288 vs. 192 GB), same NVLink 5.0 and liquid cooling — same CDU infrastructure, no retooling. For buyers already on B200, B300 is not a rip-and-replace — it is a capacity multiplier. vs. OEM: 12–18 month lead times on frontier hardware; Velerity early-access supply is the entire pitch. COMPLIANCE NOTE: B300 is the most restricted advanced compute product — escalate all government, defense, and D/E-group opportunities.',
+      },
+      {
+        industry: 'Neocloud / GPU Cloud Providers',
+        useCases: ['B300 GPU-as-a-service SKU for inference API customers beyond B200 capacity', 'GB300 NVL72 rack deployments for hyperscale training cluster customers', 'High-throughput reasoning model serving requiring >192 GB VRAM per GPU', 'Multi-tenant AI platform hosting for enterprise customers on frontier hardware'],
+        buyers: 'CEO/CTO, VP Infrastructure, Head of Supply Chain, Founder',
+        signals: 'B200 capacity backlog announcements, GB300 NVL72 interest, neocloud Series C+ funding, DC lease expansions, "B300 waitlist" blog posts, Blackwell Ultra infrastructure engineer job postings',
+        dealSize: '32–256 nodes ($22M–$175M)',
+        competitive: 'Same pitch as B200 neoclouds — lead time is the entire deal. B300 adds a critical differentiator: neoclouds that offer B300 capacity before OEM availability win the largest enterprise customers first. 288 GB VRAM = ability to serve frontier reasoning models (200B+ parameter scale) that B200 cannot handle on a single node.',
+      },
+      {
+        industry: 'Frontier AI Companies (Series B–D)',
+        useCases: ['Pre-training proprietary foundation models at 100B–1T+ parameter scale', 'RLHF and reasoning model development requiring >192 GB VRAM per GPU', 'Continued pre-training on domain-specific datasets at frontier scale', 'Multi-modal frontier models requiring maximum per-GPU memory'],
+        buyers: 'Head of AI Infrastructure, VP Engineering, CTO, CEO',
+        signals: '$100M+ funding rounds, frontier model release announcements, "B200 not enough" infrastructure blog posts, GPU cluster CapEx disclosures, AI safety frontier training buildouts',
+        dealSize: '8–128 nodes ($5M–$87M)',
+        competitive: 'vs. B200: 288 GB vs. 192 GB per GPU — the difference between fitting a 500B model on a single node vs. requiring two nodes and cross-node NVLink traffic. For frontier AI labs, the 50% VRAM increase is a training efficiency multiplier. vs. OEM: 12–18 month lead times kill model release timelines. Velerity early access = competitive advantage for labs racing to release.',
+      },
+      {
+        industry: 'Sovereign AI & Government Programs',
+        useCases: ['National LLM training at 100B+ parameter scale on sovereign data', 'Sovereign AI cloud requiring frontier capability for government services', 'Air-gapped national security AI platforms at extreme VRAM density', 'Government AI infrastructure programs targeting 5–10 year horizon'],
+        buyers: 'Minister/Director of Digital, National AI Office, Defense AI program manager, System integrator PM',
+        signals: 'National AI strategy upgrades mentioning B300/GB300, sovereign AI fund expansions, government LLM RFPs specifying frontier architecture, state AI platform tenders, defense AI cluster buildouts',
+        dealSize: '16–64 nodes ($11M–$44M)',
+        competitive: 'vs. B200: governments building a 5–10 year national AI platform want the latest frontier architecture to avoid near-term refresh cycles. 288 GB per GPU is the floor for sovereign 1T-parameter model training. COMPLIANCE NOTE: Export control review is MANDATORY for all government/defense B300 opportunities — B300 is a maximum-restricted product. Coordinate with compliance team before advancing past Discovery for any non-Group-A buyer.',
+      },
+    ]
+  },
+  {
+    id: 'rubin', gpu: 'R100 288GB SXM8 (Vera Rubin)', badge: 'Rubin',
+    headline: 'Vera Rubin — NVIDIA\'s next generation beyond Blackwell Ultra. 288 GB HBM4, NVLink 6.0 at 3,600 GB/s. Expected 2026–2027.',
+    pricePoint: '~$1.1M per 8-GPU node (early access / est.)',
+    verticals: [
+      {
+        industry: 'Hyperscalers & Frontier AI Labs',
+        useCases: ['Post-Blackwell frontier model training at previously impossible VRAM and bandwidth scales', '15,000 GB/s memory bandwidth enables 1.5× the throughput of B300 on bandwidth-bound workloads', 'GR200 NVL72 rack deployments: 72 R100 dies + 36 Vera CPUs — 20,736 GB GPU memory per rack', 'AI factory buildouts designed to serve model generations not yet developed'],
+        buyers: 'VP AI Infrastructure, CTO, Distinguished Engineer, Head of Training Infrastructure',
+        signals: 'Public Rubin roadmap discussions in earnings calls, next-gen AI factory RFPs, $5B+ AI CapEx announcements, NVLink 6.0 infrastructure design projects, hyperscaler GR200 NVL72 procurement interest',
+        dealSize: '32–512+ nodes ($35M–$560M+)',
+        competitive: 'vs. B300: 50% more memory bandwidth (~15,000 vs. ~10,000 GB/s), 2× NVLink bandwidth (NVLink 6.0 at 3,600 vs. 1,800 GB/s), HBM4 vs. HBM3e. For hyperscalers planning 2027+ infrastructure, Rubin is the architecture to spec. vs. OEM: OEM lead times will be 18–24 months+ for Rubin; Velerity early-access positioning is worth engaging now. COMPLIANCE NOTE: Rubin will carry the highest compute performance restriction of any GPU sold — mandatory compliance escalation for all Rubin deals.',
+      },
+      {
+        industry: 'Neocloud / GPU Cloud Providers',
+        useCases: ['R100 GPU-as-a-service SKU for 2027 capacity planning', 'GR200 NVL72 rack-scale AI factory deployments', 'Post-Blackwell AI training cluster builds for enterprise and hyperscale customers', 'Frontier reasoning model serving at scale beyond GB300 capacity'],
+        buyers: 'CEO/CTO, VP Infrastructure, Head of Supply Chain, Founder',
+        signals: 'Neoclouds already on B300 waitlists, DC infrastructure design projects specifying NVLink 6.0, Series D+ neocloud funding with 2027 capacity planning, public roadmap discussions mentioning Vera Rubin',
+        dealSize: '8–128 nodes ($9M–$141M)',
+        competitive: 'The neocloud that leads on Rubin availability wins the next generation of enterprise AI customers. Early-access positioning is the key — neoclouds need to be in conversations now. Same CDU liquid cooling infrastructure requirement as B300 means buyers already qualified carry forward. Highest compute density of any product Velerity will carry.',
+      },
+      {
+        industry: 'Strategic Enterprise AI (Fortune 100 / Sovereign)',
+        useCases: ['Private AI infrastructure designed for 2027–2032 model generations', 'Maximum-compute private AI clusters for financial, defense, and life sciences', '5-year strategic AI capacity buildouts where frontier architecture minimizes refresh risk', 'AI factory deployments requiring the highest per-rack compute density available'],
+        buyers: 'CIO, CTO, VP AI Infrastructure, Head of Digital Transformation, CEO (direct at largest strategics)',
+        signals: 'Multi-year AI CapEx commitments, board-level AI strategy announcements, enterprise AI factory RFPs, private AI cloud buildouts, CEO-level commitment to AI as core infrastructure',
+        dealSize: '4–32 nodes ($4M–$35M)',
+        competitive: 'vs. B300: enterprises building 5-year strategic AI infrastructure benefit from Rubin\'s generational leap in bandwidth — NVLink 6.0 halves cross-GPU communication latency for large-model inference. vs. OEM: Velerity early-access supply is the differentiator. vs. waiting: every quarter of delay is a quarter of competitor advantage on frontier AI capability. COMPLIANCE NOTE: Rubin deals with any government, defense, or non-Group-A buyer require immediate compliance escalation before any further engagement.',
       },
     ]
   },
