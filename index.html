@@ -271,6 +271,9 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div class="nav-item" onclick="nav('tools-gpaas')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>GPUaaS Calc
     </div>
+    <div class="nav-item" onclick="nav('tools-playbook')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Call Playbook
+    </div>
   </div>
   <div class="nav-group">
     <div class="nav-group-label">CRM</div>
@@ -320,6 +323,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div id="s-tools-dc" class="section"><div class="section-header"><div class="section-title">Data Center Readiness</div><div class="section-sub">Qualify whether a buyer's facility can host the gear before the deal closes</div></div><div id="dc-content"></div></div>
     <div id="s-tools-objections" class="section"><div class="section-header"><div class="section-title">Objection Library</div><div class="section-sub">Ready responses to the most common AI server sales objections</div></div><div id="objections-content"></div></div>
     <div id="s-tools-gpaas" class="section"><div class="section-header"><div class="section-title">GPUaaS Deal Calculator</div><div class="section-sub">Model GPU-as-a-Service economics — hardware cost, hosting fees, rev share, and return over term</div></div><div id="gpaas-content"></div></div>
+    <div id="s-tools-playbook" class="section"><div class="section-header"><div class="section-title">Call Playbook</div><div class="section-sub">GPU-specific sales call questions — select the model your prospect is interested in and get a tailored question set</div></div><div id="playbook-content"></div></div>
     <div id="s-crm-accounts" class="section"><div class="section-header"><div class="section-title">Accounts</div><div class="section-sub">Prospect and customer account records — companies, contacts, GPU interests</div></div><div id="crm-accounts-content"></div></div>
     <div id="s-crm-pipeline" class="section"><div class="section-header"><div class="section-title">Pipeline</div><div class="section-sub">Opportunity pipeline — track deals from first contact to closed won</div></div><div id="crm-pipeline-content"></div></div>
     <div id="s-crm-targetmarket" class="section"><div class="section-header"><div class="section-title">Target Market</div><div class="section-sub">GPU-matched industry verticals, ICP profiles, buying signals, and competitive angles by product line</div></div><div id="crm-targetmarket-content"></div></div>
@@ -408,6 +412,7 @@ function render(id) {
     case 'tools-dc':           renderDC(); break;
     case 'tools-objections':   renderObjections(); break;
     case 'tools-gpaas':        renderGPUaaS(); break;
+    case 'tools-playbook':     renderPlaybook(); break;
     case 'crm-accounts':       renderAccounts(); break;
     case 'crm-pipeline':       renderPipeline(); break;
     case 'crm-targetmarket':   renderTargetMarket(); break;
@@ -3477,6 +3482,650 @@ function confirmImport() {
     saveData(); closeModal(); renderPipeline();
   }
   delete window._importRecords; delete window._importType;
+}
+
+// ── Call Playbook ─────────────────────────────────────────────────────────────
+let playbookGPU = 'h100-sxm';
+
+const PLAYBOOK_DATA = [
+  // ── A100 40GB PCIe ──
+  { id:'a100-40', name:'A100 40GB PCIe', badge:'A100', gen:'A100', color:'var(--text-dim)',
+    headline:'Budget inference and MIG multi-tenant deployments on existing PCIe server infrastructure.',
+    prep:[
+      'Know A100 40GB MIG profiles cold: 1g.5gb ×7 · 2g.10gb ×3 · 3g.20gb ×2 · 4g.20gb ×1 · 7g.40gb ×1 (full)',
+      'Secondary market price range: ~$3,500–$5,500 per card (Nov 2026)',
+      'Key ceiling: 40 GB fits ~20B params at FP16 or ~70B at INT4 — flag if buyer mentions larger models',
+      'PCIe Gen3 and Gen4 compatible (backward compatible) — fits virtually any modern server',
+    ],
+    sections:[
+      { title:'Workload Qualification', questions:[
+        { q:'What models are you running and what are their parameter counts?', why:'40GB ceiling catches buyers dead — if they mention 70B+ at FP16 or BF16, they need 80GB min. INT4 quantization can get 70B in 40GB but loses quality. Qualify this early.', key:true },
+        { q:'Training, fine-tuning, or inference? Or a mix?', why:'Training on A100 40GB is limiting — most training use cases need SXM4 with NVLink. Pure inference is the right fit here.' },
+        { q:'What is your concurrency requirement — how many simultaneous requests or users?', why:'High concurrency on 40GB VRAM can be challenging. MIG partitioning can help multi-tenant but each instance is small.' },
+        { q:'Are you serving multiple teams, departments, or projects off a single GPU?', why:'If yes, MIG is the pitch. Up to 7 isolated instances at 5GB each — perfect for multi-tenant inference or dev/test environments.' },
+        { q:'What is your latency SLA — real-time interactive or async batch?', why:'Batch inference is fine. If sub-100ms interactive latency is required, check whether 40GB bandwidth (1,555 GB/s) is sufficient for their token throughput.' },
+      ]},
+      { title:'Infrastructure & Chassis', questions:[
+        { q:'What server chassis are you currently running or planning to build on?', why:'Confirms PCIe slot availability. Best-fit hosts: Dell PowerEdge R750/R760, HPE ProLiant DL380 Gen10/11, Supermicro 4028GR, Lenovo ThinkSystem SR650 V2+.' },
+        { q:'How many PCIe x16 slots are available per chassis, and what generation — Gen3, Gen4, or Gen5?', why:'A100 PCIe runs on Gen4 (but backward-compatible with Gen3 at reduced bandwidth). Gen5 slots will also work. Confirms how many GPUs per server.' },
+        { q:'What CPU platform are you on — Intel Xeon or AMD EPYC?', why:'AMD EPYC provides more PCIe lanes (128 lanes on 2P EPYC vs. 128 on Xeon) — both work fine for A100 PCIe. EPYC preferred for dense multi-GPU configs.' },
+        { q:'Are you in a datacenter or an on-premises server room?', why:'DC deployments have standardized power and cooling. Server rooms may have power or airflow constraints that affect how many GPUs per chassis are feasible.' },
+        { q:'Do you need Velerity to source a complete server build (chassis + GPU + everything), or just the GPU cards?', why:'Complete build is a larger deal and simplifies the buy for the customer. Many A100 PCIe buyers are slotting into existing infrastructure — clarify before quoting.' },
+      ]},
+      { title:'Power & Cooling', questions:[
+        { q:'What is the per-slot power budget in your target chassis?', why:'A100 40GB PCIe draws 250W. Standard PCIe power delivery (75W slot + 2× 8-pin = 225W + 75W = 300W available on most PSUs) — confirm headroom.' },
+        { q:'What is the total PSU capacity of your server, and how many GPUs are you targeting per chassis?', why:'4× A100 40GB = 1,000W in GPU power alone, plus CPU, memory, and storage. Typical 2U/4U GPU servers have 2× 1,600W PSUs — that\'s tight for 4-GPU configs.' },
+        { q:'Any thermal or airflow constraints we should know about?', why:'A100 PCIe is actively cooled — standard server front-to-back airflow is fine. No special cooling needed.' },
+      ]},
+      { title:'Networking', questions:[
+        { q:'Do you need GPU-to-GPU communication across multiple cards, and what is your network fabric?', why:'A100 PCIe has no NVLink — multi-GPU communication goes over PCIe (limited bandwidth). If they need tight GPU coupling for distributed training, they should be on SXM4 DGX/HGX instead.' },
+        { q:'What is your host NIC spec? 25GbE, 100GbE, or InfiniBand?', why:'For inference serving, 25GbE is typically sufficient. For high-throughput batch inference or multi-node work, 100GbE or higher is recommended.' },
+      ]},
+      { title:'MIG & Partitioning', questions:[
+        { q:'Have you run MIG before, or is this new territory?', why:'First-time MIG users need NVIDIA driver setup and the right CUDA toolkit version. If they\'re new, ask who manages their ML infrastructure — they\'ll need a qualified ML engineer to configure it.' },
+        { q:'What profile size do you plan to use? (1g.5gb gives 7 tenants; 2g.10gb gives 3; 3g.20gb gives 2 at higher throughput)', why:'Profile choice directly determines ROI on the hardware. Walk them through the tradeoff: more tenants vs. more VRAM/throughput per tenant.' },
+        { q:'Do your tenants need full compute isolation, or just VRAM isolation?', why:'MIG provides true hardware-level isolation (compute + VRAM + memory BW). If they only need VRAM isolation (time-sharing), MIG is overkill — but still useful for predictability.' },
+      ]},
+      { title:'Scale & Procurement', questions:[
+        { q:'How many GPUs in phase 1, and what is the expansion plan?', why:'Sets deal size. A100 40GB PCIe deals are typically 2–8 cards. Understand if this is a proof-of-concept or production deployment.' },
+        { q:'What is your target deployment date?', why:'Velerity\'s 5-week lead time advantage vs. 6–9 month OEM backlog is a key pitch. Urgency qualification.' },
+        { q:'Are you open to a mix of A100 40GB and 80GB in the same server if model size requirements change?', why:'Can upsell to 80GB while keeping deal in motion. Same PCIe form factor — easy to mix.' },
+      ]},
+      { title:'Competitive & Current Setup', questions:[
+        { q:'What are you using today — cloud GPU rental, on-prem servers, or no AI compute yet?', why:'Shapes the displacement story. Cloud → TCO pitch. Existing GPU → upgrade/expansion pitch. Greenfield → full system build opportunity.' },
+        { q:'If currently on cloud, which provider and instance type?', why:'Map to TCO: A100 40GB ≈ p3.2xlarge (AWS V100 16GB) or A100 equiv. At $3,500 per card vs. cloud GPU costs, the ROI calc is favorable for sustained workloads.' },
+        { q:'Have you evaluated new OEM GPUs? What stopped the OEM purchase?', why:'Price and lead time are the two primary reasons buyers come to Velerity. Confirm which is driving this conversation.' },
+      ]},
+    ],
+  },
+
+  // ── A100 80GB PCIe ──
+  { id:'a100-80-pcie', name:'A100 80GB PCIe', badge:'A100', gen:'A100', color:'var(--text-dim)',
+    headline:'Large-model inference on PCIe infrastructure — LLaMA-70B class workloads without DGX investment.',
+    prep:[
+      'MIG profiles: 1g.10gb ×7 · 2g.20gb ×3 · 3g.40gb ×2 · 4g.40gb ×1 · 7g.80gb ×1',
+      'Key pitch: 80GB fits LLaMA 2/3 70B at BF16 on a single PCIe card — no DGX required',
+      'Price: ~$5,000–$8,000 per card secondary market (Nov 2026)',
+      'Common upgrade trigger: buyer already running A100 40GB and running out of VRAM',
+    ],
+    sections:[
+      { title:'Workload Qualification', questions:[
+        { q:'What is the largest model you are serving or plan to serve, and at what precision?', why:'80GB fits 70B at BF16 (140GB model weight → needs 2×80GB) — wait, 70B at BF16 = ~140GB. Single-card fits 70B at INT4 or INT8, or ~20B at BF16. Confirm: single-card or multi-card inference?', key:true },
+        { q:'Are you upgrading from A100 40GB or coming from a different platform?', why:'Upgrade path from 40GB is the most common trigger. Understand what broke — VRAM overflow, latency, or new model requirement.' },
+        { q:'Is your workload memory-bound or compute-bound?', why:'A100 80GB PCIe has 1,935 GB/s bandwidth — 25% more than 40GB. If they\'re BW-bound, this is a meaningful upgrade over 40GB.' },
+        { q:'Do you need multi-GPU inference, or is single-card sufficient?', why:'80GB PCIe has no NVLink — if they need tensor parallel across multiple GPUs, they should be on SXM4. Single-GPU inference is the right fit.' },
+      ]},
+      { title:'Infrastructure & Chassis', questions:[
+        { q:'What is your current server chassis, and how many PCIe x16 slots does it have?', why:'Direct upgrade path: A100 80GB PCIe is a slot-for-slot replacement for A100 40GB in any PCIe chassis. No new server required.' },
+        { q:'Do you have PCIe Gen4 slots? (Gen3 works but at lower bandwidth)', why:'A100 80GB PCIe is PCIe Gen4 ×16. Gen3 slots will halve the CPU↔GPU bandwidth — acceptable for inference, but worth flagging.' },
+        { q:'Do you need a full server build from Velerity, or just GPU cards?', why:'GPU-only deals are simpler and faster. Full build deals are larger and can include server configs optimized for 80GB inference.' },
+      ]},
+      { title:'Power & Cooling', questions:[
+        { q:'What is your per-slot power allowance? The A100 80GB PCIe draws 300W.', why:'50W more than the 40GB — in a 4-GPU chassis, that\'s 1,200W vs. 1,000W in GPU power. PSU headroom check is important for dense configs.' },
+        { q:'Are you in a standard air-cooled server rack?', why:'A100 80GB PCIe is actively cooled — standard rack airflow is sufficient. No special cooling requirements.' },
+      ]},
+      { title:'MIG & Partitioning', questions:[
+        { q:'Do you need to partition this GPU for multiple tenants or workloads?', why:'80GB MIG profiles allow up to 7 ×10GB tenants — good for multi-team inference serving. Each tenant gets dedicated 10GB VRAM.' },
+        { q:'What is the minimum VRAM you need per tenant?', why:'If they need >10GB per instance, the 2g.20gb (3 instances) or 3g.40gb (2 instances) profiles are the right fit.' },
+      ]},
+      { title:'Scale & Procurement', questions:[
+        { q:'How many cards in this order, and what is your 12-month expansion plan?', why:'80GB deals are commonly 2–8 cards. Single-socket inference servers typically support 2–4 cards.' },
+        { q:'What is your go-live deadline?', why:'5-week Velerity lead time vs. 3–6 month OEM backlog — if they have a deadline, we win on speed.' },
+        { q:'Do you have a chassis vendor preference or should Velerity recommend one?', why:'For a full server build: Dell PowerEdge R750xa, Supermicro SYS-740GP-TNRT, or HPE ProLiant DL380 Gen10 Plus are common A100 PCIe platforms.' },
+      ]},
+      { title:'Competitive & Current Setup', questions:[
+        { q:'What are you comparing this to — H100 PCIe, cloud A100 instances, or something else?', why:'H100 PCIe (350W, same 80GB VRAM, 2.4× BF16 throughput) is the main competitor. If budget allows, upgrade pitch to H100 PCIe. If budget is fixed, A100 80GB PCIe is the value buy.' },
+        { q:'What is your per-GPU budget?', why:'A100 80GB PCIe at ~$5K–$8K vs H100 PCIe at ~$10K–$14K — if they can go H100, that\'s the right long-term buy. Understand budget ceiling.' },
+      ]},
+    ],
+  },
+
+  // ── A100 80GB SXM4 ──
+  { id:'a100-80-sxm', name:'A100 80GB SXM4', badge:'A100', gen:'A100', color:'var(--text-dim)',
+    headline:'DGX A100 / HGX A100 eight-GPU nodes — NVLink 3.0 all-to-all fabric for distributed training.',
+    prep:[
+      'DGX A100 = 6U, 6,500W, NVIDIA-branded turnkey with Base Command OS — full system',
+      'HGX A100 = baseboard only, integrated into OEM chassis (Dell XE8545, HPE XL675d, Lenovo SR670 V2, Gigabyte G492)',
+      'NVSwitch inside: all-to-all 600 GB/s NVLink 3.0 across all 8 GPUs',
+      'Total GPU memory per node: 640 GB (8× 80GB) — fits Llama 3 405B at BF16 on a single node',
+      'Velerity certified DGX A100 is typically 40–50% below new DGX H100 price — lead with this',
+    ],
+    sections:[
+      { title:'Workload Qualification', questions:[
+        { q:'Are you training, fine-tuning, or running inference on multi-hundred-billion-parameter models?', why:'SXM4 with NVLink is the right form factor for distributed training. If they\'re doing inference only, PCIe A100 is simpler and cheaper.' },
+        { q:'Do you need all-to-all GPU communication within a node?', why:'NVLink 3.0 provides 600 GB/s all-to-all bandwidth — critical for tensor-parallel and pipeline-parallel training across all 8 GPUs.' },
+        { q:'What is the total VRAM requirement per training run?', why:'8× 80GB = 640GB total per node. That fits models up to ~400B params at BF16. If they need more, ask about multi-node — or escalate to H100/H200.' },
+        { q:'Do you use a distributed training framework (DeepSpeed, Megatron-LM, PyTorch FSDP)?', why:'These frameworks are optimized for NVLink. Confirms the buyer knows what they\'re getting into technically.' },
+      ]},
+      { title:'Infrastructure & Chassis', questions:[
+        { q:'Are you looking for a complete DGX A100 turnkey system, or an HGX A100 baseboard to integrate into your own server?', why:'DGX = higher price, NVIDIA software (Base Command), and single-vendor support. HGX = more flexibility, lower cost, OEM support. Key deal-shaping question.', key:true },
+        { q:'If HGX — do you have an existing OEM relationship or vendor preference? (Dell, HPE, Lenovo, Gigabyte?)', why:'Qualified HGX A100 platforms: Dell XE8545, HPE XL675d Gen10 Plus, Lenovo ThinkSystem SR670 V2, Gigabyte G492-Z50. Match to buyer\'s existing fleet.' },
+        { q:'What rack space is available? DGX A100 is 6U and weighs ~227 kg — do you have a reinforced rack?', why:'Weight is often overlooked. Many standard server racks are rated 300–400 kg max. DGX A100 at 227 kg needs confirmation that the rack can hold it.', key:true },
+        { q:'How many nodes are you targeting in phase 1 and what is the cluster scale?', why:'Sets deal size. 1 node = standalone training. 2–8 nodes = small cluster (InfiniBand HDR fabric needed). 8+ nodes = serious cluster build.' },
+        { q:'Do you have NVIDIA Base Command or another cluster management system?', why:'DGX A100 ships with Base Command — if they want it, they need the full DGX. If they\'re running their own stack (Slurm, Kubernetes), HGX is the right choice.' },
+      ]},
+      { title:'Power & Cooling', questions:[
+        { q:'What is your per-rack power budget? DGX A100 draws approximately 6,500W.', why:'One DGX A100 in a 42U rack can consume a significant portion of a 15–20 kW PDU. Multi-node clusters require dedicated PDU circuits.' },
+        { q:'Do you have adequate cooling for a 6,500W system? What is your DC cooling capacity (kW per rack or row)?', why:'DGX A100 uses air cooling. High density — ensure the DC cooling spec can handle the heat load, especially in 2+ node deployments.' },
+      ]},
+      { title:'Networking & Cluster Fabric', questions:[
+        { q:'Do you have InfiniBand switches in your environment? HDR (200Gb) or NDR (400Gb)?', why:'For multi-node DGX A100 clusters, HDR InfiniBand (200Gb) is the standard fabric. The DGX A100 has 8× 200Gb HDR IB ports (ConnectX-6). NDR is not required for A100-era clusters but check what they have.' },
+        { q:'Are you using a flat or fat-tree InfiniBand topology?', why:'Fat-tree is preferred for all-reduce collective ops in training. If they\'re running a spine-leaf or simple two-tier fabric, that\'s fine for small clusters but may bottleneck at scale.' },
+        { q:'Do you have InfiniBand switches (Mellanox/NVIDIA QM8700 or similar) or do you need switch procurement too?', why:'Full cluster builds often need IB switch procurement. If Velerity can help source or recommend switches, it increases deal value.' },
+      ]},
+      { title:'Scale & Procurement', questions:[
+        { q:'Are you buying a single node or building a multi-node cluster?', why:'Single node = straightforward deal. Multi-node = larger deal, needs cluster networking discussion, and may need NVIDIA Enterprise agreement.' },
+        { q:'What is your deployment timeline? Do you have a training run deadline driving urgency?', why:'DGX A100 OEM lead times: 4–6 months new. Velerity: ~5 weeks. If they have a model training deadline, urgency is real.' },
+        { q:'Is there a Velerity warranty or health report requirement for this purchase?', why:'For DGX systems, Velerity performs the NVIDIA DGX health workflow + 30-min stress test with serialized health report. This is a key trust differentiator vs. gray market.' },
+      ]},
+      { title:'Competitive & Current Setup', questions:[
+        { q:'Are you comparing DGX A100 to DGX H100, or evaluating both?', why:'Key pitch: DGX A100 certified refurb is typically 40–50% less than a new DGX H100. If their workloads don\'t need H100 FP8 performance, A100 is the right value play.', key:true },
+        { q:'Have you considered cloud GPU clusters (AWS p4d, CoreWeave A100)?', why:'DGX A100 on-prem vs. CoreWeave 8× A100 reserved: 3-year on-prem is typically 30–50% cheaper. Run the TCO if they have cloud costs to compare against.' },
+        { q:'Are you a first-time DGX buyer or do you have DGX experience?', why:'First-timers need onboarding on Base Command, driver setup, and cluster networking. Experienced DGX teams move faster — scope the support need accordingly.' },
+      ]},
+    ],
+  },
+
+  // ── H100 80GB PCIe ──
+  { id:'h100-pcie', name:'H100 80GB PCIe', badge:'H100', gen:'H100', color:'#22C55E',
+    headline:'Drop-in Hopper upgrade for existing A100 PCIe server infrastructure — 2.4× BF16 throughput, same form factor.',
+    prep:[
+      'MIG profiles: 1g.10gb ×7 · 2g.20gb ×3 · 3g.40gb ×2 · 4g.40gb ×1 · 7g.80gb ×1',
+      'Key pitch: slot-for-slot A100 PCIe replacement — no new chassis needed',
+      'Transformer Engine (FP8) is live on H100 PCIe — 2.4× BF16 throughput vs A100 PCIe',
+      'Price: ~$10,000–$14,000 per card secondary market (Nov 2026)',
+      'HBM2e (not HBM3) — same 80GB but lower bandwidth than SXM5 (2,000 vs 3,350 GB/s)',
+    ],
+    sections:[
+      { title:'Workload Qualification', questions:[
+        { q:'Are you upgrading from A100 PCIe infrastructure, or is this a fresh deployment?', why:'If upgrading from A100 PCIe, emphasize the slot-for-slot fit — no new server needed. Fresh deployment: compare vs. building an HGX system instead.' },
+        { q:'Do you need FP8 / Transformer Engine support for training?', why:'H100 introduced FP8 — delivers ~2× more throughput on training workloads vs. BF16. If they\'re running Transformer-based model training, this is a meaningful upgrade over A100.' },
+        { q:'What is the model size and precision you\'re targeting?', why:'80GB VRAM same as A100 80GB. The pitch is throughput (FP8) and bandwidth (2,000 GB/s), not capacity. Confirm capacity is sufficient (80GB) before focusing on throughput gains.' },
+        { q:'Is inference or training the primary workload?', why:'FP8 inference on H100 PCIe is 2–3× faster than A100 PCIe at same VRAM. Training also benefits. Either way, H100 PCIe is the right upgrade.' },
+      ]},
+      { title:'Infrastructure & Chassis', questions:[
+        { q:'What PCIe server chassis are you currently running?', why:'H100 PCIe is PCIe Gen4 ×16 (backward compatible with Gen3/Gen5). Same form factor as A100 PCIe — slots right in. Confirm power delivery per slot.' },
+        { q:'What is the TDP spec of your current GPU slots?', why:'H100 PCIe draws 350W vs A100 PCIe 300W (40GB) or 300W (80GB). The extra 50W per card matters for PSU headroom in dense configs.' },
+        { q:'Are you slotting into an existing server or do you need a full chassis + GPU build from Velerity?', why:'GPU-only: fast and simple. Full build: Recommend Dell PowerEdge R760xa, Supermicro 4028GR-TXR, or HPE ProLiant DL380 Gen11 as H100 PCIe-optimized chassis.' },
+      ]},
+      { title:'Power & Cooling', questions:[
+        { q:'What is your per-chassis PSU capacity, and how many H100 PCIe cards are you targeting?', why:'4× H100 PCIe = 1,400W GPU alone. Plus dual Xeon CPU (~400W), memory (~100W), storage (~50W) = ~2,000W total. 2× 1,600W PSUs are tight; 2× 2,000W preferred for headroom.' },
+        { q:'Do you have adequate cooling for 350W per slot?', why:'H100 PCIe is actively cooled — standard server airflow handles it. No special requirements. Confirm the chassis has sufficient airflow for the GPU count.' },
+      ]},
+      { title:'Networking', questions:[
+        { q:'What is your host network fabric — 25GbE, 100GbE, or InfiniBand?', why:'For multi-GPU PCIe inference serving, 100GbE recommended to avoid NIC bottleneck. For single-GPU local inference, 25GbE is fine.' },
+        { q:'Do you need NVLink for multi-GPU communication?', why:'H100 PCIe has no NVLink — multi-GPU only over PCIe (limited BW). If they need NVLink for multi-GPU training, they should be on H100 SXM5. Flag this early.', key:true },
+      ]},
+      { title:'Scale & Procurement', questions:[
+        { q:'How many GPUs and what is the deployment timeline?', why:'Urgency is the pitch — 5-week Velerity lead time vs. 6–9 months for new H100 PCIe. If they have a production deadline, that matters a lot.' },
+        { q:'Are you buying GPU cards only or a complete server?', why:'GPU-only → slot into existing server. Full server build → Velerity can source a PCIe GPU server chassis from their supplier network along with the GPUs.' },
+      ]},
+      { title:'Competitive & Current Setup', questions:[
+        { q:'What are you comparing H100 PCIe to — A100 PCIe upgrade, H100 SXM5, or cloud?', why:'vs. A100 PCIe: 2.4× BF16 throughput, same 80GB, slot-for-slot upgrade. vs. H100 SXM5: PCIe is 25% less BW (2,000 vs 3,350 GB/s) but way cheaper and no HGX chassis needed.' },
+        { q:'Do you have a preferred OEM server vendor for a chassis build?', why:'Match to their existing fleet. H100 PCIe runs in virtually any PCIe Gen4+ server — no proprietary baseboard required.' },
+      ]},
+    ],
+  },
+
+  // ── H100 80GB SXM5 ──
+  { id:'h100-sxm', name:'H100 80GB SXM5', badge:'H100', gen:'H100', color:'#22C55E',
+    headline:'The reference AI training GPU — DGX H100 and HGX H100 eight-GPU nodes with NVLink 4.0.',
+    prep:[
+      'DGX H100 = 10U, 10,200W, NVIDIA-branded turnkey with DGX OS + Base Command',
+      'HGX H100 OEM chassis: Dell XE9680 · Supermicro SYS-821GE-TNHR · HPE Cray XD670 · Lenovo SR675 V3',
+      'NVSwitch 3.0: all-to-all 900 GB/s NVLink 4.0 across all 8 GPUs per node',
+      'Total GPU memory per node: 640 GB (8× 80GB)',
+      'Velerity: 5-week delivery vs. 6–9 month OEM backlog. 20–35% below new pricing.',
+    ],
+    sections:[
+      { title:'Workload Qualification', questions:[
+        { q:'What scale of model training or inference are you running — parameter count and batch size?', why:'H100 SXM5 is the gold standard for 70B–405B training and large-batch inference. If they\'re doing sub-7B work, H100 PCIe or even A100 may be sufficient and cheaper.' },
+        { q:'Are you using FP8 precision training with the Transformer Engine?', why:'H100 SXM5\'s Transformer Engine delivers ~2× throughput vs BF16 for Transformer models. If they\'re not using FP8 yet, ask if their framework (NeMo, Megatron) supports it — this is a key upgrade pitch.' },
+        { q:'Do you need all-to-all GPU communication within a node for tensor-parallel training?', why:'NVLink 4.0 at 900 GB/s is 50% more than A100 (600 GB/s). Critical for large-scale tensor-parallel training. Confirm they need this vs. a simpler pipeline-parallel setup.' },
+        { q:'What distributed training framework are you using?', why:'Megatron-LM, DeepSpeed, and PyTorch FSDP are all H100-optimized. Knowing the framework helps validate fit and sets up the conversation about node count for optimal throughput.' },
+      ]},
+      { title:'Infrastructure & Chassis', questions:[
+        { q:'DGX H100 (NVIDIA turnkey) or HGX H100 (OEM server)? What is driving that preference?', why:'DGX = NVIDIA software stack (Base Command, DGX OS), single-vendor support, higher price. HGX = more flexibility, existing OEM relationships, often 15–25% less. This is the core deal-shaping question.', key:true },
+        { q:'If HGX — which OEM do you prefer or already have in your environment? (Dell, Supermicro, HPE, Lenovo?)', why:'Dell XE9680: most common HGX H100 platform. Supermicro SYS-821GE: best density for price. HPE Cray XD670: common in HPC environments. Lenovo SR675 V3: common in enterprise. Match to their existing fleet.' },
+        { q:'What rack form factor and space is available? DGX H100 is 10U and ~320 kg.', why:'10U is significant real estate in a 42U rack — only 4 DGX H100 per standard rack. Weight is again critical — 320 kg requires reinforced rack frames.' },
+        { q:'Are you building a single node or a multi-node cluster? If multi-node, how many nodes in phase 1?', why:'Single node is straightforward. Multi-node requires InfiniBand fabric — sets the scope of the networking conversation.' },
+        { q:'Do you have an existing InfiniBand fabric, or is this a greenfield deployment?', why:'DGX H100 has 8× 400Gb NDR InfiniBand ports (ConnectX-7). Multi-node clusters require NDR IB switches (NVIDIA QM9700). This is often the most expensive part of a cluster build — qualify early.', key:true },
+      ]},
+      { title:'Power & Cooling', questions:[
+        { q:'What is your per-rack power budget? A single DGX H100 draws approximately 10,200W.', why:'10.2 kW per node is high — a standard 20–30 kW PDU can only support 2–3 DGX H100 nodes. Multi-node deployments often need dedicated 30–60 kW circuits.' },
+        { q:'Is the facility liquid-cooling ready? DGX H100 supports liquid cooling (liquid-ready variant).', why:'For dense multi-node deployments, rear-door heat exchangers or direct liquid cooling can dramatically reduce CRAC load. Not required but worth asking if they\'re building a cluster.' },
+        { q:'Who is managing DC power and cooling — in-house or a colocation provider?', why:'Colo deployments have specific power draw limits and cooling SLAs — confirm before the sale closes. In-house DC teams have more flexibility but need guidance on the power spec.' },
+      ]},
+      { title:'Networking & Cluster Fabric', questions:[
+        { q:'What InfiniBand generation are you running or planning — HDR (200Gb) or NDR (400Gb)?', why:'DGX H100 ships with ConnectX-7 (400Gb NDR). For best performance in multi-node training, NDR fabric is required. HDR can work but limits inter-node bandwidth.', key:true },
+        { q:'How many nodes in the cluster, and what InfiniBand switch topology?', why:'8-node cluster = 1× NVIDIA QM9700 36-port NDR switch (non-blocking). 16-node = 2 switches + spine. This conversation scopes the full cluster build.' },
+        { q:'Are you using RoCE (Ethernet) instead of InfiniBand?', why:'Some buyers prefer 400GbE RoCE for simplicity. Performance is slightly lower for all-reduce collective ops. Worth understanding their fabric preference early.' },
+        { q:'Do you need Velerity to source InfiniBand switches and cabling as part of the build?', why:'Full cluster builds where Velerity sources everything are higher-value deals. GPU procurement + IB fabric + server chassis = turnkey cluster sale.' },
+      ]},
+      { title:'Scale & Procurement', questions:[
+        { q:'How many nodes (8-GPU systems) are you targeting, and what is the rollout timeline?', why:'Velerity H100 SXM5 node: ~$180K–$220K secondary market. A 4-node cluster is a $700K+ deal. Know the scale before quoting.' },
+        { q:'Do you need NVIDIA Enterprise support, DGX Care, or Velerity warranty?', why:'DGX systems include NVIDIA support options. For HGX builds, Velerity\'s warranty + serialized health report is the trust anchor. Confirm what level of support they need.' },
+        { q:'What is your budget ceiling for this phase?', why:'Aligns the DGX vs. HGX conversation — HGX can be 15–25% less, often the right choice if budget is a constraint.' },
+      ]},
+      { title:'Competitive & Current Setup', questions:[
+        { q:'Are you comparing H100 SXM5 to H200 or B200?', why:'H200 = same compute, 76% more VRAM (141GB vs 80GB). If their models need >80GB per GPU, H200 is the right answer. B200 = 4–5× H100 performance but requires liquid cooling and costs ~2× more.' },
+        { q:'Are you currently on A100 DGX systems? What is the driver for upgrading?', why:'A100 → H100 upgrade: 3–5× FP8 throughput, 50% more NVLink bandwidth. If they\'re running into compute bottlenecks (not memory), H100 solves it.' },
+        { q:'Have you evaluated cloud GPU cluster pricing (AWS p4de, CoreWeave H100 reserved)?', why:'On-prem H100 DGX: 3-year TCO is typically 30–50% less than equivalent cloud reserved. Run the numbers if they\'re comparing to cloud — this is usually a slam-dunk TCO argument.' },
+      ]},
+    ],
+  },
+
+  // ── H100 NVL 94GB ──
+  { id:'h100-nvl', name:'H100 NVL 94GB', badge:'H100', gen:'H100', color:'#22C55E',
+    headline:'Long-context inference and memory-intensive workloads — 94GB per die (188GB per NVL pair) in a PCIe card.',
+    prep:[
+      'NVL = two H100 GPU dies on one PCIe card connected via NVLink — 94GB per die, 188GB total addressable',
+      'MIG per die: 1g.12gb ×7 · 2g.24gb ×3 · 3g.47gb ×2 · 4g.47gb ×1 · 7g.94gb ×1 (full die)',
+      'PCIe form factor — fits standard servers, NOT an HGX/DGX component',
+      'Key pitch: >80GB VRAM in a PCIe slot — no HGX chassis required',
+    ],
+    sections:[
+      { title:'Workload Qualification', questions:[
+        { q:'What is driving the need for more than 80GB VRAM per GPU?', why:'H100 NVL\'s specific value is memory capacity (94–188GB). If they need >80GB in a PCIe form factor, this is the answer. Confirm it\'s a memory constraint, not a compute constraint.', key:true },
+        { q:'Are you running very long context inference — 128K+ token windows?', why:'Long-context inference has large KV-cache requirements that overflow 80GB GPUs. 94GB per die (or 188GB per NVL pair) is the natural fit for 128K+ token workloads.' },
+        { q:'Are you running very large models on fewer cards — LLaMA 405B on 4 cards instead of 8?', why:'188GB per NVL pair × 4 pairs = 752GB — enough for Llama 3 405B at BF16 on 4 cards vs. needing 8× 80GB H100. This is the density efficiency pitch.' },
+        { q:'Do you need the unified 188GB memory space (using NVLink across both dies)?', why:'NVL pairs can be addressed as a single 188GB GPU. Confirm the buyer\'s framework supports NVLink-bridged multi-die addressing (most modern inference frameworks do).' },
+      ]},
+      { title:'Infrastructure & Chassis', questions:[
+        { q:'What PCIe server chassis are you running? Does it support dual-slot GPU cards?', why:'H100 NVL PCIe card may require a double-wide or more power-dense slot configuration depending on the server. Confirm physical fit.' },
+        { q:'How many NVL cards are you targeting per server?', why:'NVL pairs are sold as single dual-die cards. 4 cards × 188GB = 752GB per server — a compelling single-server config for 405B+ inference.' },
+        { q:'Do you need a full server build from Velerity or just the GPU cards?', why:'For NVL dense inference servers: Supermicro 4028GR, Dell PowerEdge R760xa, HPE DL380 Gen11 are all viable chassis.' },
+      ]},
+      { title:'Power & Cooling', questions:[
+        { q:'What is the per-slot power budget? H100 NVL draws approximately 400W per card (dual-die).', why:'400W per card — same as A100 SXM4. Manageable in most PCIe GPU servers. 4-card config = 1,600W in GPU power; confirm PSU headroom.' },
+        { q:'Standard air cooling — do you have adequate airflow per the OEM server spec?', why:'H100 NVL PCIe is actively cooled. Standard server airflow is sufficient.' },
+      ]},
+      { title:'Scale & Procurement', questions:[
+        { q:'How many cards and what is your deployment date?', why:'NVL pairs have lower secondary market supply than SXM5 — lead time qualification is important here.' },
+        { q:'Is there any flexibility to consider H200 NVL (141GB per die, 282GB per pair) if budget allows?', why:'H200 NVL is a significant step up in memory — worth the upsell conversation if their workload is memory-constrained and their budget allows.' },
+      ]},
+      { title:'Competitive & Current Setup', questions:[
+        { q:'What are you comparing to — standard H100 PCIe (80GB), H200 SXM, or cloud large-memory instances?', why:'NVL at ~$25K–$35K per card (secondary market) is priced above H100 PCIe but below a full H200 node. If they need >80GB in PCIe form factor, NVL is the answer.' },
+        { q:'Have you considered a smaller cluster of H200 SXM nodes instead?', why:'For very memory-intensive training, an H200 SXM DGX/HGX node may be more cost-effective and performant. Worth the comparison conversation if they\'re buying 4+ NVL cards.' },
+      ]},
+    ],
+  },
+
+  // ── H200 141GB SXM ──
+  { id:'h200-sxm', name:'H200 141GB SXM', badge:'H200', gen:'H200', color:'var(--accent)',
+    headline:'141GB HBM3e — the memory-bandwidth upgrade from H100, same chassis, same cluster fabric.',
+    prep:[
+      'DGX H200 = same 10U chassis as DGX H100 — drop-in upgrade path',
+      'HGX H200 OEM: Lenovo SR680a V3 · Dell XE9680 H200 config',
+      'Total GPU memory per node: 1,128 GB (8× 141GB) — fits Llama 3 405B at BF16 on one node',
+      '4,800 GB/s memory bandwidth per GPU (43% more than H100 SXM5)',
+      'MIG: 1g.20gb ×7 · 2g.40gb ×3 · 3g.70gb ×2 · 4g.70gb ×1 · 7g.141gb ×1',
+    ],
+    sections:[
+      { title:'Workload Qualification', questions:[
+        { q:'What is driving the move to H200 — is it VRAM capacity or memory bandwidth?', why:'H200\'s key advantage over H100 is 76% more VRAM (141GB vs 80GB) and 43% more bandwidth. Memory-bandwidth-bound workloads (large-batch inference, MoE models) see the most benefit.', key:true },
+        { q:'What is the largest model you are serving, and what precision?', why:'8× H200 = 1,128GB — fits Llama 3 405B at BF16 or Mixtral 8×22B on a single node. Confirm that VRAM is actually the constraint before selling H200 over H100.' },
+        { q:'Are you running Mixture-of-Experts (MoE) or attention-heavy models where bandwidth is the bottleneck?', why:'MoE models like Mixtral have high activation memory requirements that benefit from H200\'s 43% BW increase over H100 SXM5. Good qualification signal for H200 vs H100.' },
+        { q:'Are you upgrading from H100 DGX/HGX systems?', why:'H200 is a drop-in upgrade on the same DGX/HGX chassis. If they have H100 DGX infrastructure, upgrading GPU module to H200 is possible — this is a unique upsell angle.' },
+      ]},
+      { title:'Infrastructure & Chassis', questions:[
+        { q:'Do you have an existing DGX H100 or HGX H100 system? H200 uses the same chassis.', why:'Drop-in compatibility is a major pitch. If they already have DGX H100 chassis, upgrading to H200 GPU modules is a targeted upsell with no facility changes required.', key:true },
+        { q:'If building new: DGX H200 (NVIDIA turnkey) or HGX H200 (OEM — Lenovo SR680a V3, Dell XE9680)?', why:'Same DGX vs HGX conversation as H100. Lenovo SR680a V3 is the flagship HGX H200 OEM system — common in enterprise. Dell XE9680 also supports H200 config.' },
+        { q:'What rack space and power are available?', why:'DGX H200 is also 10U, ~10,200W — same as H100. No change in facility requirements if upgrading from H100 DGX.' },
+        { q:'How many nodes in this purchase?', why:'Sets deal size. H200 SXM nodes are ~$300K–$340K secondary market. Even 1-node deals are significant.' },
+      ]},
+      { title:'Power & Cooling', questions:[
+        { q:'Same power draw as H100 (~10,200W per node) — do you have your power situation locked in?', why:'H200 is a drop-in upgrade, so if they already have H100 infrastructure, power is solved. For new deployments, same 10.2 kW per node applies.' },
+        { q:'Are you open to liquid cooling? DGX H200 supports liquid-ready cooling options.', why:'For dense multi-node deployments, liquid cooling becomes more practical at H200/B200 scale. Worth planting the seed if they\'re building a larger cluster.' },
+      ]},
+      { title:'Networking & Cluster Fabric', questions:[
+        { q:'What InfiniBand fabric are you running — NDR (400Gb) or HDR (200Gb)?', why:'DGX H200 ships with ConnectX-7 (NDR 400Gb). For multi-node training at H200 scale, NDR fabric is strongly recommended.' },
+        { q:'Are you expanding an existing H100 cluster with H200 nodes?', why:'Mixed H100/H200 clusters are possible (same NVLink generation) but typically not mixed within a node. Understand the cluster architecture to scope the fabric needs.' },
+      ]},
+      { title:'Scale & Procurement', questions:[
+        { q:'How many nodes and what is your deployment window?', why:'H200 supply is tighter than H100 — Velerity\'s certified supply is high-value here. Urgency is real.' },
+        { q:'Is there a training deadline or production inference capacity target driving this purchase?', why:'H200 is typically a "must have this VRAM/BW" purchase. Understand the technical driver and the business deadline behind it.' },
+      ]},
+      { title:'Competitive & Current Setup', questions:[
+        { q:'Are you comparing H200 to B200?', why:'B200 delivers 4–5× H100\'s FP8 performance and 192GB VRAM, but requires liquid cooling and costs significantly more. If they don\'t need B200-level compute or don\'t have DLC infrastructure, H200 is the right choice.', key:true },
+        { q:'What is your 12-month GPU roadmap — will you need B200-class compute within the year?', why:'If they\'ll need B200 within 12 months, it may be worth waiting or buying H200 as a bridge. Understanding their roadmap prevents a hasty sale that leads to immediate churn.' },
+      ]},
+    ],
+  },
+
+  // ── H200 NVL 141GB ──
+  { id:'h200-nvl', name:'H200 NVL 141GB', badge:'H200', gen:'H200', color:'var(--accent)',
+    headline:'282GB per NVL pair — extreme VRAM in a PCIe card for trillion-parameter and massive MoE serving.',
+    prep:[
+      'NVL = two H200 dies on one PCIe card: 141GB per die, 282GB total addressable',
+      'Very limited secondary market supply — expect premium pricing',
+      'PCIe form factor (not an HGX/DGX component)',
+      'Qualify hard: buyer must genuinely need >141GB single-card VRAM to justify this cost',
+    ],
+    sections:[
+      { title:'Workload Qualification', questions:[
+        { q:'What specific model or workload requires more than 141GB of VRAM per card?', why:'This is an extreme use case. 282GB per NVL pair is for trillion-parameter models or MoE architectures that overflow 141GB. If their need is <141GB, steer to H200 SXM — it\'s more cost-effective.', key:true },
+        { q:'Are you running inference on models in the 500B–1T+ parameter range?', why:'1T+ models at BF16 need 2TB+ VRAM per node. 4× H200 NVL pairs = 1,128GB — still not enough for 1T BF16, but good for quantized 1T or full-precision 500B.' },
+        { q:'Is this for inference only, or does training drive the VRAM requirement?', why:'H200 NVL PCIe has no NVLink across cards — multi-card training uses PCIe (limited BW). For large-scale training, an H200 SXM DGX is usually better. PCIe NVL is primarily an inference play.' },
+      ]},
+      { title:'Infrastructure & Chassis', questions:[
+        { q:'What PCIe server chassis are you planning to use?', why:'H200 NVL is a large dual-die PCIe card — confirm physical slot fit and that the chassis supports the power requirements.' },
+        { q:'How many NVL pairs per server, and what\'s the target total VRAM per server?', why:'2 cards × 282GB = 564GB. 4 cards × 282GB = 1,128GB per server. At that scale, a DGX H200 (1,128GB on 8× 141GB SXM) might be comparable in VRAM at better compute throughput.' },
+      ]},
+      { title:'Power & Cooling', questions:[
+        { q:'What is the per-slot power budget? H200 NVL draws approximately 700W per dual-die card.', why:'700W per card is demanding. 4-card config = 2,800W in GPU power. Confirm server PSU can support this — many standard 2U servers cannot.' },
+      ]},
+      { title:'Scale & Procurement', questions:[
+        { q:'How many cards, and when do you need them?', why:'H200 NVL supply is very tight. Lead time is a real constraint — Velerity certified units are rare and premium. Qualification: is this a real procurement or exploratory?' },
+        { q:'What is the budget for this purchase?', why:'H200 NVL pairs command a significant premium over SXM nodes at comparable total VRAM. Confirm budget can support the premium before investing sell time.' },
+      ]},
+    ],
+  },
+
+  // ── B200 SXM6 ──
+  { id:'b200-sxm', name:'B200 192GB SXM6', badge:'B200', gen:'B200', color:'#A78BFA',
+    headline:'Blackwell generation — 192GB HBM3e, NVLink 5.0, FP4 precision. Liquid cooling MANDATORY.',
+    prep:[
+      'LIQUID COOLING REQUIRED — no air-cooled B200 SXM6 config exists. This is a hard technical gate.',
+      'DGX B200: 10U, ~10 kW. HGX B200 OEM: Dell XE9780 · Supermicro B200 · GB200 NVL72 rack',
+      'GB200 NVL72 = full liquid-cooled rack: 36 Grace CPUs + 72 B200 GPU dies (Superchip)',
+      'NVLink 5.0 at 1,800 GB/s — 2× H100. FP4 is new: 18,000 TFLOPS (36K w/ sparsity)',
+      'OEM lead times: 12–18+ months for new. Velerity supply is strategic here.',
+    ],
+    sections:[
+      { title:'Workload Qualification', questions:[
+        { q:'What workload is driving the move to B200 — is it compute throughput, memory capacity, or both?', why:'B200 delivers ~4.5× H100 FP8 compute AND 192GB VRAM. If they need both, B200 is justified. If they mainly need VRAM, H200 may be sufficient at lower cost and infrastructure complexity.' },
+        { q:'Are you training frontier-scale models (100B+ parameters) or running inference at massive concurrency?', why:'B200 is built for frontier AI labs and large-scale production inference. If their workloads are smaller, they\'re overbuying. Confirm that B200-class compute is genuinely needed.' },
+        { q:'Are you using or planning to use FP4 precision?', why:'FP4 is new in Blackwell — only B200/B100 and RTX Pro 6000 support it. FP4 delivers another 2× throughput vs FP8. Confirms they\'re truly in the Blackwell era use case.' },
+        { q:'Are you replacing saturated H100 or H200 clusters, or building new AI capacity?', why:'Most B200 buyers have exhausted H100/H200 capacity. Understanding their existing GPU fleet sizes the replacement opportunity.' },
+      ]},
+      { title:'Infrastructure & Chassis — LIQUID COOLING GATE', questions:[
+        { q:'Do you have direct liquid cooling (DLC) infrastructure in your data center?', why:'B200 SXM6 is mandatory liquid-cooled. No DLC = no B200 SXM6. This is the first gate — do not go further in the pitch if they don\'t have or cannot install DLC.', key:true },
+        { q:'What is your DLC coolant temperature spec (CDU inlet temperature)?', why:'B200 systems typically require coolant at 18–45°C depending on OEM. Confirm the site can meet this spec.' },
+        { q:'DGX B200 (NVIDIA turnkey) or HGX B200 (OEM — Dell XE9780, Supermicro B200)?', why:'DGX B200 = turnkey, NVIDIA software stack, highest price. HGX B200 on Dell XE9780 is the most common enterprise OEM choice. Supermicro B200 is popular for hyperscale.', key:true },
+        { q:'Are you considering the GB200 NVL72 rack system?', why:'GB200 NVL72 is a full-rack liquid-cooled system with Grace CPU + B200 GPU Superchips — NVIDIA\'s most powerful rack-scale system. It requires planning a full rack deployment including NVIDIA\'s rack and power infrastructure.' },
+        { q:'What rack power is available? A B200 node draws approximately 10,000W.', why:'Same per-node draw as DGX H100 — but liquid cooling means more power goes to compute (less CRAC). Still 10 kW per node — confirm per-rack PDU capacity.' },
+      ]},
+      { title:'Power & Cooling', questions:[
+        { q:'What is your total rack power budget, and how many B200 nodes are you targeting?', why:'10 kW/node × 4 nodes = 40 kW per rack. Most DCs have 10–20 kW standard racks — dedicated high-density rows or custom PDU circuits are typically required for B200 deployments.' },
+        { q:'What is the CDU (Coolant Distribution Unit) plan — are you sourcing CDUs separately or through the OEM?', why:'DGX B200 and OEM HGX B200 systems ship with their own coolant loop specs. The CDU (NVIDIA HGX or CoolIT, Rittal, etc.) must be sized for the number of nodes.' },
+        { q:'What is the facility\'s power delivery — 208V/240V single-phase or 3-phase?', why:'B200 high-density deployments typically require 3-phase 480V power for efficiency. Confirm the facility\'s PDU spec early — electrical upgrades can add 3–6 months to a deployment timeline.' },
+      ]},
+      { title:'Networking & Cluster Fabric', questions:[
+        { q:'What InfiniBand generation and topology are you planning — NDR (400Gb) or XDR (800Gb upcoming)?', why:'DGX B200 ships with ConnectX-7 (NDR 400Gb). At B200 scale, some buyers are planning for 800Gb XDR fabric — worth understanding their roadmap.' },
+        { q:'How many nodes in the cluster? What is the full-scale target?', why:'B200 clusters are typically large-scale investments. Understanding the full cluster build (even if purchased in phases) is important to scope the deal properly.' },
+        { q:'Are you using NVLink Switch (for GB200 NVL72) or standard InfiniBand for inter-node communication?', why:'GB200 NVL72 uses NVLink Switch for intra-rack GPU-to-GPU and IB for inter-rack. Standard DGX/HGX B200 uses IB for inter-node. The fabric choice has major infrastructure implications.' },
+      ]},
+      { title:'Scale & Procurement', questions:[
+        { q:'How many 8-GPU B200 nodes in this purchase order?', why:'B200 nodes at ~$460K–$490K secondary market. 4-node purchase = ~$2M+ deal. Know the scale — this is a strategic purchase.' },
+        { q:'What is the deployment timeline and project milestone driving this purchase?', why:'B200 OEM lead times are 12–18+ months for new. Velerity certified supply offers meaningful lead time advantage. Confirm the urgency.' },
+        { q:'Do you need Velerity to source the full stack — servers, CDUs, IB switches, cabling?', why:'Full-stack B200 builds where Velerity sources everything are complex but high-value deals. Understand their appetite for a turnkey solution vs. GPU-only.' },
+      ]},
+      { title:'Competitive & Current Setup', questions:[
+        { q:'What is your current GPU fleet — H100 or H200 nodes? How many?', why:'Understanding their existing fleet sets the displacement/expansion context. B200 buyers are typically doubling or tripling their AI compute capacity.' },
+        { q:'Have you evaluated cloud alternatives — AWS p5 (H100), CoreWeave H200, or cloud B200 when available?', why:'At B200 scale ($2M+ per 4 nodes), the on-prem vs. cloud TCO argument is compelling. Run the 3-year TCO comparison if they\'re weighing cloud-first vs. on-prem.' },
+        { q:'Are you in the NVIDIA Early Access program for Blackwell?', why:'Some B200 buyers come through NVIDIA\'s EA program, which may have its own delivery timelines. Know whether Velerity supply is competing with or complementing their NVIDIA allocation.' },
+      ]},
+    ],
+  },
+
+  // ── B100 PCIe ──
+  { id:'b100-pcie', name:'B100 192GB PCIe', badge:'B200', gen:'B200', color:'#A78BFA',
+    headline:'Blackwell-generation inference in a PCIe form factor — 192GB HBM3e, air-cooled, no NVLink.',
+    prep:[
+      'B100 = PCIe 5.0 form factor Blackwell. Same 192GB HBM3e as B200 SXM6 but no NVLink and lower TDP (~700W)',
+      'Key advantage over B200: air-cooled — no liquid cooling facility required',
+      'Drop-in upgrade path for H100/H200 PCIe server infrastructure',
+      'No DGX/HGX variant — PCIe-only product',
+      'MIG: 1g.24gb ×7 · 2g.48gb ×3 · 3g.96gb ×2 · 4g.96gb ×1 · 7g.192gb ×1',
+    ],
+    sections:[
+      { title:'Workload Qualification', questions:[
+        { q:'What is driving the move to 192GB VRAM — is it model size or memory bandwidth?', why:'B100 delivers 192GB HBM3e and Blackwell compute (FP4 support). If they need 192GB in a PCIe server without liquid cooling, B100 is the answer.' },
+        { q:'Are you using FP4 precision or planning to — and what framework?', why:'FP4 on B100 delivers ~2× throughput over FP8. Confirm their framework supports it (TensorRT-LLM, vLLM Blackwell). This is a key differentiator vs. H100/H200 PCIe.' },
+        { q:'Is this an inference-only deployment, or will you be doing training/fine-tuning too?', why:'B100 PCIe has no NVLink — multi-GPU training uses PCIe (limited BW). For serious training, they should be on B200 SXM6. B100 PCIe is ideal for inference.' },
+        { q:'Are you replacing H100 PCIe or H200 PCIe infrastructure?', why:'B100 PCIe is a direct upgrade path in the same chassis — same form factor, higher power (700W vs 350W for H100 PCIe). Check PSU headroom.' },
+      ]},
+      { title:'Infrastructure & Chassis', questions:[
+        { q:'What PCIe server chassis are you running? Does it support PCIe Gen5?', why:'B100 is PCIe Gen5 ×16. Gen4 chassis will work at half bandwidth (PCIe backward compatible) — acceptable for inference but suboptimal. Gen5 chassis is recommended.', key:true },
+        { q:'How many GPU slots per chassis and what are you targeting?', why:'Standard 2U/4U GPU servers support 2–8 PCIe GPU slots. B100 at 700W per card — 4 cards = 2,800W GPU power alone. Confirm chassis and PSU support this.' },
+        { q:'Are you in a standard air-cooled server rack? (B100 does not require liquid cooling.)', why:'This is the core B100 pitch vs. B200: same 192GB VRAM, Blackwell generation, but air-cooled. No facility upgrades needed.', key:true },
+        { q:'Do you need Velerity to source a complete server build, or just the GPU cards?', why:'For a PCIe Gen5 GPU server build: Supermicro AS-4125GS-TNRT and Dell PowerEdge R760xa (B100 config) are qualified platforms. Can Velerity build the full system?' },
+      ]},
+      { title:'Power & Cooling', questions:[
+        { q:'What is the per-slot power delivery in your target chassis? B100 draws approximately 700W.', why:'700W per card is double an H100 PCIe (350W). PSU upgrade may be required for existing infrastructure. 4-card B100 = 2,800W GPU power — requires 2× 2,000W+ PSUs.' },
+        { q:'Are you in a standard air-cooled server rack? DC airflow spec (LFM) adequate for 700W/slot?', why:'B100 PCIe is passively cooled in some configs (server edition) or actively cooled — confirm with the OEM. High-density GPU servers need adequate front-to-back airflow.' },
+      ]},
+      { title:'Scale & Procurement', questions:[
+        { q:'How many cards and what is your deployment timeline?', why:'B100 PCIe is an emerging product with limited secondary market supply. Lead time and pricing qualification are important.' },
+        { q:'Are you open to a phased deployment — B100 for inference nodes + B200 SXM6 for training nodes?', why:'Common architecture: B100 PCIe for inference (cost-effective, no DLC needed) + B200 SXM6 for training (maximum compute). Can Velerity serve both sides of this architecture?' },
+      ]},
+      { title:'Competitive & Current Setup', questions:[
+        { q:'Are you comparing B100 PCIe to B200 SXM6?', why:'B200 SXM6 is 20–25% more compute throughput at FP8/FP4 and has NVLink 5.0, but requires liquid cooling. B100 PCIe is the right choice if they can\'t support liquid cooling.', key:true },
+        { q:'Are you comparing to H200 SXM or cloud GPU options?', why:'B100 PCIe at 192GB is a step up from H200 SXM\'s 141GB. If VRAM is the constraint and they need PCIe form factor, B100 is the clear answer.' },
+      ]},
+    ],
+  },
+
+  // ── RTX Pro 6000 Workstation ──
+  { id:'rtx-pro-ws', name:'RTX Pro 6000 Blackwell (Workstation)', badge:'RTX Pro', gen:'RTX Pro', color:'#F472B6',
+    headline:'96GB GDDR7 ECC in a workstation — the only single card to run LLaMA 3 70B at full FP16.',
+    prep:[
+      'No MIG support on Workstation Edition — single undivided 96GB GPU',
+      'PCIe Gen5 ×16, active cooling, 600W TDP',
+      'Compatible workstations: Dell Precision 7960/5960 Tower, HP Z8 G5, Lenovo ThinkStation P9',
+      'Price: ~$14,500–$18,000 per card at Velerity certified; new NVIDIA official ~$16,000 (Nov 2026)',
+      'Key pitch: 96GB GDDR7 ECC — only single-slot workstation GPU with enough VRAM for 70B at FP16',
+    ],
+    sections:[
+      { title:'Workload Qualification', questions:[
+        { q:'What is the model size you need to run on the workstation, and at what precision?', why:'96GB is the pitch — it fits LLaMA 3 70B at FP16 (140GB model but with KV-cache tricks ~90GB in-use at modest batch size). Confirm the VRAM is the actual constraint.', key:true },
+        { q:'Is this a single-user AI workstation, or will multiple users share the machine?', why:'No MIG on Workstation Edition — it\'s a single-user GPU. If they need multi-tenant isolation, redirect to Server Edition.' },
+        { q:'Are you running AI alongside professional applications — 3D rendering, CAD, visual effects?', why:'RTX Pro 6000 Workstation supports all professional apps (Blender, Maya, AutoCAD, Adobe) + AI. This is unique vs. datacenter GPUs. It\'s a combined professional + AI GPU.' },
+        { q:'Are you doing local LLM inference, fine-tuning, or model experimentation?', why:'96GB is excellent for single-GPU fine-tuning of 7B–13B models and inference of 70B models. Research and dev workloads are core use cases.' },
+        { q:'Do you need ECC memory? (All RTX Pro 6000 variants include ECC.)', why:'ECC is mandatory for many enterprise and healthcare workloads. The RTX Pro 6000\'s GDDR7 ECC is a differentiator vs. consumer RTX 4090 (no ECC) and consumer RTX 5090 (no ECC).' },
+      ]},
+      { title:'Infrastructure & Chassis', questions:[
+        { q:'What workstation chassis or brand do you prefer — Dell Precision, HP Z-series, or Lenovo ThinkStation?', why:'Dell Precision 7960/5960 Tower, HP Z8 G5 Workstation, and Lenovo ThinkStation P9 are the three primary Velerity-qualified RTX Pro 6000 Workstation platforms. If Velerity is building the system, match to their existing OEM.', key:true },
+        { q:'Tower or rack-mount workstation?', why:'Tower is the most common for a single powerful workstation. Rack workstations (Dell Precision 7960R, HP Z8 G5R) are preferred when deploying multiple units in a server room.' },
+        { q:'Do you need a complete workstation build from Velerity, or just the GPU?', why:'Full workstation build (chassis + CPU + RAM + storage + GPU) is a larger deal and handles all integration. Understand their infrastructure team capability.' },
+        { q:'How many workstations are you deploying?', why:'Sets deal size. 1–2 workstations is typical for a team lead / power user. 10+ workstations is a departmental rollout — different pricing and logistics discussion.' },
+        { q:'Do you have a PCIe Gen5 workstation chassis, or will you need a new one?', why:'RTX Pro 6000 is PCIe Gen5 ×16 (backward compatible with Gen4 at reduced bandwidth). Gen4 chassis will work but won\'t fully utilize the GPU\'s bandwidth. Recommend Gen5 chassis for new builds.' },
+      ]},
+      { title:'Power & Cooling', questions:[
+        { q:'What is the PSU capacity of the workstation chassis you\'re planning to use?', why:'RTX Pro 6000 Workstation draws 600W. A capable workstation needs at least an 850W PSU for single-GPU, 1,200W+ for dual-GPU configs. Confirm headroom with the customer\'s IT team.' },
+        { q:'Is noise level a concern for the workspace environment?', why:'600W GPU means active cooling fan noise — standard for a high-performance workstation, but if it\'s in an open office, the customer should be aware. Max-Q Edition (300W) is quieter.' },
+      ]},
+      { title:'Scale & Procurement', questions:[
+        { q:'How many cards/workstations and what is your budget range?', why:'At ~$14,500–$18,000 per GPU, a single workstation build is typically $20,000–$30,000 fully configured. Fleet deployments are negotiable.' },
+        { q:'Do you have an existing Velerity or Dell/HP/Lenovo account relationship for the workstation chassis?', why:'For complete system builds, chassis sourcing through Velerity simplifies the purchase. Understand if they have an existing OEM contract that handles the chassis separately.' },
+        { q:'Timeline — when does the workstation need to be deployed?', why:'Velerity GPU + 2–3 weeks for OEM chassis sourcing and system integration = typical 3–5 week full workstation delivery. Set expectations.' },
+      ]},
+      { title:'Competitive & Current Setup', questions:[
+        { q:'What GPU are you currently running, and what\'s the VRAM ceiling you\'ve hit?', why:'Common upgrade paths: RTX 4090 (24GB) → running out of VRAM for 70B inference. NVIDIA A5000/A6000 (48GB) → needs 2× more VRAM. A100 80GB PCIe workstation → wants newer Blackwell generation.' },
+        { q:'Have you considered two smaller GPUs (e.g., 2× RTX 4090) instead of one 96GB card?', why:'2× RTX 4090 = 48GB usable in tensor-parallel (not 48+48 = 96GB — NVLink across consumer GPUs is limited). Single 96GB is better for large models. This objection comes up often.' },
+        { q:'Are you comparing to cloud GPU workstations or virtual desktops with GPU passthrough?', why:'On-prem workstation at $20–30K vs. cloud GPU workstation at $3–8/hr: break-even is ~8–12 months of full-time use. TCO argument wins if the workstation is in daily use.' },
+      ]},
+    ],
+  },
+
+  // ── RTX Pro 6000 Server ──
+  { id:'rtx-pro-srv', name:'RTX Pro 6000 Blackwell (Server)', badge:'RTX Pro', gen:'RTX Pro', color:'#E879F9',
+    headline:'96GB GDDR7 ECC passive — MIG-4 rack inference server for 70B models without datacenter-grade infrastructure.',
+    prep:[
+      'PASSIVELY COOLED — requires minimum 300 LFM rack airflow. This is a hard technical gate.',
+      'MIG: up to 4 isolated instances (1g.24gb ×4 · 2g.48gb ×2 · 4g.96gb ×1)',
+      'Primary qualified chassis: Lenovo ThinkSystem SR650 V3 (up to 4 GPUs) · SR670 V3 (up to 8 GPUs)',
+      'Other options: PNY server configs, CDW-qualified builds with verified airflow specs',
+      'Key pitch: MIG-partitioned 70B inference at a fraction of HGX H100 cost (~$21K/card vs $217K+ for a full H100 node)',
+    ],
+    sections:[
+      { title:'Workload Qualification', questions:[
+        { q:'Are you running inference on 70B-class models in a multi-tenant environment?', why:'96GB GDDR7 fits 70B at FP16 on a single card — the core pitch. MIG-4 means up to 4 isolated tenants per GPU, each with 24GB dedicated VRAM (enough for 7B at FP16 or 13B at INT8).', key:true },
+        { q:'How many concurrent tenants or isolated inference instances do you need per card?', why:'MIG-4 max: 4× 24GB instances. If they need 7 instances, they need an H100/H200 (MIG-7). If they need 1–4 instances at 24GB+, RTX Pro 6000 Server is perfect. This sets the MIG profile.', key:true },
+        { q:'What LLM serving framework are you using?', why:'vLLM, TGI (Text Generation Inference), and TensorRT-LLM all support RTX Pro 6000 Server on Linux. Confirm their stack supports the GPU before the sale.' },
+        { q:'Is this a pure inference deployment, or do you need fine-tuning too?', why:'Fine-tuning a 70B model at BF16 needs the full 96GB (no MIG). If they need both inference (MIG-4) and fine-tuning (full GPU), plan for separate GPU instances or time-share the hardware.' },
+        { q:'What are your per-tenant token throughput requirements?', why:'Each 24GB MIG instance on RTX Pro 6000 Server delivers lower throughput than an equivalent H100 MIG instance (lower compute) but adequate for most enterprise inference SLAs. Understand their latency/throughput SLA.' },
+      ]},
+      { title:'Infrastructure & Chassis — KEY HARDWARE QUESTIONS', questions:[
+        { q:'If Velerity is custom-building the server: do you have a chassis preference, or should Velerity recommend one?', why:'Best-qualified chassis: Lenovo ThinkSystem SR650 V3 (1U–2U, up to 4× PCIe Gen5 GPU slots, validated for passive GPU cooling) or SR670 V3 (2U–4U, up to 8 GPU slots). These are the most field-tested platforms for RTX Pro 6000 Server.', key:true },
+        { q:'How many GPUs per chassis — 2, 4, or more?', why:'SR650 V3 supports up to 4 PCIe Gen5 GPU slots. SR670 V3 supports up to 8. GPU count per chassis determines the MIG capacity: 4 GPUs × 4 MIG instances = 16 isolated inference tenants per server.' },
+        { q:'What CPU preference? (Lenovo SR-series ships Intel Xeon 4th/5th gen Scalable)', why:'Xeon 4th gen (Sapphire Rapids) is the standard pairing. For inference-heavy deployments, CPU is not the bottleneck — but confirm they don\'t have AMD EPYC requirements that would dictate a different chassis.' },
+        { q:'What NVMe or storage configuration for model loading?', why:'Loading a 70B FP16 model from disk takes significant time. NVMe Gen4+ SSD (or Gen5) is recommended for fast model load times. Confirm storage tier in the chassis spec.' },
+        { q:'Do you need Velerity to source the full server (chassis + GPUs + memory + storage + NIC), or just the GPU cards?', why:'Full server build from Velerity is the highest-value deal — chassis sourcing + GPU integration + system configuration + health check. Understand their IT team\'s integration capability.' },
+      ]},
+      { title:'Power & Cooling — PASSIVE COOLING GATE', questions:[
+        { q:'What is your data center rack airflow specification — specifically LFM (Linear Feet per Minute)?', why:'RTX Pro 6000 Server is passively cooled and REQUIRES minimum 300 LFM front-to-back rack airflow. This is a hard technical requirement. If they don\'t know their LFM spec, they need to verify with their DC team before the sale.', key:true },
+        { q:'Do you have hot-aisle/cold-aisle containment in your server rack?', why:'Containment significantly improves airflow consistency. Passive GPU cooling works best in contained aisle configurations. Important for multi-GPU dense configurations (4+ GPUs per chassis).' },
+        { q:'What is the per-rack power budget? (Server with 4× RTX Pro 6000 Server: ~3,200W GPU + ~600W CPU/RAM/storage = ~4 kW per 2U server)', why:'Relatively modest power draw vs. H100/H200/B200 nodes. 4 kW per server means you can fit 3–5 of these servers in a standard 15–20 kW rack — excellent density for inference at this price point.' },
+      ]},
+      { title:'Networking', questions:[
+        { q:'What host network interface are you planning — 25GbE, 100GbE?', why:'For multi-tenant inference serving, 100GbE per server is recommended. Each MIG instance serving external requests needs adequate NIC bandwidth. 25GbE works for low-concurrency internal deployments.' },
+        { q:'Are these servers behind a load balancer or Kubernetes inference gateway?', why:'Production multi-tenant inference typically runs behind a load balancer (NGINX, Envoy) or a Kubernetes gateway (Triton Inference Server). Understanding their serving architecture helps scope the full deployment.' },
+      ]},
+      { title:'MIG Configuration', questions:[
+        { q:'Walk me through your tenant topology — how many tenants, and what VRAM does each need?', why:'Core MIG planning question. 24GB per MIG-1g instance fits 7B at FP16 or 13B at INT8. 48GB per MIG-2g fits 13B at BF16 or 34B at INT8. 96GB full instance fits 70B at FP16. Plan this out before quoting.', key:true },
+        { q:'Do different tenants run different models, or the same model with different configs?', why:'Same model → easy MIG deployment (identical profile sizes). Different models → need to plan which MIG profile accommodates each model.' },
+        { q:'Do you need full hardware isolation between tenants (MIG guarantees) or is time-sharing acceptable?', why:'MIG provides full hardware isolation — dedicated VRAM, compute slices, and memory bandwidth. This is stronger than process isolation or GPU time-sharing. If they need compliance-level isolation, MIG is the answer.' },
+      ]},
+      { title:'Scale & Procurement', questions:[
+        { q:'How many GPUs and servers in phase 1? What is the expansion roadmap?', why:'RTX Pro 6000 Server at ~$18,500–$21,000 Velerity certified is typically purchased in 4–16 card ranges. Full server builds with 4 GPUs per chassis = natural buy unit.' },
+        { q:'Timeline for deployment?', why:'5-week Velerity GPU delivery + 1–2 weeks chassis sourcing and integration = ~6–7 weeks to rack-and-stack. Confirm this fits their production deadline.' },
+        { q:'Do you have an existing Lenovo or similar OEM relationship for the chassis?', why:'If they already buy Lenovo ThinkSystem through a contract, Velerity can supply GPU cards while they source chassis through their existing channel — simpler for large enterprise buyers.' },
+      ]},
+      { title:'Competitive & Current Setup', questions:[
+        { q:'What are you comparing RTX Pro 6000 Server to? HGX H100 node? Cloud GPU API?', why:'Core pitch: RTX Pro 6000 Server at ~$21K/card vs. a full HGX H100 node at ~$180–220K. For 70B inference with modest concurrency, 4× RTX Pro 6000 Server ($84K) outperforms cost/VRAM vs. a half-H100-node.', key:true },
+        { q:'Have you evaluated A100 80GB PCIe as an alternative?', why:'A100 80GB PCIe at ~$5–8K/card is cheaper but has 80GB vs 96GB VRAM, older Ampere architecture, no FP4, and no passive cooling option. If they need 96GB or server-grade passive cooling, RTX Pro 6000 Server wins.' },
+        { q:'Are you aware that RTX Pro 6000 may be subject to EAR export controls depending on the buyer\'s country?', why:'Export control flag: RTX Pro 6000 Blackwell is an advanced GPU that may be subject to US BIS EAR regulations for certain destinations. Escalate to compliance team for international deals.', key:true },
+      ]},
+    ],
+  },
+
+  // ── RTX Pro 6000 Max-Q ──
+  { id:'rtx-pro-maxq', name:'RTX Pro 6000 Blackwell (Max-Q)', badge:'RTX Pro', gen:'RTX Pro', color:'#C084FC',
+    headline:'96GB GDDR7 ECC at 300W — same VRAM as full Workstation at half the power draw.',
+    prep:[
+      'No MIG support. No NVLink. Active cooling. 300W TDP.',
+      'Same 96GB GDDR7 ECC as full Workstation but ~50% less compute throughput',
+      'Target: power-constrained workstations and edge servers where 600W/slot is not available',
+      'Price: ~$8,299 new (Newegg, Nov 2026) — most affordable path to 96GB ECC GPU',
+    ],
+    sections:[
+      { title:'Workload Qualification', questions:[
+        { q:'What is driving the 300W constraint — legacy workstation PSU, office power limits, or edge deployment?', why:'Max-Q\'s entire value proposition is power efficiency. Confirm the 300W constraint is real before selling it over the full Workstation Edition. Many buyers assume they can\'t do 600W when they actually can.', key:true },
+        { q:'What models are you running and at what precision?', why:'96GB fits 70B at FP16 — same VRAM as full Workstation. But Max-Q has ~50% less compute throughput. If they\'re latency-sensitive on 70B, full Workstation or Server Edition is better. Max-Q works for async or batch inference.' },
+        { q:'Is this for LLM inference only, or also training/fine-tuning?', why:'For fine-tuning 70B at full precision, the 300W clock reduction means significantly longer training time vs. full Workstation. Confirm whether throughput is acceptable.' },
+      ]},
+      { title:'Infrastructure & Chassis', questions:[
+        { q:'What workstation chassis are you planning to use?', why:'Max-Q\'s advantage is fitting into older Gen4 workstations where 600W/slot PCIe power delivery isn\'t available. Confirm their chassis PSU spec.' },
+        { q:'What is the PSU capacity and PCIe slot power delivery of their chassis?', why:'At 300W, Max-Q fits in workstations with an 850W PSU and standard PCIe power connectors. 600W Workstation Edition needs a 1,200W+ PSU with higher-current connectors.' },
+        { q:'Are you in an office environment or a lab/server room?', why:'Max-Q\'s lower noise and power make it suited for office environments. Standard workstation form factor — no special DC infrastructure needed.' },
+      ]},
+      { title:'Scale & Procurement', questions:[
+        { q:'How many workstations and what is the deployment timeline?', why:'Max-Q at ~$8,300 new makes fleet deployments more accessible. Velerity certified Max-Q units at a discount represent a strong value proposition for multi-unit deployments.' },
+        { q:'Is there a path to upgrading to the full Workstation Edition later?', why:'Frame it as a starting point. If they prove out the 70B inference use case on Max-Q, the upgrade to full Workstation or Server Edition is a natural next conversation.' },
+      ]},
+      { title:'Competitive & Current Setup', questions:[
+        { q:'Have you compared Max-Q to a consumer GPU like RTX 5090 or RTX 4090?', why:'RTX 5090 has ~32GB GDDR7 (no ECC) — 3× less VRAM than Max-Q. RTX 4090 has 24GB (no ECC). For 70B inference, Max-Q\'s 96GB is irreplaceable. The pitch is VRAM capacity + ECC reliability.' },
+        { q:'Are you comparing to H100 PCIe for inference?', why:'H100 PCIe at ~$10–14K has 80GB (vs 96GB) and much higher compute throughput. If they don\'t need 70B inference and care more about throughput, H100 PCIe is better value. If 96GB is the requirement, Max-Q wins on cost.' },
+      ]},
+    ],
+  },
+];
+
+let playbookSection = null; // expanded section id, null = all collapsed
+
+function renderPlaybook() {
+  const el = document.getElementById('playbook-content');
+
+  const gens = ['A100','H100','H200','B200','RTX Pro'];
+  const genColors = { A100:'var(--text-dim)', H100:'#22C55E', H200:'var(--accent)', B200:'#A78BFA', 'RTX Pro':'#F472B6' };
+
+  // GPU selector — grouped by gen
+  const selectorHTML = gens.map(g => {
+    const gpus = PLAYBOOK_DATA.filter(p => p.gen === g);
+    const c = genColors[g];
+    return `
+      <div style="margin-bottom:14px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${c};margin-bottom:6px;padding:0 2px">${g}</div>
+        ${gpus.map(p => `
+          <div onclick="playbookGPU='${p.id}';playbookSection=null;renderPlaybook()"
+               style="cursor:pointer;padding:8px 12px;border-radius:7px;margin-bottom:4px;border:1px solid ${playbookGPU===p.id?c:'var(--border)'};background:${playbookGPU===p.id?`${c}12`:'transparent'};transition:all .15s">
+            <div style="font-size:12px;font-weight:${playbookGPU===p.id?'600':'400'};color:${playbookGPU===p.id?c:'var(--text-dim)'};line-height:1.3">${p.name.replace(p.badge+' ','').replace('Blackwell ','').replace('(','').replace(')','')}</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:1px">${p.sections.reduce((a,s)=>a+s.questions.length,0)} questions</div>
+          </div>`).join('')}
+      </div>`;
+  }).join('');
+
+  const pb = PLAYBOOK_DATA.find(p => p.id === playbookGPU) || PLAYBOOK_DATA[0];
+  const c = genColors[pb.gen] || 'var(--accent)';
+  const totalQ = pb.sections.reduce((a,s) => a+s.questions.length, 0);
+  const keyQ = pb.sections.reduce((a,s) => a+s.questions.filter(q=>q.key).length, 0);
+
+  const prepHTML = `
+    <div class="card" style="border-color:${c};background:${c}08;margin-bottom:20px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${c};margin-bottom:10px">Pre-Call Prep Checklist</div>
+      ${pb.prep.map(item => `
+        <div style="display:flex;gap:10px;margin-bottom:7px;align-items:flex-start">
+          <span style="color:${c};font-size:14px;flex-shrink:0;line-height:1.4">&#10003;</span>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.5">${item}</div>
+        </div>`).join('')}
+    </div>`;
+
+  const sectionsHTML = pb.sections.map((sec, si) => {
+    const keyCount = sec.questions.filter(q=>q.key).length;
+    return `
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none"
+             onclick="playbookSection=playbookSection==='${pb.id}-${si}'?null:'${pb.id}-${si}';renderPlaybook()">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:14px;font-weight:600">${sec.title}</div>
+            <span style="font-size:11px;color:var(--text-muted);background:rgba(255,255,255,.05);padding:1px 7px;border-radius:10px">${sec.questions.length} Q</span>
+            ${keyCount?`<span style="font-size:10px;color:#F59E0B;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);padding:1px 6px;border-radius:4px;font-weight:600">${keyCount} key</span>`:''}
+          </div>
+          <span style="color:var(--text-muted);font-size:16px;line-height:1">${playbookSection===`${pb.id}-${si}`?'&#8722;':'&#43;'}</span>
+        </div>
+        ${playbookSection===`${pb.id}-${si}` ? `
+        <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+          ${sec.questions.map((q,qi) => `
+            <div style="margin-bottom:${qi<sec.questions.length-1?'18px':'0'};padding-bottom:${qi<sec.questions.length-1?'18px':'0'};border-bottom:${qi<sec.questions.length-1?'1px solid rgba(30,58,95,.4)':'none'}">
+              <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:6px">
+                ${q.key?`<span style="flex-shrink:0;margin-top:2px;width:6px;height:6px;border-radius:50%;background:#F59E0B;display:inline-block"></span>`:`<span style="flex-shrink:0;margin-top:5px;width:6px;height:6px;border-radius:50%;background:var(--border);display:inline-block"></span>`}
+                <div style="font-size:14px;font-weight:500;line-height:1.5;color:var(--text)">${q.q}</div>
+              </div>
+              <div style="font-size:12px;color:var(--text-muted);line-height:1.6;padding-left:16px;padding-top:2px;border-left:2px solid ${q.key?'rgba(245,158,11,.4)':'rgba(30,58,95,.6)'}">&#8594; ${q.why}</div>
+            </div>`).join('')}
+        </div>` : ''}
+      </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="display:flex;gap:24px;align-items:flex-start">
+      <!-- GPU Selector sidebar -->
+      <div style="width:200px;flex-shrink:0;position:sticky;top:0">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">Select GPU</div>
+        ${selectorHTML}
+      </div>
+      <!-- Playbook content -->
+      <div style="flex:1;min-width:0">
+        <!-- Header -->
+        <div style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <span style="font-size:11px;font-weight:700;letter-spacing:.5px;padding:3px 10px;border-radius:4px;background:${c}18;color:${c};border:1px solid ${c}40">${pb.badge}</span>
+            <div style="font-size:18px;font-weight:700">${pb.name}</div>
+          </div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:10px">${pb.headline}</div>
+          <div style="display:flex;gap:12px">
+            <span style="font-size:11px;color:var(--text-muted)">&#9679; ${totalQ} total questions</span>
+            <span style="font-size:11px;color:#F59E0B">&#9679; ${keyQ} key / deal-shaping</span>
+            <span style="font-size:11px;color:var(--text-muted)">&#9679; ${pb.sections.length} sections</span>
+          </div>
+        </div>
+        ${prepHTML}
+        <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">Question Sections — click to expand</div>
+        ${sectionsHTML}
+      </div>
+    </div>`;
 }
 
 // ── Target Market ─────────────────────────────────────────────────────────────
