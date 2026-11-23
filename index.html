@@ -1001,11 +1001,27 @@ const PLATFORM_DATA = [
 
   { id:'hgx-b300', oem:'NVIDIA', name:'HGX B300 (OEM Baseboard)', gpuType:'B300 288GB SXM7', gpuCount:8, formFactor:'Varies (OEM)', category:'HGX',
     cpu:'OEM-defined (Intel Clearwater Forest or AMD EPYC Turin)', ram:'OEM-configured', storage:'OEM-configured',
-    networking:'8× 400Gb NDR InfiniBand (ConnectX-8) or 400GbE', power:'~16,000 W (GPUs, est.)', cooling:'Direct liquid cooling required',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-8) or 400GbE', power:'~16,000 W (GPUs, est.)', cooling:'Liquid cooling (most OEMs) or enhanced air (Supermicro, Gigabyte variants)',
     weight:'Varies by OEM', nvlink:'NVLink 5.0 (1,800 GB/s per GPU)',
-    notes:'NVIDIA HGX B300 baseboard for OEM integration. Same CDU and liquid cooling infrastructure as HGX B200. Expected OEM platforms: Dell XE9790, Supermicro B300, HPE Cray XD690, Lenovo SR685a V3 (names estimated pending OEM announcements). Liquid cooling mandatory for all SXM7 B300 configurations.',
-    whosBuying:'Enterprises and neoclouds with existing OEM vendor relationships wanting Blackwell Ultra in their existing DLC-equipped infrastructure. If a site already has HGX B200 liquid cooling, the transition to HGX B300 is straightforward.',
+    notes:'NVIDIA HGX B300 baseboard for OEM integration. Most OEM platforms (Dell XE9790, HPE Cray XD690, Lenovo) require direct liquid cooling. Notable exception: Supermicro and Gigabyte both offer HGX B300 configurations in either direct liquid cooling or enhanced air-cooling variants — opening B300 to sites without CDU infrastructure. Same NVLink 5.0/NVSwitch 4th-gen topology as HGX B200.',
+    whosBuying:'Enterprises and neoclouds wanting Blackwell Ultra in their preferred OEM form factor. Sites with DLC carry forward their B200 cooling infrastructure. Sites without DLC should be directed to Supermicro or Gigabyte air-cooled HGX B300 variants — a critical sales angle when liquid cooling is a gate.',
     sourceUrl:'https://www.nvidia.com/en-us/data-center/hgx/', verified:false },
+
+  { id:'smc-b300-air', oem:'Supermicro', name:'Supermicro AS-8125GS B300 (Air / Liquid)', gpuType:'B300 288GB SXM7', gpuCount:8, formFactor:'8U', category:'HGX',
+    cpu:'2× AMD EPYC 9004 series (Turin) or Intel Clearwater Forest', ram:'Up to 6 TB DDR5', storage:'Up to 12× NVMe E3.S',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-8) or 400GbE RoCE', power:'~16,000 W (GPU est.) + ~3,500 W platform', cooling:'Air-cooled or direct liquid cooling — customer-selectable config',
+    weight:'~250 kg (est.)', nvlink:'NVLink 5.0 (1,800 GB/s per GPU)',
+    notes:'Supermicro HGX B300 platform offered in both air-cooled and direct liquid cooling (DLC) configurations. The air-cooled variant uses high-static-pressure fan arrays and optimized GPU tray airflow — removing the CDU prerequisite for B300 deployments. This is the key differentiator vs. NVIDIA DGX B300 and Dell XE9790 which are liquid-only. Important for buyers with standard air-cooled DC infrastructure who want B300 without facility upgrade. All specs are pre-production estimates.',
+    whosBuying:'Enterprises and neoclouds with standard air-cooled datacenter infrastructure who want B300 without investing in liquid cooling. Supermicro-loyal neocloud operators (Supermicro is the dominant HGX vendor in neocloud deployments). Budget-sensitive B300 buyers who want to avoid CDU/cooling infrastructure cost. Key sales angle: B300 access WITHOUT the liquid cooling gate.',
+    sourceUrl:'https://www.supermicro.com/en/products/system/', verified:false },
+
+  { id:'gigabyte-b300', oem:'Gigabyte', name:'Gigabyte G493 HGX B300 (Air / Liquid)', gpuType:'B300 288GB SXM7', gpuCount:8, formFactor:'4U', category:'HGX',
+    cpu:'2× AMD EPYC 9004 series (Turin)', ram:'Up to 4 TB DDR5', storage:'Up to 12× NVMe',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-8) or 400GbE', power:'~16,000 W (GPU est.) + ~3,000 W platform', cooling:'Air-cooled or direct liquid cooling — customer-selectable config',
+    weight:'~200 kg (est.)', nvlink:'NVLink 5.0 (1,800 GB/s per GPU)',
+    notes:'Gigabyte HGX B300 platform available in both air-cooled and liquid-cooled configurations. Gigabyte\'s signature high-density 4U form factor (vs. Supermicro\'s 8U) makes this attractive for space-constrained high-density deployments. Air-cooled variant uses reinforced fan modules and optimized GPU tray airflow for B300 TDP. Lower-cost OEM alternative to DGX B300 for price-sensitive buyers. All specs are pre-production estimates.',
+    whosBuying:'Value-focused cloud builders and GPU rental providers who want Blackwell Ultra without the DGX premium or liquid cooling requirement. Gigabyte-familiar neocloud operators building cost-optimized B300 clusters. Buyers who need the highest GPU density in a 4U footprint without DLC infrastructure.',
+    sourceUrl:'https://www.gigabyte.com/Enterprise/GPU-Server', verified:false },
 
   // ── NVL72 (Rack-scale Blackwell) ──
   { id:'gb200-nvl72', oem:'NVIDIA', name:'GB200 NVL72', gpuType:'B200 192GB SXM6', gpuCount:72, formFactor:'Full rack (77U)', category:'NVL72',
