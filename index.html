@@ -4191,6 +4191,71 @@ const PLAYBOOK_DATA = [
     ],
   },
 
+  // ── Supermicro HGX B300 (Air / Liquid) ──
+  { id:'smc-b300', name:'Supermicro HGX B300 (Air/Liquid)', badge:'B300', gen:'B300', color:'#F97316',
+    headline:'B300 288GB without the liquid cooling gate — Supermicro\'s air-cooled or DLC HGX B300 in an 8U chassis.',
+    prep:[
+      'B300 key specs: 288 GB HBM3e · ~10,000 GB/s bandwidth · ~1,400W TDP · NVLink 5.0 (1,800 GB/s) · SXM7',
+      'THE key differentiator: Supermicro offers B300 in BOTH air-cooled and DLC configs — DGX B300 and Dell XE9790 are liquid-only',
+      'Air-cooled variant: high-static-pressure fans, optimized GPU tray airflow — no CDU required',
+      'Supermicro is the dominant HGX vendor in neocloud deployments — most GPU rental providers know the platform',
+      'Form factor: 8U. OEM support through Supermicro\'s standard channel. Lower list price than DGX B300.',
+    ],
+    sections:[
+      { title:'Cooling & Facility Qualification', questions:[
+        { q:'Do you currently have liquid cooling (CDU) infrastructure in your datacenter or rack?', why:'This is the opening qualifier. If YES → liquid DLC config is available, same as other B300 OEMs. If NO → Supermicro\'s air-cooled B300 is the only path to B300 without a facility upgrade. This is the entire pitch.', key:true },
+        { q:'What is your per-rack power budget and airflow rating?', why:'Air-cooled B300 requires significant airflow. Confirm the DC can support the cooling load. If the rack power budget is tight, also confirm total PSU headroom for ~19–20 kW per node.' },
+        { q:'Are you in a colocation facility or an owned/leased datacenter?', why:'Colo buyers need to confirm whether the facility supports high-CFM air-cooled GPU racks at ~20 kW. Some colos cap at 15 kW per rack and require rear-door heat exchangers. Owned DC buyers control the upgrade path.' },
+        { q:'Have you been told you need liquid cooling to run B300 by other vendors?', why:'Many prospects assume B300 requires DLC because DGX B300 and Dell XE9790 are liquid-only. The Supermicro air-cooled option is a deal-unlocker for buyers who\'ve hit that wall — this is a high-value discovery question.', key:true },
+        { q:'What cooling infrastructure do you currently use for your existing GPU servers?', why:'If they are running air-cooled H100/H200 today (Dell XE9680 air config, HPE Cray XD670), their DC is likely already set up for high-density air-cooled GPU racks. SMC B300 air fits directly into that environment.' },
+      ]},
+      { title:'Workload & Configuration', questions:[
+        { q:'What workloads are you targeting — training, fine-tuning, inference, or a mix?', why:'Same qualification as generic B300. 288 GB per GPU supports ~1T-parameter models at BF16 on a single 8-GPU node. Training on frontier models and MoE architectures are the strongest fits.' },
+        { q:'Are you planning a single node or a multi-node cluster?', why:'Multi-node SMC B300 clusters use InfiniBand NDR for inter-node communication. Confirm whether a switch upgrade is required or if they already have NDR fabric in place.' },
+        { q:'Are you comparing the SMC B300 to the DGX B300 or Dell XE9790?', why:'SMC B300 is typically $30–60K less per node than DGX B300 (OEM vs. branded). The tradeoff is NVIDIA turnkey support vs. SMC OEM support. For cost-sensitive buyers, SMC is the clear choice. For buyers who want NVIDIA\'s full support wrapper, DGX is worth the premium.' },
+        { q:'Do you need MIG partitioning?', why:'B300 supports up to 7 MIG instances. SMC server configs support MIG — confirm whether the buyer plans to use it for multi-tenant isolation. Each instance gets 36 GB minimum on B300.' },
+      ]},
+      { title:'Procurement & Support', questions:[
+        { q:'Do you have an existing Supermicro relationship or preferred reseller?', why:'Supermicro sells through channel. If they have a preferred Supermicro VAR, Velerity can coordinate. If not, Velerity can position directly as the certified supply source for the SMC B300 platform.' },
+        { q:'What support and warranty level do you require?', why:'Supermicro OEM warranty vs. NVIDIA DGX warranty — different support tiers. SMC B300 typically includes Supermicro\'s standard 3-year limited warranty. Confirm if they need onsite NBD or just depot service.' },
+        { q:'What is your lead time requirement?', why:'OEM lead times for SMC B300 are 12–18+ months. Velerity\'s certified supply advantage is weeks. If they need hardware in under 6 months, Velerity is the only viable path.', key:true },
+        { q:'Are you comparing SMC B300 to continuing on H100/H200 to avoid the B300 cost?', why:'SMC B300 air-cooled reduces one of the two main B300 objections (the other being price). If cost is still the gate, run a VRAM utilization check — if they are capacity-constrained on H100, the ROI case for B300 is fast.' },
+      ]},
+    ],
+  },
+
+  // ── Gigabyte HGX B300 (Air / Liquid) ──
+  { id:'gigabyte-b300', name:'Gigabyte HGX B300 (Air/Liquid)', badge:'B300', gen:'B300', color:'#F97316',
+    headline:'B300 288GB in a compact 4U chassis — Gigabyte\'s air-cooled or DLC HGX B300 for cost-optimized and space-constrained deployments.',
+    prep:[
+      'B300 key specs: 288 GB HBM3e · ~10,000 GB/s · ~1,400W TDP · NVLink 5.0 (1,800 GB/s) · SXM7',
+      'Air-cooled or DLC — customer-selectable config. No CDU required for air variant.',
+      'Gigabyte differentiator vs. SMC B300: 4U vs. 8U — higher GPU density per rack unit',
+      'Gigabyte is the go-to for value-focused neocloud and GPU rental operators who know the G-series platform',
+      'Lower-cost OEM alternative; Gigabyte typically prices below SMC and significantly below DGX',
+    ],
+    sections:[
+      { title:'Cooling & Facility Qualification', questions:[
+        { q:'Does your datacenter have liquid cooling infrastructure (CDU)?', why:'Same critical opener as SMC B300. If NO → Gigabyte air-cooled B300 is the path to B300 without a facility investment. The 4U form factor makes it even more attractive for air-cooled high-density builds.', key:true },
+        { q:'How many GPU nodes do you need to fit per rack?', why:'Gigabyte\'s 4U form factor fits more nodes per rack than Supermicro 8U. A 42U rack can accommodate up to 10 Gigabyte 4U B300 nodes vs. ~5 Supermicro 8U nodes. If rack density is a priority, Gigabyte wins the form factor comparison.' },
+        { q:'Are you operating in a colocation facility with strict power/space allocations?', why:'Colo buyers with per-rack power or U budgets benefit from Gigabyte\'s higher GPU density per rack unit. Confirm whether the colo supports high-CFM air-cooled at ~20 kW per node.' },
+        { q:'Have you deployed Gigabyte GPU servers before (G292, G492 series)?', why:'Gigabyte-familiar buyers (common in neocloud and GPU rental) already know the platform, the management tooling, and the support model. Familiarity reduces procurement friction significantly.' },
+      ]},
+      { title:'Workload & Configuration', questions:[
+        { q:'What is your primary workload — inference serving, training, or multi-tenant hosting?', why:'Gigabyte B300 is especially attractive for inference serving and multi-tenant GPU rental, where cost-per-GPU and density per rack are the key metrics. Training use cases are equally valid but may be better served by DGX if full NVIDIA support is required.' },
+        { q:'Are you building a GPU rental or cloud hosting service on these nodes?', why:'Gigabyte is the OEM of choice for many GPU rental operators. If the buyer is building a revenue-generating GPU cloud, Gigabyte\'s lower OEM cost per node directly improves their unit economics vs. DGX or Dell.', key:true },
+        { q:'How many GPUs and nodes are you planning for this build?', why:'Cluster size determines InfiniBand switch requirements and total deal value. Gigabyte B300 clusters use NDR fabric for inter-node communication. Confirm whether a switch upgrade is in scope.' },
+        { q:'Do you plan to use MIG to partition GPUs for multiple tenants?', why:'For GPU rental operators, B300 MIG-7 (7 instances per GPU, 36 GB each) is a strong unit economics story — 56 isolated MIG instances per 8-GPU node. Each instance can serve a 13B-parameter model. High-value for multi-tenant inference hosting.' },
+      ]},
+      { title:'Competitive & Procurement', questions:[
+        { q:'Are you comparing Gigabyte B300 to Supermicro B300 or DGX B300?', why:'Gigabyte vs. SMC B300: Gigabyte is typically lower cost and higher density (4U vs. 8U). SMC has stronger US support infrastructure and broader US distribution. DGX is highest cost but includes NVIDIA\'s full support wrapper. Match the platform to the buyer\'s support model preference.', key:true },
+        { q:'What is your target cost per GPU or cost per node?', why:'Gigabyte typically prices at the lowest OEM cost per GPU of the three B300 platform options. If cost-per-GPU is the primary metric, Gigabyte is usually the answer. Run the numbers — the gap vs. DGX B300 can be $60–100K+ per node.' },
+        { q:'What support and warranty terms are you expecting?', why:'Gigabyte OEM warranty is standard 1–3 year limited. For higher support requirements (NBD onsite, 24/7 TAC), SMC or DGX may be a better fit. Gigabyte is best for self-managing operators who optimize for CapEx over support cost.' },
+        { q:'What is your deployment deadline?', why:'OEM Gigabyte B300 lead times are 12–18+ months. Velerity certified supply is weeks. Same lead time advantage as all B300 platforms — if they need it now, Velerity is the only path.', key:true },
+      ]},
+    ],
+  },
+
   // ── Vera Rubin R100 SXM8 ──
   { id:'r100-sxm', name:'R100 288GB SXM8 (Vera Rubin)', badge:'Rubin', gen:'Rubin', color:'#06B6D4',
     headline:'Vera Rubin — 288GB HBM4, NVLink 6.0 at 3,600 GB/s, ~15,000 GB/s bandwidth. Next generation beyond Blackwell Ultra. Expected 2026–2027.',
