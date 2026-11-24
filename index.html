@@ -520,7 +520,7 @@ const GPU_DATA = [
     sourceUrl:'https://www.nvidia.com/en-us/data-center/a100/', verified:true },
 
   { id:'a100-80-sxm4', gen:'A100', name:'A100 80GB SXM4', badge:'A100',
-    memory:'80 GB HBM2e', memBW:'2,000 GB/s', tdp:'400 W', mig:true, te:false,
+    memory:'80 GB HBM2e', memBW:'2,039 GB/s', tdp:'400 W', mig:true, te:false,
     nvlink:'600 GB/s (NVLink 3.0)',
     perf:{ fp64:'19.5 TFLOPS', fp32:'19.5 TFLOPS', tf32:'312 TFLOPS (624 w/ sparsity)', bf16:'624 TFLOPS (1,248 w/ sparsity)', fp16:'624 TFLOPS (1,248 w/ sparsity)', fp8:'Not supported', fp4:'Not supported', int8:'1,248 TOPS (2,496 w/ sparsity)' },
     bestFor:'Multi-GPU training (GPT-3 scale, diffusion models); clusters requiring high NVLink bandwidth; DGX A100 and HGX A100 systems.',
@@ -575,13 +575,13 @@ const GPU_DATA = [
     sourceUrl:'https://www.nvidia.com/en-us/data-center/h100/', verified:true },
 
   { id:'h100-nvl', gen:'H100', name:'H100 NVL 94GB', badge:'H100',
-    memory:'94 GB HBM3 (per GPU; 188 GB per NVL pair)', memBW:'3,350 GB/s', tdp:'400 W', mig:true, te:true,
-    nvlink:'600 GB/s (NVLink 4.0, paired)',
-    perf:{ fp64:'33.5 TFLOPS', fp32:'66.9 TFLOPS', tf32:'989 TFLOPS (1,979 w/ sparsity)', bf16:'1,979 TFLOPS (3,958 w/ sparsity)', fp16:'1,979 TFLOPS (3,958 w/ sparsity)', fp8:'3,958 TOPS (7,916 w/ sparsity)', fp4:'Not supported', int8:'3,958 TOPS (7,916 w/ sparsity)' },
-    bestFor:'Large context inference (long documents, video); models requiring >80 GB VRAM; PCIe server environments needing extra memory.',
-    notes:'Two H100 dies connected via NVLink on a single PCIe card. 94 GB per die (188 GB total addressable). Lower NVLink BW than SXM5. Good for memory-constrained inference.',
-    platformContext:'PCIe card (dual-die). Two H100 GPU dies unified as 188 GB addressable via NVLink. Fits a standard PCIe x16 slot. Used in PCIe servers — not an HGX/DGX component.',
-    buyWhy:'Customers needing >80 GB VRAM per GPU in a PCIe form factor. Typically inference teams running very long context (128K+ token) models or large VLMs like LLaMA 405B on fewer cards. NVL pairs sold as 2-die units — natural upsell for teams already buying H100 PCIe infrastructure.',
+    memory:'94 GB HBM3 (per die; 188 GB per dual-die card)', memBW:'3,938 GB/s', tdp:'350–400 W (configurable)', mig:true, te:true,
+    nvlink:'600 GB/s (NVLink 4.0, intra-card)',
+    perf:{ fp64:'30 TFLOPS', fp32:'60 TFLOPS', tf32:'835 TFLOPS (1,671 w/ sparsity)', bf16:'1,671 TFLOPS (3,341 w/ sparsity)', fp16:'1,671 TFLOPS (3,341 w/ sparsity)', fp8:'3,341 TOPS (6,682 w/ sparsity)', fp4:'Not supported', int8:'3,341 TOPS (6,682 w/ sparsity)' },
+    bestFor:'Large context inference (long documents, video); models requiring >80 GB VRAM per GPU; PCIe server environments needing extra memory.',
+    notes:'Two H100 dies on a single PCIe card, connected via NVLink. 94 GB HBM3 per die = 188 GB total per card. 3,938 GB/s combined memory bandwidth. Runs at lower TDP (350–400 W) than H100 SXM5 (700 W) — proportionally lower compute throughput. Good for memory-constrained inference.',
+    platformContext:'PCIe form factor (dual-die). Two H100 GPU dies present as 188 GB addressable via NVLink on a single PCIe card. Fits standard PCIe x16 slot. Used in PCIe GPU servers — not an HGX/DGX baseboard component. OEM server options: Dell PowerEdge R760xa, Supermicro 4028GR-series, HPE DL380 Gen11.',
+    buyWhy:'Customers needing >80 GB VRAM per GPU in a PCIe form factor. Typically inference teams running very long context (128K+ token) models or large VLMs like LLaMA 405B on fewer cards. 4 cards = 752 GB total on a single server. Natural upsell for teams already buying H100 PCIe infrastructure.',
     migMaxInstances: 7,
     migNote: 'MIG is per GPU die (94 GB each). Both dies on a single NVL card can run independent MIG configurations — up to 14 total isolated instances across the full 188 GB card.',
     migProfiles: [
@@ -613,13 +613,13 @@ const GPU_DATA = [
     sourceUrl:'https://www.nvidia.com/en-us/data-center/h200/', verified:true },
 
   { id:'h200-nvl', gen:'H200', name:'H200 NVL 141GB', badge:'H200',
-    memory:'141 GB HBM3e (per GPU; 282 GB per NVL pair)', memBW:'4,800 GB/s', tdp:'700 W', mig:true, te:true,
-    nvlink:'900 GB/s (NVLink 4.0, paired)',
-    perf:{ fp64:'33.5 TFLOPS', fp32:'66.9 TFLOPS', tf32:'989 TFLOPS (1,979 w/ sparsity)', bf16:'1,979 TFLOPS (3,958 w/ sparsity)', fp16:'1,979 TFLOPS (3,958 w/ sparsity)', fp8:'3,958 TOPS (7,916 w/ sparsity)', fp4:'Not supported', int8:'3,958 TOPS (7,916 w/ sparsity)' },
-    bestFor:'Extremely large models (400B+ MoE); production inference requiring maximum GPU memory; rack-scale AI deployments.',
-    notes:'NVL variant pairs two H200 dies for 282 GB addressable memory. Premium option for the most memory-constrained use cases.',
-    platformContext:'PCIe card (dual-die). Two H200 GPU dies unified as 282 GB addressable via NVLink. Fits a standard PCIe x16 slot. Different from the SXM variant used in DGX/HGX systems.',
-    buyWhy:'Niche top-of-market use case — customers running 1T+ parameter models or massive MoE serving who need maximum per-node GPU memory in PCIe form factor. Very limited supply; premium pricing. Good for deal size but rare buyer profile. Qualify carefully before pitching.',
+    memory:'141 GB HBM3e', memBW:'4,800 GB/s', tdp:'600 W (configurable)', mig:true, te:true,
+    nvlink:'900 GB/s (NVLink 4.0) — 2- or 4-way bridge across separate cards',
+    perf:{ fp64:'30 TFLOPS', fp32:'60 TFLOPS', tf32:'835 TFLOPS (1,671 w/ sparsity)', bf16:'1,671 TFLOPS (3,341 w/ sparsity)', fp16:'1,671 TFLOPS (3,341 w/ sparsity)', fp8:'3,341 TOPS (6,682 w/ sparsity)', fp4:'Not supported', int8:'3,341 TOPS (6,682 w/ sparsity)' },
+    bestFor:'Extremely large models (400B+ parameters); production inference requiring maximum GPU memory in a PCIe server; rack-scale AI deployments.',
+    notes:'Single-die PCIe card (141 GB HBM3e, same die as H200 SXM). Runs at lower TDP (600 W configurable) than SXM variant — proportionally lower compute throughput. Can be bridged 2- or 4-way via NVLink bridge adapters: 2-way = 282 GB, 4-way = 564 GB across physically separate cards (not dual-die on one card). Premium memory configuration for inference at scale.',
+    platformContext:'PCIe form factor (single-die). One H200 GPU die per card at 141 GB HBM3e. Cards can be NVLink-bridged 2× or 4× for higher aggregate memory — 282 GB or 564 GB across multiple PCIe cards in the same server. Different from H100 NVL (which is dual-die on a single card). Fits standard PCIe GPU servers.',
+    buyWhy:'Customers needing >141 GB VRAM per GPU or running 400B–1T+ parameter models in PCIe-based servers. NVLink bridge configs (2×/4× cards) allow massive memory per server without DGX/HGX infrastructure. Very limited supply; premium pricing. Qualify carefully — buyer needs PCIe-compatible workloads and clear memory justification above H200 SXM.',
     migMaxInstances: 7,
     migNote: 'MIG is per GPU die (141 GB each). Both dies on a single NVL card can run independent MIG configurations — up to 14 total isolated instances across the full 282 GB card.',
     migProfiles: [
@@ -633,11 +633,11 @@ const GPU_DATA = [
 
   // ── B200 / Blackwell ──
   { id:'b200-sxm6', gen:'B200', name:'B200 192GB SXM6', badge:'B200',
-    memory:'192 GB HBM3e', memBW:'8,000 GB/s', tdp:'~1,000 W', mig:true, te:true,
+    memory:'192 GB HBM3e (die capacity; 180 GB per GPU in HGX/DGX deployed config)', memBW:'8,000 GB/s', tdp:'~1,000 W', mig:true, te:true,
     nvlink:'1,800 GB/s (NVLink 5.0)',
     perf:{ fp64:'40 TFLOPS', fp32:'80 TFLOPS', tf32:'2,500 TFLOPS (5,000 w/ sparsity)', bf16:'4,500 TFLOPS (9,000 w/ sparsity)', fp16:'4,500 TFLOPS (9,000 w/ sparsity)', fp8:'9,000 TFLOPS (18,000 w/ sparsity)', fp4:'18,000 TFLOPS (36,000 w/ sparsity)', int8:'18,000 TOPS (36,000 w/ sparsity)' },
     bestFor:'Frontier LLM training (GPT-4 scale and beyond); large-batch inference for 100B–1T+ parameter models; MoE and reasoning model serving; next-generation AI clusters replacing H100/H200.',
-    notes:'Blackwell architecture — 2nd-gen Transformer Engine with FP4 precision. NVLink 5.0 at 1,800 GB/s (2× H100). ~4.5× more FP8 throughput vs. H100 SXM5. Liquid cooling mandatory — no air-cooled B200 SXM6 configuration supported. 192 GB HBM3e enables serving GPT-4-class models on a single node.',
+    notes:'Blackwell architecture — 2nd-gen Transformer Engine with FP4 precision. NVLink 5.0 at 1,800 GB/s (2× H100). ~4.5× more FP8 throughput vs. H100 SXM5. Liquid cooling mandatory — no air-cooled B200 SXM6 configuration supported. 180 GB HBM3e per GPU (deployed; die capacity is 192 GB) = 1,440 GB total per 8-GPU node.',
     platformContext:'SXM6. Mounts on HGX B200 baseboard inside DGX B200 (NVIDIA), OEM HGX B200 systems (Dell XE9780, Supermicro B200), or GB200 NVL72 rack (as GB200 Superchip pairing one Grace CPU + 2 B200 dies). Liquid cooling required for all SXM6 deployments.',
     buyWhy:'Hyperscalers and frontier AI labs building next-generation training clusters. Enterprises buying to serve GPT-4-class models where H200 memory or compute is insufficient. Key trigger: H100/H200 clusters are saturated and teams need 4–5× more throughput. OEM lead times 12–18+ months — Velerity certified supply is high-value here.',
     migMaxInstances: 7,
@@ -879,7 +879,7 @@ const PLATFORM_DATA = [
   // ── DGX (NVIDIA-branded, turnkey) ──
   { id:'dgx-a100', oem:'NVIDIA', name:'DGX A100', gpuType:'A100 80GB SXM4', gpuCount:8, formFactor:'6U', category:'DGX',
     cpu:'2× AMD EPYC 7742 (64-core)', ram:'1 TB DDR4', storage:'15 TB NVMe (8× 1.92 TB)',
-    networking:'8× 200Gb HDR InfiniBand, 2× 10GbE mgmt', power:'6,500 W', cooling:'Air', weight:'~227 kg',
+    networking:'8× 200Gb HDR InfiniBand, 2× 10GbE mgmt', power:'6,500 W', cooling:'Air', weight:'~132 kg',
     nvlink:'NVLink 3.0 (600 GB/s)',
     notes:'Reference DGX platform for A100 era. Ships with NVIDIA Base Command software. 5× NVLink switches inside. Total GPU memory: 640 GB.',
     whosBuying:'Enterprise AI teams wanting NVIDIA-branded turnkey systems with software included (Base Command). Research institutions preferring single-vendor support. Common in finance, pharma, and government. Velerity certified DGX A100 systems typically sell 40–50% below new DGX H100 price — strong value pitch for teams where A100 compute is sufficient.',
@@ -902,17 +902,17 @@ const PLATFORM_DATA = [
     sourceUrl:'https://www.nvidia.com/en-us/data-center/dgx-h200/', verified:false },
 
   { id:'dgx-b200', oem:'NVIDIA', name:'DGX B200', gpuType:'B200 192GB SXM6', gpuCount:8, formFactor:'10U', category:'DGX',
-    cpu:'2× Intel Xeon (Granite Rapids, 60-core)', ram:'2.3 TB LPDDR5X', storage:'30 TB NVMe',
-    networking:'8× 400Gb NDR InfiniBand (ConnectX-8), 2× 10GbE mgmt', power:'~14,400 W', cooling:'Direct liquid cooling required',
+    cpu:'2× Intel Xeon Platinum 8570 (56-core per CPU)', ram:'2 TB DDR5 (configurable to 4 TB)', storage:'30 TB NVMe',
+    networking:'4× OSFP 400Gb InfiniBand/Ethernet + 2× dual-port BlueField-3 DPU (QSFP112)', power:'~14,400 W', cooling:'Direct liquid cooling required',
     weight:'~350 kg', nvlink:'NVLink 5.0 (1,800 GB/s per GPU)',
-    notes:'NVIDIA flagship Blackwell training server. Liquid cooling mandatory — cannot run on air. 1.44 PB/s NVLink fabric per node. Total GPU memory: 1,536 GB (192 GB × 8). ~4.5× FP8 throughput vs. DGX H100. Ships with DGX OS and Base Command.',
+    notes:'NVIDIA flagship Blackwell training server. Liquid cooling mandatory — cannot run on air. 1.44 PB/s NVLink fabric per node. Total GPU memory: 1,440 GB (180 GB × 8 deployed). ~4.5× FP8 throughput vs. DGX H100. Ships with DGX OS and Base Command.',
     whosBuying:'Frontier AI labs (OpenAI, Anthropic, xAI-scale operations) and hyperscalers building next-generation training clusters. Enterprise AI teams securing capacity ahead of frontier model development. Requires liquid cooling DC infrastructure — qualify facility readiness before selling. OEM lead time 12–18+ months new.',
     sourceUrl:'https://www.nvidia.com/en-us/data-center/dgx-b200/', verified:false },
 
   // ── HGX (OEM-built, NVIDIA baseboard) ──
   { id:'hgx-b200', oem:'NVIDIA', name:'HGX B200 (OEM Baseboard)', gpuType:'B200 192GB SXM6', gpuCount:8, formFactor:'Varies (OEM)', category:'HGX',
     cpu:'OEM-defined (Intel Granite Rapids or AMD EPYC Turin)', ram:'OEM-configured', storage:'OEM-configured',
-    networking:'8× 400Gb NDR InfiniBand (ConnectX-8) or 400GbE', power:'~14,400 W (GPUs)', cooling:'Direct liquid cooling required',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-7) or 400GbE', power:'~14,400 W (GPUs)', cooling:'Direct liquid cooling required',
     weight:'Varies by OEM', nvlink:'NVLink 5.0 (1,800 GB/s per GPU)',
     notes:'NVIDIA HGX B200 baseboard used by Dell (XE9780), Supermicro, HPE, and Lenovo. OEM selects CPU, memory, and storage. Liquid cooling is mandatory — no air-cooled B200 HGX configuration supported. All-to-all GPU connectivity via NVSwitch 4th gen.',
     whosBuying:'Enterprises and neoclouds with existing OEM vendor relationships wanting Blackwell performance within their preferred infrastructure vendor. Dell XE9780 is most common HGX B200 platform in enterprise; Supermicro B200 leads in neocloud deployments. Best angle: same performance as DGX B200 with the OEM support model customer already has.',
@@ -942,7 +942,7 @@ const PLATFORM_DATA = [
     whosBuying:'HPE GreenLake customers and enterprises with HPE as preferred vendor. Used heavily in academia and national labs. Best angle for Velerity: HPE-loyal customers who want A100-era refurb systems through a certified channel rather than gray-market.',
     sourceUrl:'https://www.hpe.com/us/en/servers/proliant-xl.html', verified:false },
 
-  { id:'hpe-cray-xd670', oem:'HPE', name:'Cray XD670', gpuType:'H100/H200 SXM', gpuCount:8, formFactor:'6U', category:'HGX',
+  { id:'hpe-cray-xd670', oem:'HPE', name:'Cray XD670', gpuType:'H100/H200 SXM', gpuCount:8, formFactor:'5U', category:'HGX',
     cpu:'2× Intel Xeon Scalable (Sapphire Rapids)', ram:'Up to 4 TB DDR5', storage:'Up to 8× NVMe',
     networking:'Up to 8× 400Gb NDR InfiniBand (ConnectX-7)', power:'~10,000 W', cooling:'Air or direct liquid',
     weight:'~180 kg', nvlink:'NVLink 4.0 (900 GB/s)',
@@ -966,7 +966,7 @@ const PLATFORM_DATA = [
     whosBuying:'Enterprise customers with Lenovo as preferred vendor or existing Lenovo HPC infrastructure. Common in automotive, manufacturing, and financial services. Lenovo XClarity management integration is key differentiator for IT ops teams. Good refurb angle: widely deployed, well-documented.',
     sourceUrl:'https://www.lenovo.com/us/en/servers-storage/servers/gpu-servers/ThinkSystem-SR670-V2/', verified:false },
 
-  { id:'lenovo-sr675v3', oem:'Lenovo', name:'ThinkSystem SR675 V3', gpuType:'H100 80GB SXM5', gpuCount:8, formFactor:'5U', category:'HGX',
+  { id:'lenovo-sr675v3', oem:'Lenovo', name:'ThinkSystem SR675 V3', gpuType:'H100 80GB SXM5', gpuCount:4, formFactor:'5U', category:'HGX',
     cpu:'2× AMD EPYC 9004 series (up to 96-core)', ram:'Up to 6 TB DDR5', storage:'Up to 12× NVMe',
     networking:'Up to 8× 400Gb NDR InfiniBand (ConnectX-7)', power:'~10,000 W', cooling:'Air or liquid',
     weight:'~170 kg', nvlink:'NVLink 4.0 (900 GB/s)',
@@ -993,7 +993,7 @@ const PLATFORM_DATA = [
   // ── DGX / HGX B300 (Blackwell Ultra) ──
   { id:'dgx-b300', oem:'NVIDIA', name:'DGX B300', gpuType:'B300 288GB SXM7', gpuCount:8, formFactor:'10U', category:'DGX',
     cpu:'2× Intel Xeon (Clearwater Forest, est.) or AMD EPYC Turin', ram:'~2.3 TB LPDDR5X (est.)', storage:'30+ TB NVMe',
-    networking:'8× 400Gb NDR InfiniBand (ConnectX-8), 2× 10GbE mgmt', power:'~16,000 W (est.)', cooling:'Direct liquid cooling required',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-7), 2× 10GbE mgmt', power:'~16,000 W (est.)', cooling:'Direct liquid cooling required',
     weight:'~350+ kg (est.)', nvlink:'NVLink 5.0 (1,800 GB/s per GPU)',
     notes:'NVIDIA Blackwell Ultra flagship training server. Liquid cooling mandatory. NVSwitch 4th gen for all-to-all GPU connectivity. Total GPU memory: 2,304 GB (288 GB × 8) — 50% more per node than DGX B200. ~1.3× estimated performance improvement over DGX B200. All specs are pre-production estimates based on NVIDIA GTC 2025 announcements.',
     whosBuying:'Hyperscalers and frontier AI labs building Blackwell Ultra infrastructure. Enterprises upgrading existing B200 liquid-cooled deployments — same CDU infrastructure carries forward. Buyers for whom the B200\'s 192 GB VRAM is already a bottleneck. OEM lead times expected 12–18+ months.',
@@ -1001,7 +1001,7 @@ const PLATFORM_DATA = [
 
   { id:'hgx-b300', oem:'NVIDIA', name:'HGX B300 (OEM Baseboard)', gpuType:'B300 288GB SXM7', gpuCount:8, formFactor:'Varies (OEM)', category:'HGX',
     cpu:'OEM-defined (Intel Clearwater Forest or AMD EPYC Turin)', ram:'OEM-configured', storage:'OEM-configured',
-    networking:'8× 400Gb NDR InfiniBand (ConnectX-8) or 400GbE', power:'~16,000 W (GPUs, est.)', cooling:'Liquid cooling (most OEMs) or enhanced air (Supermicro, Gigabyte variants)',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-7) or 400GbE', power:'~16,000 W (GPUs, est.)', cooling:'Liquid cooling (most OEMs) or enhanced air (Supermicro, Gigabyte variants)',
     weight:'Varies by OEM', nvlink:'NVLink 5.0 (1,800 GB/s per GPU)',
     notes:'NVIDIA HGX B300 baseboard for OEM integration. Most OEM platforms (Dell XE9790, HPE Cray XD690, Lenovo) require direct liquid cooling. Notable exception: Supermicro and Gigabyte both offer HGX B300 configurations in either direct liquid cooling or enhanced air-cooling variants — opening B300 to sites without CDU infrastructure. Same NVLink 5.0/NVSwitch 4th-gen topology as HGX B200.',
     whosBuying:'Enterprises and neoclouds wanting Blackwell Ultra in their preferred OEM form factor. Sites with DLC carry forward their B200 cooling infrastructure. Sites without DLC should be directed to Supermicro or Gigabyte air-cooled HGX B300 variants — a critical sales angle when liquid cooling is a gate.',
@@ -1009,7 +1009,7 @@ const PLATFORM_DATA = [
 
   { id:'smc-b300-air', oem:'Supermicro', name:'Supermicro AS-8125GS B300 (Air / Liquid)', gpuType:'B300 288GB SXM7', gpuCount:8, formFactor:'8U', category:'HGX',
     cpu:'2× AMD EPYC 9004 series (Turin) or Intel Clearwater Forest', ram:'Up to 6 TB DDR5', storage:'Up to 12× NVMe E3.S',
-    networking:'8× 400Gb NDR InfiniBand (ConnectX-8) or 400GbE RoCE', power:'~16,000 W (GPU est.) + ~3,500 W platform', cooling:'Air-cooled or direct liquid cooling — customer-selectable config',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-7) or 400GbE RoCE', power:'~16,000 W (GPU est.) + ~3,500 W platform', cooling:'Air-cooled or direct liquid cooling — customer-selectable config',
     weight:'~250 kg (est.)', nvlink:'NVLink 5.0 (1,800 GB/s per GPU)',
     notes:'Supermicro HGX B300 platform offered in both air-cooled and direct liquid cooling (DLC) configurations. The air-cooled variant uses high-static-pressure fan arrays and optimized GPU tray airflow — removing the CDU prerequisite for B300 deployments. This is the key differentiator vs. NVIDIA DGX B300 and Dell XE9790 which are liquid-only. Important for buyers with standard air-cooled DC infrastructure who want B300 without facility upgrade. All specs are pre-production estimates.',
     whosBuying:'Enterprises and neoclouds with standard air-cooled datacenter infrastructure who want B300 without investing in liquid cooling. Supermicro-loyal neocloud operators (Supermicro is the dominant HGX vendor in neocloud deployments). Budget-sensitive B300 buyers who want to avoid CDU/cooling infrastructure cost. Key sales angle: B300 access WITHOUT the liquid cooling gate.',
@@ -1017,7 +1017,7 @@ const PLATFORM_DATA = [
 
   { id:'gigabyte-b300', oem:'Gigabyte', name:'Gigabyte G493 HGX B300 (Air / Liquid)', gpuType:'B300 288GB SXM7', gpuCount:8, formFactor:'4U', category:'HGX',
     cpu:'2× AMD EPYC 9004 series (Turin)', ram:'Up to 4 TB DDR5', storage:'Up to 12× NVMe',
-    networking:'8× 400Gb NDR InfiniBand (ConnectX-8) or 400GbE', power:'~16,000 W (GPU est.) + ~3,000 W platform', cooling:'Air-cooled or direct liquid cooling — customer-selectable config',
+    networking:'8× 400Gb NDR InfiniBand (ConnectX-7) or 400GbE', power:'~16,000 W (GPU est.) + ~3,000 W platform', cooling:'Air-cooled or direct liquid cooling — customer-selectable config',
     weight:'~200 kg (est.)', nvlink:'NVLink 5.0 (1,800 GB/s per GPU)',
     notes:'Gigabyte HGX B300 platform available in both air-cooled and liquid-cooled configurations. Gigabyte\'s signature high-density 4U form factor (vs. Supermicro\'s 8U) makes this attractive for space-constrained high-density deployments. Air-cooled variant uses reinforced fan modules and optimized GPU tray airflow for B300 TDP. Lower-cost OEM alternative to DGX B300 for price-sensitive buyers. All specs are pre-production estimates.',
     whosBuying:'Value-focused cloud builders and GPU rental providers who want Blackwell Ultra without the DGX premium or liquid cooling requirement. Gigabyte-familiar neocloud operators building cost-optimized B300 clusters. Buyers who need the highest GPU density in a 4U footprint without DLC infrastructure.',
@@ -1933,7 +1933,7 @@ const SERVER_POWER_DATA = {
   'hgx-h200':      { label:'HGX H200 8-GPU Node',           tdp:12000, gpus:8, rackU:8  },
   'dell-xe8545':   { label:'Dell XE8545 (4× A100)',         tdp:5600,  gpus:4, rackU:4  },
   'dell-xe9680':   { label:'Dell XE9680 (8× H100/H200)',    tdp:12000, gpus:8, rackU:8  },
-  'hpe-cray-xd670':{ label:'HPE Cray XD670',                tdp:10000, gpus:8, rackU:6  },
+  'hpe-cray-xd670':{ label:'HPE Cray XD670',                tdp:10000, gpus:8, rackU:5  },
   'custom':        { label:'Custom',                        tdp:0,     gpus:8, rackU:8  },
 };
 
@@ -2168,11 +2168,13 @@ function calcWorkload() {
   // GPU VRAM options
   const gpuOptions = [
     { name:'A100 40GB PCIe', vram:40, gen:'A100', bandwidth:'1,555 GB/s' },
-    { name:'A100 80GB PCIe/SXM4', vram:80, gen:'A100', bandwidth:'2,000 GB/s' },
+    { name:'A100 80GB PCIe/SXM4', vram:80, gen:'A100', bandwidth:'2,039 GB/s' },
     { name:'H100 80GB PCIe', vram:80, gen:'H100', bandwidth:'2,000 GB/s' },
     { name:'H100 80GB SXM5', vram:80, gen:'H100', bandwidth:'3,350 GB/s' },
-    { name:'H100 NVL 94GB', vram:94, gen:'H100', bandwidth:'3,350 GB/s' },
+    { name:'H100 NVL 94GB', vram:94, gen:'H100', bandwidth:'3,938 GB/s' },
     { name:'H200 141GB SXM/NVL', vram:141, gen:'H200', bandwidth:'4,800 GB/s' },
+    { name:'B200 192GB SXM6', vram:192, gen:'B200', bandwidth:'8,000 GB/s' },
+    { name:'B300 288GB SXM7', vram:288, gen:'B300', bandwidth:'~10,000 GB/s' },
   ];
 
   // Find minimum GPUs needed
@@ -2780,7 +2782,7 @@ const FLASHCARDS = [
   { q:'What is the minimum VRAM for running a 70B model at BF16 for inference?', a:'~140 GB (70B × 2 bytes + ~20% inference overhead ≈ 168 GB). Minimum: 2× H100/H200 80GB, or 1× H200 NVL (141 GB per die × 2 = 282 GB).' },
   { q:'What condition grades does Velerity use, and what does Grade A mean?', a:'Grade A: like new, minimal cosmetic wear, full diagnostics pass. Grade B: visible cosmetic wear, all components functional. Grade C: heavy wear or minor variance, passes core diagnostics.' },
   { q:'What is the NVLink bandwidth on the A100 SXM4?', a:'600 GB/s (NVLink 3.0). The H100/H200 SXM5 doubles this to 900 GB/s with NVLink 4.0.' },
-  { q:'What is the memory capacity, type, and bandwidth of the B200 SXM6?', a:'192 GB HBM3e per GPU at 8,000 GB/s — 76% more bandwidth than the H200 SXM (4,800 GB/s) and more than double the H100 SXM5 (3,350 GB/s). An 8-GPU HGX B200 node has 1,536 GB total GPU memory.' },
+  { q:'What is the memory capacity, type, and bandwidth of the B200 SXM6?', a:'192 GB HBM3e die capacity per GPU at 8,000 GB/s — 76% more bandwidth than the H200 SXM (4,800 GB/s) and more than double the H100 SXM5 (3,350 GB/s). Note: HGX/DGX B200 deployments use 180 GB per GPU = 1,440 GB total per 8-GPU node.' },
   { q:'What is NVLink 5.0 bandwidth on the B200, and how does it compare to H100?', a:'1,800 GB/s per GPU (NVLink 5.0) — exactly 2× the H100/H200 SXM NVLink 4.0 bandwidth of 900 GB/s. Enables tighter all-to-all coupling across 8 GPUs via NVSwitch 4th gen.' },
   { q:'What is the TDP of the B200 SXM6 and what cooling does it require?', a:'~1,000 W per GPU. Liquid cooling is mandatory — there is no air-cooled B200 SXM6 configuration. This is a hard facility qualification gate: buyers must have liquid cooling before the deal can progress.' },
   { q:'How does B200 FP8 and FP4 throughput compare to H100 SXM5?', a:'B200 SXM6: 9,000 TOPS FP8 (18,000 w/ sparsity) and 18,000 TOPS FP4 (36,000 w/ sparsity). H100 SXM5: 3,958 TOPS FP8. That is ~4.5× more FP8 throughput. FP4 is not supported on H100/H200 at all — B200 introduced it with 2nd-gen Transformer Engine.' },
@@ -3739,7 +3741,7 @@ const PLAYBOOK_DATA = [
       { title:'Infrastructure & Chassis', questions:[
         { q:'Are you looking for a complete DGX A100 turnkey system, or an HGX A100 baseboard to integrate into your own server?', why:'DGX = higher price, NVIDIA software (Base Command), and single-vendor support. HGX = more flexibility, lower cost, OEM support. Key deal-shaping question.', key:true },
         { q:'If HGX — do you have an existing OEM relationship or vendor preference? (Dell, HPE, Lenovo, Gigabyte?)', why:'Qualified HGX A100 platforms: Dell XE8545, HPE XL675d Gen10 Plus, Lenovo ThinkSystem SR670 V2, Gigabyte G492-Z50. Match to buyer\'s existing fleet.' },
-        { q:'What rack space is available? DGX A100 is 6U and weighs ~227 kg — do you have a reinforced rack?', why:'Weight is often overlooked. Many standard server racks are rated 300–400 kg max. DGX A100 at 227 kg needs confirmation that the rack can hold it.', key:true },
+        { q:'What rack space is available? DGX A100 is 6U and weighs ~132 kg — do you have a reinforced rack?', why:'Weight is often overlooked. Many standard server racks are rated 300–400 kg max. DGX A100 at 132 kg needs confirmation that the rack can hold it.', key:true },
         { q:'How many nodes are you targeting in phase 1 and what is the cluster scale?', why:'Sets deal size. 1 node = standalone training. 2–8 nodes = small cluster (InfiniBand HDR fabric needed). 8+ nodes = serious cluster build.' },
         { q:'Do you have NVIDIA Base Command or another cluster management system?', why:'DGX A100 ships with Base Command — if they want it, they need the full DGX. If they\'re running their own stack (Slurm, Kubernetes), HGX is the right choice.' },
       ]},
@@ -4163,7 +4165,7 @@ const PLAYBOOK_DATA = [
         { q:'Do you have HGX B200 chassis already deployed?', why:'B300 uses SXM7 and HGX B300 baseboard — but the CDU and rack infrastructure is the same as B200. Existing B200 customers have the most frictionless path to B300.', key:true },
         { q:'Are you planning a DGX B300 (turnkey NVIDIA) or an HGX B300 OEM build?', why:'DGX B300 is NVIDIA\'s turnkey system (like DGX H100). HGX B300 is an OEM baseboard build (Dell, Supermicro, etc.). Both take the same GPU. DGX is simpler but less customizable and higher list price.' },
         { q:'What OEM platform are you targeting — Dell, Supermicro, HPE, or other?', why:'Dell XE9790 (expected), Supermicro B300 chassis are the anticipated B300 OEM platforms. If the buyer has an existing OEM relationship, confirm the B300 chassis roadmap with that vendor.' },
-        { q:'What networking fabric are you running — InfiniBand NDR (400Gb) or Ethernet?', why:'B300 DGX comes with ConnectX-8 (400Gb NDR InfiniBand). Multi-node B300 clusters will need NDR fabric. If they are on HDR (200Gb), confirm whether a fabric upgrade is in scope.' },
+        { q:'What networking fabric are you running — InfiniBand NDR (400Gb) or Ethernet?', why:'B300 DGX comes with ConnectX-7 (400Gb NDR InfiniBand). Multi-node B300 clusters will need NDR fabric. If they are on HDR (200Gb), confirm whether a fabric upgrade is in scope.' },
         { q:'Are you planning a GB300 NVL72 rack-scale system, or discrete 8-GPU nodes?', why:'GB300 NVL72 (36 Grace CPUs + 72 B300 dies) is a full-rack AI factory deployment — different buying center and procurement process vs. individual DGX/HGX nodes. Confirm scope.' },
       ]},
       { title:'Power & Cooling', questions:[
@@ -4175,7 +4177,7 @@ const PLAYBOOK_DATA = [
       { title:'Networking & Scale', questions:[
         { q:'What is your target cluster size — number of nodes and total GPUs?', why:'Cluster size determines InfiniBand switch requirements, spine/leaf topology, and total deal value. 8 nodes = 64 GPUs. 128 nodes = 1,024 GPUs. At 128+ nodes, ask about InfiniBand spine topology and DragonFly+ routing.' },
         { q:'Are you planning to link multiple B300 nodes via NVLink Switch (rail-optimized topology)?', why:'NVLink Switch (the rack-to-rack NVLink extension) enables low-latency GPU-to-GPU communication across nodes beyond a single NVSwitch domain. This is the GB300 NVL72 architecture — worth asking if they are planning rack-scale deployments.' },
-        { q:'What RDMA fabric are you running or planning — InfiniBand or RoCE?', why:'B300 DGX ships with ConnectX-8 supporting 400Gb NDR InfiniBand and RoCE. For multi-node training, InfiniBand NDR is recommended. Confirm whether a fabric upgrade is included in scope or a separate line item.' },
+        { q:'What RDMA fabric are you running or planning — InfiniBand or RoCE?', why:'B300 DGX ships with ConnectX-7 supporting 400Gb NDR InfiniBand and RoCE. For multi-node training, InfiniBand NDR is recommended. Confirm whether a fabric upgrade is included in scope or a separate line item.' },
       ]},
       { title:'MIG & Partitioning', questions:[
         { q:'Are you planning to use MIG partitioning on B300?', why:'B300 supports up to 7 MIG instances. At 36 GB per smallest instance, even the smallest B300 MIG partition has enough VRAM for 13B-parameter inference. If they are using MIG, confirm workload isolation and security requirements.' },
