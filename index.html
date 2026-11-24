@@ -747,12 +747,15 @@ const GPU_DATA = [
 ];
 
 let gpuGenFilter = 'A100';
+let gpuSearch = '';
 let selectedGPU = null;
 
 function renderGPUs() {
   const el = document.getElementById('gpu-content');
   const gens = ['A100','H100','H200','B200','RTX Pro','B300','Rubin'];
-  const filtered = GPU_DATA.filter(g => g.gen === gpuGenFilter);
+  const filtered = gpuSearch
+    ? GPU_DATA.filter(g => { const q = gpuSearch.toLowerCase(); return g.name.toLowerCase().includes(q) || g.gen.toLowerCase().includes(q) || g.memory.toLowerCase().includes(q) || g.nvlink.toLowerCase().includes(q) || g.bestFor.toLowerCase().includes(q); })
+    : GPU_DATA.filter(g => g.gen === gpuGenFilter);
 
   const genColors = { A100:'var(--text-dim)', H100:'#22C55E', H200:'var(--accent)', B200:'#A78BFA', 'RTX Pro':'#F472B6', B300:'#F97316', Rubin:'#06B6D4' };
   const genBadges = {
@@ -872,7 +875,9 @@ function renderGPUs() {
     </div>`;
   })() : '';
 
-  el.innerHTML = `<div class="tabs">${tabs}</div><div class="card-grid">${cards}</div>${detail}`;
+  const gpuTabsDisabled = !!gpuSearch;
+  el.innerHTML = `<input id="gpu-search-input" type="text" placeholder="Search all GPUs…" value="${gpuSearch.replace(/"/g,'&quot;')}" oninput="gpuSearch=this.value;selectedGPU=null;renderGPUs()" style="width:100%;box-sizing:border-box;padding:8px 12px;background:var(--card);border:1px solid ${gpuSearch?'var(--accent)':'var(--border)'};border-radius:6px;color:var(--text-primary);font-size:13px;margin-bottom:12px;outline:none" /><div class="tabs" style="opacity:${gpuTabsDisabled?'0.4':'1'};pointer-events:${gpuTabsDisabled?'none':'auto'};">${tabs}</div><div class="card-grid">${cards}</div>${detail}`;
+  if (gpuSearch) { const si = document.getElementById('gpu-search-input'); if (si) si.focus(); }
 }
 // ── Platform Data ─────────────────────────────────────────────────────────────
 const PLATFORM_DATA = [
@@ -1060,6 +1065,7 @@ const PLATFORM_DATA = [
 ];
 
 let platformFilter = 'All';
+let platSearch = '';
 let selectedPlatform = null;
 
 const CATEGORY_COLORS = { DGX:'#4AD0FA', HGX:'#22C55E', NVL72:'#A78BFA' };
@@ -1067,7 +1073,9 @@ const CATEGORY_COLORS = { DGX:'#4AD0FA', HGX:'#22C55E', NVL72:'#A78BFA' };
 function renderPlatforms() {
   const el = document.getElementById('platform-content');
   const oems = ['All','NVIDIA','Dell','HPE','Supermicro','Lenovo','Gigabyte'];
-  const filtered = platformFilter === 'All' ? PLATFORM_DATA : PLATFORM_DATA.filter(p => p.oem === platformFilter);
+  const filtered = platSearch
+    ? PLATFORM_DATA.filter(p => { const q = platSearch.toLowerCase(); return p.name.toLowerCase().includes(q) || p.oem.toLowerCase().includes(q) || p.gpuType.toLowerCase().includes(q) || p.networking.toLowerCase().includes(q) || (p.notes && p.notes.toLowerCase().includes(q)); })
+    : (platformFilter === 'All' ? PLATFORM_DATA : PLATFORM_DATA.filter(p => p.oem === platformFilter));
 
   const tabs = oems.map(o => `<div class="tab${o===platformFilter?' active':''}" onclick="platformFilter='${o}';selectedPlatform=null;renderPlatforms()">${o}</div>`).join('');
 
@@ -1147,7 +1155,9 @@ function renderPlatforms() {
     </div>`;
   })() : '';
 
-  el.innerHTML = `<div class="tabs" style="flex-wrap:wrap">${tabs}</div>${legend}<div class="card-grid">${cards}</div>${detail}`;
+  const platTabsDisabled = !!platSearch;
+  el.innerHTML = `<input id="plat-search-input" type="text" placeholder="Search all platforms…" value="${platSearch.replace(/"/g,'&quot;')}" oninput="platSearch=this.value;selectedPlatform=null;renderPlatforms()" style="width:100%;box-sizing:border-box;padding:8px 12px;background:var(--card);border:1px solid ${platSearch?'var(--accent)':'var(--border)'};border-radius:6px;color:var(--text-primary);font-size:13px;margin-bottom:12px;outline:none" /><div class="tabs" style="flex-wrap:wrap;opacity:${platTabsDisabled?'0.4':'1'};pointer-events:${platTabsDisabled?'none':'auto'};">${tabs}</div>${legend}<div class="card-grid">${cards}</div>${detail}`;
+  if (platSearch) { const si = document.getElementById('plat-search-input'); if (si) si.focus(); }
 }
 // ── Compare ───────────────────────────────────────────────────────────────────
 let compareType = 'gpu';
