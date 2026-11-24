@@ -2016,7 +2016,20 @@ function saveAdminEdit(id) {
   renderAdmin();
 }
 // ── Workload-Fit Calculator ───────────────────────────────────────────────────
-let workloadTab = 'vram';
+let wlSelectedGPU = 'h100-80-sxm5';
+let wlWorkloadMode = false;
+let wlVramNeeded = 0;
+
+const WL_GPU_OPTIONS = [
+  { id:'a100-40-pcie',  name:'A100 40GB',     gen:'A100',  vram:40,  gpusPerNode:1, nodeTdp:600,   ff:'PCIe',  c:'#64748B' },
+  { id:'a100-80-sxm4',  name:'A100 80GB SXM', gen:'A100',  vram:80,  gpusPerNode:8, nodeTdp:7200,  ff:'SXM4',  c:'#64748B' },
+  { id:'h100-80-pcie',  name:'H100 80GB',     gen:'H100',  vram:80,  gpusPerNode:1, nodeTdp:800,   ff:'PCIe',  c:'#22C55E' },
+  { id:'h100-80-sxm5',  name:'H100 80GB SXM', gen:'H100',  vram:80,  gpusPerNode:8, nodeTdp:12000, ff:'SXM5',  c:'#22C55E' },
+  { id:'h100-nvl',      name:'H100 NVL 94GB', gen:'H100',  vram:94,  gpusPerNode:1, nodeTdp:850,   ff:'NVL',   c:'#22C55E' },
+  { id:'h200-sxm',      name:'H200 141GB SXM',gen:'H200',  vram:141, gpusPerNode:8, nodeTdp:12000, ff:'SXM',   c:'#4AD0FA' },
+  { id:'b200-sxm6',     name:'B200 192GB SXM',gen:'B200',  vram:192, gpusPerNode:8, nodeTdp:14400, ff:'SXM6',  c:'#A78BFA' },
+  { id:'b300-sxm',      name:'B300 288GB SXM',gen:'B300',  vram:288, gpusPerNode:8, nodeTdp:16000, ff:'SXM7',  c:'#F97316' },
+];
 
 const SERVER_POWER_DATA = {
   'dgx-a100':      { label:'DGX A100',                      tdp:6500,  gpus:8, rackU:6  },
@@ -2031,151 +2044,202 @@ const SERVER_POWER_DATA = {
   'custom':        { label:'Custom',                        tdp:0,     gpus:8, rackU:8  },
 };
 
-function renderWorkload() {
-  const tabHtml = `<div class="tabs" style="margin-bottom:24px">
-    <div class="tab${workloadTab==='vram'?' active':''}" onclick="workloadTab='vram';renderWorkload()">VRAM Fit</div>
-    <div class="tab${workloadTab==='power'?' active':''}" onclick="workloadTab='power';renderWorkload()">Power Load (MW)</div>
-  </div>`;
+function selectWlGpu(id) { wlSelectedGPU = id; renderWorkload(); }
+function toggleWlWorkload() { wlWorkloadMode = !wlWorkloadMode; renderWorkload(); }
 
-  if (workloadTab === 'power') {
-    document.getElementById('workload-content').innerHTML = tabHtml + `
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:960px">
-    <div>
-      <div class="card">
-        <div class="card-title" style="font-size:16px;margin-bottom:18px">Deployment Configuration</div>
-        <div class="form-group"><label class="form-label">Server / Node Type</label>
-          <select class="form-select" id="pw-server-type" onchange="document.getElementById('pw-custom-group').style.display=this.value==='custom'?'block':'none'">
-            <option value="dgx-a100">DGX A100 — 6,500 W</option>
-            <option value="dgx-h100" selected>DGX H100 — 10,200 W</option>
-            <option value="dgx-h200">DGX H200 — 10,200 W</option>
-            <option value="hgx-a100">HGX A100 8-GPU Node — 7,200 W</option>
-            <option value="hgx-h100">HGX H100 8-GPU Node — 12,000 W</option>
-            <option value="hgx-h200">HGX H200 8-GPU Node — 12,000 W</option>
-            <option value="dell-xe8545">Dell XE8545 (4× A100) — 5,600 W</option>
-            <option value="dell-xe9680">Dell XE9680 (8× H100/H200) — 12,000 W</option>
-            <option value="hpe-cray-xd670">HPE Cray XD670 — 10,000 W</option>
-            <option value="custom">Custom (enter TDP below)</option>
-          </select>
+function renderWorkload() {
+  const el = document.getElementById('workload-content');
+
+  const gpuChips = WL_GPU_OPTIONS.map(g => {
+    const sel = g.id === wlSelectedGPU;
+    const nodekW = (g.nodeTdp / 1000).toFixed(1);
+    const nodesLabel = g.gpusPerNode === 1 ? '1 GPU/node' : `${g.gpusPerNode} GPUs/node`;
+    return `<div onclick="selectWlGpu('${g.id}')" style="cursor:pointer;padding:10px 12px;border-radius:8px;border:2px solid ${sel ? g.c : 'var(--border)'};background:${sel ? g.c+'18' : 'var(--surface)'};transition:all .15s">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <div style="font-size:13px;font-weight:600;color:${sel ? g.c : 'var(--text)'}">${g.name}</div>
+        <span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:${g.c}22;color:${g.c};border:1px solid ${g.c}44">${g.ff}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);line-height:1.6">${g.vram} GB VRAM &nbsp;·&nbsp; ${nodekW} kW/node</div>
+      <div style="font-size:10px;color:var(--text-muted)">${nodesLabel}</div>
+    </div>`;
+  }).join('');
+
+  const workloadSection = wlWorkloadMode ? `
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Model Size</label>
+        <select class="form-select" id="wl-params" onchange="calcUnified()">
+          <option value="7">7B (Mistral 7B, Llama 3 8B)</option>
+          <option value="13">13B (Llama 2 13B)</option>
+          <option value="34">34B (CodeLlama 34B)</option>
+          <option value="70" selected>70B (Llama 3 70B)</option>
+          <option value="180">180B (Falcon 180B)</option>
+          <option value="405">405B (Llama 3.1 405B)</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Precision</label>
+        <select class="form-select" id="wl-precision" onchange="calcUnified()">
+          <option value="fp32">FP32 — 4 B/param</option>
+          <option value="bf16" selected>BF16 — 2 B/param</option>
+          <option value="fp16">FP16 — 2 B/param</option>
+          <option value="fp8">FP8 — 1 B/param</option>
+          <option value="int4">INT4/GPTQ — 0.5 B/param</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Workload Type</label>
+        <select class="form-select" id="wl-type" onchange="calcUnified()">
+          <option value="inference">Inference (serving)</option>
+          <option value="finetune" selected>Fine-tuning (LoRA)</option>
+          <option value="train">Full Training</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Context Length</label>
+        <select class="form-select" id="wl-ctx" onchange="calcUnified()">
+          <option value="2048">2K tokens</option>
+          <option value="8192" selected>8K tokens</option>
+          <option value="32768">32K tokens</option>
+          <option value="128000">128K tokens</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" id="wl-custom-group" style="display:none"><label class="form-label">Custom Params (B)</label>
+      <input type="number" class="form-input" id="wl-custom-params" placeholder="e.g. 100" min="1" max="2000" oninput="calcUnified()">
+    </div>` : '';
+
+  el.innerHTML = `
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1040px;align-items:start">
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card" style="padding:18px 20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${wlWorkloadMode?'16px':'0'}">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">① Workload <span style="font-size:11px;color:var(--text-muted);font-weight:400">— optional: size from AI model</span></div>
+          </div>
+          <div onclick="toggleWlWorkload()" style="cursor:pointer;display:flex;align-items:center;gap:7px;padding:4px 10px;border-radius:20px;border:1px solid ${wlWorkloadMode?'var(--accent)':'var(--border)'};background:${wlWorkloadMode?'var(--accent-dim)':'transparent'};font-size:11px;font-weight:600;color:${wlWorkloadMode?'var(--accent)':'var(--text-muted)'}">
+            <span style="width:8px;height:8px;border-radius:50%;background:${wlWorkloadMode?'var(--accent)':'var(--text-muted)'};display:inline-block"></span>
+            ${wlWorkloadMode?'On':'Off'}
+          </div>
         </div>
-        <div class="form-group" id="pw-custom-group" style="display:none"><label class="form-label">Custom Server TDP (Watts)</label>
-          <input type="number" class="form-input" id="pw-custom-tdp" value="10200" min="100">
+        ${workloadSection}
+      </div>
+
+      <div class="card" style="padding:18px 20px">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px">② Select GPU Type</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${gpuChips}</div>
+      </div>
+
+      <div class="card" style="padding:18px 20px">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px">③ Number of Nodes (Servers)</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <button onclick="document.getElementById('wl-qty').stepDown();calcUnified()" style="width:36px;height:36px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+          <input type="number" class="form-input" id="wl-qty" value="8" min="1" max="10000" style="width:90px;text-align:center;font-size:16px;font-weight:600" oninput="calcUnified()">
+          <button onclick="document.getElementById('wl-qty').stepUp();calcUnified()" style="width:36px;height:36px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
+          <span style="font-size:12px;color:var(--text-muted)">nodes</span>
         </div>
-        <div class="form-group"><label class="form-label">Number of Servers / Nodes</label>
-          <input type="number" class="form-input" id="pw-qty" value="8" min="1" max="2000">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${[1,2,4,8,16,32,64].map(n=>`<button onclick="document.getElementById('wl-qty').value=${n};calcUnified()" style="padding:3px 10px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);font-size:11px;cursor:pointer">${n}</button>`).join('')}
         </div>
+      </div>
+
+      <div class="card" style="padding:18px 20px">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px">④ Facility Settings</div>
         <div class="form-group"><label class="form-label">PUE — Power Usage Effectiveness</label>
-          <select class="form-select" id="pw-pue" onchange="document.getElementById('pw-custom-pue-group').style.display=this.value==='custom'?'block':'none'">
+          <select class="form-select" id="wl-pue" onchange="calcUnified()">
             <option value="1.1">1.10 — Hyperscale / best-in-class</option>
             <option value="1.2" selected>1.20 — Modern colocation</option>
             <option value="1.3">1.30 — Typical enterprise DC</option>
             <option value="1.4">1.40 — Older facility</option>
-            <option value="1.5">1.50 — Legacy / poor efficiency</option>
-            <option value="custom">Custom PUE</option>
+            <option value="1.5">1.50 — Legacy</option>
           </select>
         </div>
-        <div class="form-group" id="pw-custom-pue-group" style="display:none"><label class="form-label">Custom PUE</label>
-          <input type="number" class="form-input" id="pw-custom-pue" value="1.2" step="0.01" min="1.0" max="3.0">
-        </div>
         <div class="form-group"><label class="form-label">InfiniBand / Network Switches</label>
-          <select class="form-select" id="pw-network">
+          <select class="form-select" id="wl-network" onchange="calcUnified()">
             <option value="0">None / externally managed</option>
             <option value="1" selected>1 switch per rack (~10 kW each)</option>
-            <option value="2">2 switches per rack — spine-leaf topology</option>
+            <option value="2">2 switches per rack — spine-leaf</option>
           </select>
         </div>
         <div class="form-row">
-          <div class="form-group"><label class="form-label">Storage Servers (est. 2 kW each)</label>
-            <input type="number" class="form-input" id="pw-storage-servers" value="2" min="0">
+          <div class="form-group"><label class="form-label">Storage Servers</label>
+            <input type="number" class="form-input" id="wl-storage" value="2" min="0" oninput="calcUnified()">
+            <div style="font-size:10px;color:var(--text-muted);margin-top:3px">~2 kW each</div>
           </div>
-          <div class="form-group"><label class="form-label">Management Servers (est. 0.5 kW each)</label>
-            <input type="number" class="form-input" id="pw-mgmt-servers" value="2" min="0">
+          <div class="form-group"><label class="form-label">Management Servers</label>
+            <input type="number" class="form-input" id="wl-mgmt" value="2" min="0" oninput="calcUnified()">
+            <div style="font-size:10px;color:var(--text-muted);margin-top:3px">~0.5 kW each</div>
           </div>
         </div>
-        <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="calcPower()">Calculate Power Load</button>
       </div>
-    </div>
-    <div id="pw-result">
-      <div class="card"><div style="font-size:13px;color:var(--text-muted);text-align:center;padding:20px 0">Configure the deployment and click Calculate.</div></div>
-    </div>
-  </div>`;
-    return;
-  }
 
-  document.getElementById('workload-content').innerHTML = tabHtml + `
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px">
-    <div>
-      <div class="card">
-        <div class="card-title" style="font-size:16px;margin-bottom:18px">Workload Parameters</div>
-        <div class="form-group"><label class="form-label">Model Size (parameters)</label>
-          <select class="form-select" id="wl-params">
-            <option value="7">7B (e.g. Mistral 7B, Llama 3 8B)</option>
-            <option value="13">13B (e.g. Llama 2 13B)</option>
-            <option value="34">34B (e.g. CodeLlama 34B)</option>
-            <option value="70" selected>70B (e.g. Llama 3 70B)</option>
-            <option value="180">180B (e.g. Falcon 180B)</option>
-            <option value="405">405B (e.g. Llama 3.1 405B)</option>
-            <option value="custom">Custom</option>
-          </select>
-        </div>
-        <div class="form-group" id="wl-custom-group" style="display:none"><label class="form-label">Custom Parameter Count (billions)</label>
-          <input type="number" class="form-input" id="wl-custom-params" placeholder="e.g. 100" min="1" max="2000">
-        </div>
-        <div class="form-group"><label class="form-label">Numerical Precision</label>
-          <select class="form-select" id="wl-precision">
-            <option value="fp32">FP32 (4 bytes/param)</option>
-            <option value="bf16" selected>BF16 (2 bytes/param)</option>
-            <option value="fp16">FP16 (2 bytes/param)</option>
-            <option value="fp8">FP8 (1 byte/param)</option>
-            <option value="int4">INT4 / GPTQ (0.5 bytes/param)</option>
-          </select>
-        </div>
-        <div class="form-group"><label class="form-label">Workload Type</label>
-          <select class="form-select" id="wl-type">
-            <option value="inference">Inference (production serving)</option>
-            <option value="finetune" selected>Fine-tuning (LoRA / QLoRA)</option>
-            <option value="train">Full Training (pre-training)</option>
-          </select>
-        </div>
-        <div class="form-group"><label class="form-label">Context Length (tokens)</label>
-          <select class="form-select" id="wl-ctx">
-            <option value="2048">2K tokens (short context)</option>
-            <option value="8192" selected>8K tokens (standard)</option>
-            <option value="32768">32K tokens (long context)</option>
-            <option value="128000">128K tokens (very long context)</option>
-          </select>
-        </div>
-        <div class="form-group"><label class="form-label">Throughput Target (req/sec) — optional</label>
-          <input type="number" class="form-input" id="wl-throughput" placeholder="e.g. 10" min="1">
-        </div>
-        <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="calcWorkload()">Calculate</button>
-      </div>
     </div>
-    <div id="wl-result">
-      <div class="card" style="border-color:var(--border)">
-        <div style="font-size:13px;color:var(--text-muted);text-align:center;padding:20px 0">Fill in the parameters and click Calculate.</div>
-      </div>
+
+    <div id="wl-result" style="position:sticky;top:16px">
+      <div class="card"><div style="font-size:13px;color:var(--text-muted);text-align:center;padding:20px 0">Adjust configuration to see results.</div></div>
     </div>
+
   </div>`;
-  document.getElementById('wl-params').addEventListener('change', e => {
-    document.getElementById('wl-custom-group').style.display = e.target.value === 'custom' ? 'block' : 'none';
-  });
+
+  if (wlWorkloadMode) {
+    document.getElementById('wl-params').addEventListener('change', e => {
+      document.getElementById('wl-custom-group').style.display = e.target.value === 'custom' ? 'block' : 'none';
+    });
+  }
+  calcUnified();
 }
 
-function calcPower() {
-  const serverType = document.getElementById('pw-server-type').value;
-  const qty = parseInt(document.getElementById('pw-qty').value) || 1;
-  const pueVal = document.getElementById('pw-pue').value;
-  const pue = pueVal === 'custom' ? (parseFloat(document.getElementById('pw-custom-pue').value) || 1.2) : parseFloat(pueVal);
-  const networkSel = document.getElementById('pw-network').value;
-  const storageServers = parseInt(document.getElementById('pw-storage-servers').value) || 0;
-  const mgmtServers = parseInt(document.getElementById('pw-mgmt-servers').value) || 0;
+function calcUnified() {
+  const gpu = WL_GPU_OPTIONS.find(g => g.id === wlSelectedGPU);
+  if (!gpu) return;
+  const qty = parseInt(document.getElementById('wl-qty')?.value) || 1;
+  const pue = parseFloat(document.getElementById('wl-pue')?.value) || 1.2;
+  const networkSel = document.getElementById('wl-network')?.value || '1';
+  const storageServers = parseInt(document.getElementById('wl-storage')?.value) || 0;
+  const mgmtServers = parseInt(document.getElementById('wl-mgmt')?.value) || 0;
 
-  const spec = SERVER_POWER_DATA[serverType];
-  const tdpW = serverType === 'custom' ? (parseFloat(document.getElementById('pw-custom-tdp').value) || 0) : spec.tdp;
-  const rackU = spec.rackU || 8;
+  const totalGPUs = qty * gpu.gpusPerNode;
+  const totalVRAMAvail = totalGPUs * gpu.vram;
 
-  // IT load components (W)
-  const gpuServerW = tdpW * qty;
+  // VRAM workload calc (optional)
+  let vramBlock = '';
+  if (wlWorkloadMode) {
+    const paramSel = document.getElementById('wl-params')?.value || '70';
+    const params = paramSel === 'custom' ? (parseFloat(document.getElementById('wl-custom-params')?.value) || 0) : parseFloat(paramSel);
+    const precision = document.getElementById('wl-precision')?.value || 'bf16';
+    const type = document.getElementById('wl-type')?.value || 'finetune';
+    const ctx = parseInt(document.getElementById('wl-ctx')?.value) || 8192;
+    if (params > 0) {
+      const bytesPerParam = { fp32:4, bf16:2, fp16:2, fp8:1, int4:0.5 }[precision];
+      const modelVRAM = params * bytesPerParam;
+      const typeMultiplier = { inference:1.2, finetune:2.5, train:4.0 }[type];
+      const ctxOverhead = ctx > 8192 ? 1 + (ctx / 8192 - 1) * 0.3 : 1.0;
+      const totalVRAMNeeded = modelVRAM * typeMultiplier * ctxOverhead;
+      wlVramNeeded = totalVRAMNeeded;
+      const fits = totalVRAMAvail >= totalVRAMNeeded;
+      const precLabel = { fp32:'FP32', bf16:'BF16', fp16:'FP16', fp8:'FP8', int4:'INT4' }[precision];
+      const typeLabel = { inference:'Inference', finetune:'Fine-tuning', train:'Full Training' }[type];
+      const minGPUs = Math.ceil(totalVRAMNeeded / gpu.vram);
+      const minNodes = Math.ceil(minGPUs / gpu.gpusPerNode);
+      vramBlock = `
+      <div style="margin-bottom:14px;border-radius:8px;border:1px solid ${fits?'rgba(34,197,94,.3)':'rgba(239,68,68,.3)'};background:${fits?'rgba(34,197,94,.05)':'rgba(239,68,68,.05)'};padding:14px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted)">VRAM Analysis</div>
+          <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:${fits?'rgba(34,197,94,.15)':'rgba(239,68,68,.15)'};color:${fits?'#22C55E':'#EF4444'}">${fits ? '✓ Fits' : '✗ Not enough VRAM'}</span>
+        </div>
+        <div class="calc-row"><span class="calc-label">Model weights (${params}B @ ${precLabel})</span><span class="calc-val">${modelVRAM.toFixed(0)} GB</span></div>
+        <div class="calc-row"><span class="calc-label">Overhead (${typeLabel})</span><span class="calc-val">+${(totalVRAMNeeded-modelVRAM).toFixed(0)} GB</span></div>
+        <div class="calc-row" style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px"><span class="calc-label" style="font-weight:600">VRAM Required</span><span class="calc-val" style="font-weight:700">${totalVRAMNeeded.toFixed(0)} GB</span></div>
+        <div class="calc-row"><span class="calc-label">Available (${qty} node${qty!==1?'s':''})</span><span class="calc-val" style="color:${fits?'#22C55E':'#EF4444'}">${totalVRAMAvail.toLocaleString()} GB</span></div>
+        ${!fits ? `<div style="font-size:11px;color:#F59E0B;margin-top:8px;padding:6px 8px;background:rgba(245,158,11,.08);border-radius:4px">Minimum ${minNodes} node${minNodes!==1?'s':''} needed (${minGPUs} × ${gpu.name})</div>` : ''}
+      </div>`;
+    }
+  }
+
+  // Power calc
+  const gpuServerW = gpu.nodeTdp * qty;
+  const rackU = gpu.gpusPerNode >= 8 ? 10 : 2;
   const serversPerRack = Math.max(1, Math.floor(42 / rackU));
   const racks = Math.ceil(qty / serversPerRack);
   const switchesNeeded = networkSel === '0' ? 0 : networkSel === '1' ? racks : racks * 2;
@@ -2184,137 +2248,66 @@ function calcPower() {
   const mgmtW = mgmtServers * 500;
   const totalITW = gpuServerW + networkW + storageW + mgmtW;
   const totalITkW = totalITW / 1000;
-
-  // Facility overhead
-  const coolingW = totalITW * (pue - 1);
-  const upsPduLossW = totalITW * 0.03;
   const totalFacilityW = totalITW * pue;
   const totalFacilitykW = totalFacilityW / 1000;
   const totalFacilityMW = totalFacilitykW / 1000;
-
-  // Electrical sizing
   const nec125kW = totalFacilitykW * 1.25;
-  const ampsDraw = Math.round(totalFacilityW / 831);   // 480V 3-phase
-  const ampsCapacity = Math.round(nec125kW * 1000 / 831);
+  const ampsDraw = Math.round(totalFacilityW / 831);
   const generatorKVA = Math.round(nec125kW / 0.9);
+  const pueDesc = pue <= 1.15 ? 'hyperscale' : pue <= 1.25 ? 'modern colo' : pue <= 1.35 ? 'enterprise DC' : 'older facility';
+  const fmtPow = kw => kw >= 1000 ? (kw/1000).toFixed(3)+' MW' : kw.toFixed(1)+' kW';
 
-  const fmtPow = kw => kw >= 1000 ? (kw/1000).toFixed(3) + ' MW' : kw.toFixed(1) + ' kW';
+  // MW prominence based on scale
+  const mwColor = totalFacilityMW < 0.1 ? 'var(--success)' : totalFacilityMW < 1 ? 'var(--accent)' : '#F97316';
 
-  const pueDesc = pue <= 1.15 ? 'hyperscale / best-in-class' : pue <= 1.25 ? 'modern colocation' : pue <= 1.35 ? 'typical enterprise DC' : 'older / legacy facility';
+  document.getElementById('wl-result').innerHTML = `
+  <div style="display:flex;flex-direction:column;gap:14px">
 
-  document.getElementById('pw-result').innerHTML = `
-    <div class="calc-result" style="margin-top:0;border-color:var(--accent)">
-      <div class="calc-result-title">IT Load Breakdown</div>
-      <div class="calc-row"><span class="calc-label">GPU Servers (${qty}× ${spec.label} @ ${(tdpW/1000).toFixed(1)} kW)</span><span class="calc-val">${(gpuServerW/1000).toFixed(1)} kW</span></div>
-      ${networkW > 0 ? `<div class="calc-row"><span class="calc-label">InfiniBand Switches (${switchesNeeded}× @ 10 kW each)</span><span class="calc-val">${(networkW/1000).toFixed(1)} kW</span></div>` : ''}
-      ${storageW > 0 ? `<div class="calc-row"><span class="calc-label">Storage Servers (${storageServers}× @ 2 kW each)</span><span class="calc-val">${(storageW/1000).toFixed(1)} kW</span></div>` : ''}
-      ${mgmtW > 0 ? `<div class="calc-row"><span class="calc-label">Management Servers (${mgmtServers}× @ 0.5 kW each)</span><span class="calc-val">${(mgmtW/1000).toFixed(1)} kW</span></div>` : ''}
-      <div class="calc-row" style="border-top:2px solid var(--accent);margin-top:4px;padding-top:10px">
-        <span class="calc-label" style="font-weight:600">Total IT Load</span>
-        <span class="calc-highlight">${fmtPow(totalITkW)}</span>
+    ${vramBlock}
+
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">Configuration</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:15px;font-weight:700;color:${gpu.c}">${qty}× ${gpu.name}</span>
+        <span style="font-size:10px;padding:1px 6px;border-radius:3px;background:${gpu.c}22;color:${gpu.c};border:1px solid ${gpu.c}44">${gpu.ff}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.8">
+        ${gpu.gpusPerNode > 1 ? `${totalGPUs} total GPUs (8/node)` : `${totalGPUs} total GPU${totalGPUs!==1?'s':''}`} &nbsp;·&nbsp; <b style="color:var(--text)">${totalVRAMAvail.toLocaleString()} GB</b> total VRAM<br>
+        ${(gpu.nodeTdp/1000).toFixed(1)} kW/node &nbsp;·&nbsp; ${racks} rack${racks!==1?'s':''} &nbsp;·&nbsp; PUE ${pue.toFixed(2)} (${pueDesc})
       </div>
     </div>
-    <div class="calc-result" style="margin-top:14px;border-color:var(--border)">
-      <div class="calc-result-title">Total Facility Load (PUE ${pue.toFixed(2)} — ${pueDesc})</div>
-      <div class="calc-row"><span class="calc-label">IT Load</span><span class="calc-val">${fmtPow(totalITkW)}</span></div>
-      <div class="calc-row"><span class="calc-label">Cooling Load (IT × ${(pue-1).toFixed(2)} overhead)</span><span class="calc-val">${fmtPow(coolingW/1000)}</span></div>
-      <div class="calc-row"><span class="calc-label">UPS / PDU Losses (~3%)</span><span class="calc-val">${(upsPduLossW/1000).toFixed(1)} kW</span></div>
-      <div class="calc-row" style="border-top:2px solid var(--success);margin-top:4px;padding-top:10px">
-        <span class="calc-label" style="font-weight:600">Total Facility Load</span>
-        <span class="calc-highlight" style="color:var(--success)">${fmtPow(totalFacilitykW)}</span>
-      </div>
-      <div class="calc-row" style="border-bottom:none;padding-top:6px">
-        <span class="calc-label" style="font-weight:700;color:var(--text)">Total Load in MW</span>
-        <span style="font-size:22px;font-weight:700;color:var(--success)">${totalFacilityMW.toFixed(4)} MW</span>
-      </div>
+
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">IT Power Breakdown</div>
+      <div class="calc-row"><span class="calc-label">GPU Servers (${qty}× @ ${(gpu.nodeTdp/1000).toFixed(1)} kW)</span><span class="calc-val">${fmtPow(gpuServerW/1000)}</span></div>
+      ${networkW > 0 ? `<div class="calc-row"><span class="calc-label">Networking (${switchesNeeded} switch${switchesNeeded!==1?'es':''})</span><span class="calc-val">${fmtPow(networkW/1000)}</span></div>` : ''}
+      ${storageW > 0 ? `<div class="calc-row"><span class="calc-label">Storage (${storageServers} server${storageServers!==1?'s':''})</span><span class="calc-val">${fmtPow(storageW/1000)}</span></div>` : ''}
+      ${mgmtW > 0 ? `<div class="calc-row"><span class="calc-label">Management (${mgmtServers} server${mgmtServers!==1?'s':''})</span><span class="calc-val">${fmtPow(mgmtW/1000)}</span></div>` : ''}
+      <div class="calc-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:10px"><span class="calc-label" style="font-weight:600">Total IT Load</span><span class="calc-val" style="font-weight:700">${fmtPow(totalITkW)}</span></div>
+      <div class="calc-row"><span class="calc-label">Cooling + Overhead (PUE ${pue})</span><span class="calc-val">+${fmtPow((totalFacilitykW-totalITkW))}</span></div>
     </div>
-    <div class="card" style="margin-top:14px">
-      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">Electrical Capacity Requirements</div>
-      <div class="calc-row"><span class="calc-label">Minimum Draw (actual load)</span><span class="calc-val">${fmtPow(totalFacilitykW)}</span></div>
+
+    <div style="border-radius:10px;border:2px solid ${mwColor};background:${mwColor}0F;padding:20px 24px;text-align:center">
+      <div style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Total Facility Load</div>
+      <div style="font-size:40px;font-weight:800;color:${mwColor};line-height:1;margin-bottom:6px">${totalFacilityMW.toFixed(4)}</div>
+      <div style="font-size:18px;font-weight:600;color:${mwColor};margin-bottom:10px">MW</div>
+      <div style="font-size:12px;color:var(--text-muted)">${fmtPow(totalFacilitykW)} total &nbsp;·&nbsp; ${fmtPow(totalITkW)} IT load &nbsp;·&nbsp; PUE ${pue.toFixed(2)}</div>
+    </div>
+
+    <div class="card" style="padding:14px 16px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">Electrical Requirements</div>
       <div class="calc-row"><span class="calc-label">NEC 125% Required Capacity</span><span class="calc-val" style="color:var(--warning)">${fmtPow(nec125kW)}</span></div>
       <div class="calc-row"><span class="calc-label">Generator Size (÷ 0.9 PF)</span><span class="calc-val">${generatorKVA >= 1000 ? (generatorKVA/1000).toFixed(2)+' MVA' : generatorKVA+' kVA'}</span></div>
       <div class="calc-row"><span class="calc-label">Peak Draw @ 480V 3Ø</span><span class="calc-val">${ampsDraw.toLocaleString()} A</span></div>
-      <div class="calc-row"><span class="calc-label">Circuit Capacity @ 480V 3Ø (NEC 125%)</span><span class="calc-val">${ampsCapacity.toLocaleString()} A</span></div>
-      <div class="calc-row"><span class="calc-label">Estimated Rack Count</span><span class="calc-val">${racks} rack${racks!==1?'s':''} (${serversPerRack} server${serversPerRack!==1?'s':''}/rack × 42U)</span></div>
+      <div class="calc-row"><span class="calc-label">Rack Count</span><span class="calc-val">${racks} rack${racks!==1?'s':''} (${serversPerRack} server${serversPerRack!==1?'s':''}/rack)</span></div>
     </div>
-    <div style="font-size:11px;color:var(--text-muted);margin-top:10px;padding:0 4px;line-height:1.6">
-      Estimates use rated TDP at full load. Derate 15–20% for average operational draw. Consult a licensed electrical engineer and the facility before commissioning. PUE source: ASHRAE / Green Grid standards.
-    </div>`;
+
+    <div style="font-size:10px;color:var(--text-muted);line-height:1.6;padding:0 2px">Estimates use rated TDP at full load. Derate 15–20% for average operational draw. Consult a licensed electrical engineer before commissioning. PUE source: ASHRAE / Green Grid standards.</div>
+  </div>`;
 }
 
-function calcWorkload() {
-  const paramSel = document.getElementById('wl-params').value;
-  const params = paramSel === 'custom' ? parseFloat(document.getElementById('wl-custom-params').value) || 0 : parseFloat(paramSel);
-  const precision = document.getElementById('wl-precision').value;
-  const type = document.getElementById('wl-type').value;
-  const ctx = parseInt(document.getElementById('wl-ctx').value);
-  const throughput = parseInt(document.getElementById('wl-throughput').value) || 0;
-  if (!params) { alert('Enter a custom parameter count.'); return; }
-
-  const bytesPerParam = { fp32:4, bf16:2, fp16:2, fp8:1, int4:0.5 }[precision];
-  const modelVRAM = params * bytesPerParam; // GB (1B params × bytes = 1 GB approx)
-
-  // Overhead multipliers
-  const typeMultiplier = { inference:1.2, finetune:2.5, train:4.0 }[type];
-  const ctxOverhead = ctx > 8192 ? 1 + (ctx / 8192 - 1) * 0.3 : 1.0;
-  const totalVRAM = modelVRAM * typeMultiplier * ctxOverhead;
-
-  // GPU VRAM options
-  const gpuOptions = [
-    { name:'A100 40GB PCIe', vram:40, gen:'A100', bandwidth:'1,555 GB/s' },
-    { name:'A100 80GB PCIe/SXM4', vram:80, gen:'A100', bandwidth:'2,039 GB/s' },
-    { name:'H100 80GB PCIe', vram:80, gen:'H100', bandwidth:'2,000 GB/s' },
-    { name:'H100 80GB SXM5', vram:80, gen:'H100', bandwidth:'3,350 GB/s' },
-    { name:'H100 NVL 94GB', vram:94, gen:'H100', bandwidth:'3,938 GB/s' },
-    { name:'H200 141GB SXM/NVL', vram:141, gen:'H200', bandwidth:'4,800 GB/s' },
-    { name:'B200 192GB SXM6', vram:192, gen:'B200', bandwidth:'8,000 GB/s' },
-    { name:'B300 288GB SXM7', vram:288, gen:'B300', bandwidth:'~10,000 GB/s' },
-  ];
-
-  // Find minimum GPUs needed
-  const recs = gpuOptions.map(g => {
-    const gpusNeeded = Math.ceil(totalVRAM / g.vram);
-    return { ...g, gpusNeeded };
-  }).filter(g => g.gpusNeeded <= 64);
-
-  const bestFit = recs[0];
-  const recommended = recs.filter(g => g.gpusNeeded <= 8);
-
-  const recRows = recommended.map(g => `
-    <div class="calc-row">
-      <span class="calc-label">${g.name}</span>
-      <span class="calc-val">${g.gpusNeeded} GPU${g.gpusNeeded>1?'s':''}</span>
-    </div>`).join('');
-
-  const typeLabel = { inference:'Inference', finetune:'Fine-tuning', train:'Full Training' }[type];
-  const ctxLabel = ctx >= 128000 ? '128K' : ctx >= 32768 ? '32K' : ctx >= 8192 ? '8K' : '2K';
-  const precisionLabel = { fp32:'FP32', bf16:'BF16', fp16:'FP16', fp8:'FP8', int4:'INT4/GPTQ' }[precision];
-
-  document.getElementById('wl-result').innerHTML = `
-    <div class="calc-result" style="margin-top:0">
-      <div class="calc-result-title">VRAM Estimate</div>
-      <div class="calc-row"><span class="calc-label">Model weights (${params}B @ ${precisionLabel})</span><span class="calc-val">${modelVRAM.toFixed(1)} GB</span></div>
-      <div class="calc-row"><span class="calc-label">Overhead (${typeLabel}, ${ctxLabel} context)</span><span class="calc-val">${(totalVRAM - modelVRAM).toFixed(1)} GB</span></div>
-      <div class="calc-row" style="border-top:1px solid var(--accent);padding-top:10px;margin-top:4px"><span class="calc-label" style="font-weight:600">Total VRAM Needed</span><span class="calc-highlight">${totalVRAM.toFixed(1)} GB</span></div>
-    </div>
-    <div class="calc-result" style="margin-top:14px;border-color:var(--border)">
-      <div class="calc-result-title">GPU Recommendations</div>
-      ${recRows || '<div style="color:var(--text-muted);font-size:13px">Workload exceeds 8-GPU configurations. Consider model parallelism across multiple nodes.</div>'}
-    </div>
-    <div class="card" style="margin-top:14px;background:rgba(74,208,250,.04)">
-      <div style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Plain English</div>
-      <div style="font-size:13px;line-height:1.7;color:var(--text-dim)">
-        A <b>${params}B parameter</b> model at <b>${precisionLabel}</b> requires roughly <b>${modelVRAM.toFixed(0)} GB</b> just for weights.
-        ${type === 'train' ? 'Full training adds optimizer states and gradients (~4× model size total).' : ''}
-        ${type === 'finetune' ? 'LoRA fine-tuning adds adapter weights and activations (~2.5× model size total).' : ''}
-        ${type === 'inference' ? 'Inference adds KV cache and activation memory (~1.2× model size total).' : ''}
-        ${ctx > 8192 ? ` Long context (${ctxLabel}) increases KV cache proportionally.` : ''}
-        ${bestFit ? ` The most cost-effective single-node option is <b>${bestFit.gpusNeeded}× ${bestFit.name}</b>.` : ''}
-        ${throughput > 0 ? ` For ${throughput} req/sec, consider higher-bandwidth GPUs (H100 SXM5 or H200) to maximize token throughput.` : ''}
-      </div>
-    </div>
-    <div style="font-size:11px;color:var(--text-muted);margin-top:10px;padding:0 4px">Note: Estimates are approximate. Actual VRAM usage varies by framework, batch size, and inference engine. Always validate with a proof-of-concept before committing to a configuration.</div>`;
-}
+function calcPower() { calcUnified(); }
+function calcWorkload() { calcUnified(); }
 // ── TCO Calculator ────────────────────────────────────────────────────────────
 function renderTCO() {
   document.getElementById('tco-content').innerHTML = `
