@@ -247,6 +247,9 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div class="nav-item" onclick="nav('academy-export')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Export Control
     </div>
+    <div class="nav-item" onclick="nav('academy-sprout')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Sprout Advantage
+    </div>
     <div class="nav-item" onclick="nav('academy-prices')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Market Prices
     </div>
@@ -313,6 +316,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div id="s-academy-compare" class="section"><div class="section-header"><div class="section-title">Compare</div><div class="section-sub">Side-by-side GPU and platform comparison</div></div><div id="compare-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
     <div id="s-academy-cert" class="section"><div class="section-header"><div class="section-title">Certification &amp; Refurbishment</div><div class="section-sub">How Velerity certifies and warranties AI hardware</div></div><div id="cert-content"></div></div>
     <div id="s-academy-export" class="section"><div class="section-header"><div class="section-title">Export Control Primer</div><div class="section-sub">EAR/BIS overview for sales reps — not legal advice. Always escalate edge cases.</div></div><div id="export-content"></div></div>
+    <div id="s-academy-sprout" class="section"><div class="section-header"><div class="section-title">Sprout Advantage</div><div class="section-sub">Why Velerity's sourcing, certification, and support are different</div></div><div id="sprout-content"></div></div>
     <div id="s-academy-prices" class="section"><div class="section-header"><div class="section-title">Market Prices</div><div class="section-sub">Secondary market GPU and system pricing — Stoa Exchange Intelligence · November 2026</div></div><div id="prices-content"></div></div>
 
     <div id="s-tools-workload" class="section"><div class="section-header"><div class="section-title">Workload-Fit Calculator</div><div class="section-sub">Estimate VRAM requirements and get GPU recommendations for any AI workload</div></div><div id="workload-content"></div></div>
@@ -402,6 +406,7 @@ function render(id) {
     case 'academy-compare':    renderCompare(); break;
     case 'academy-cert':       renderCert(); break;
     case 'academy-export':     renderExport(); break;
+    case 'academy-sprout':     renderSprout(); break;
     case 'academy-prices':     renderMarketPrices(); break;
     case 'academy-admin':      nav('settings'); return;
     case 'tools-workload':     renderWorkload(); break;
@@ -1303,6 +1308,58 @@ function renderCert() {
 }
 
 // ── Export Control ────────────────────────────────────────────────────────────
+function renderSprout() {
+  document.getElementById('sprout-content').innerHTML = `
+  <div style="max-width:780px;display:flex;flex-direction:column;gap:18px">
+
+    <div class="info-block">Velerity is a Sprout company. Sprout manages the full AI infrastructure lifecycle for 80% of the top S&P 500 — including hyperscalers like CoreWeave and SpaceX. When those fleets refresh or retire, Sprout handles decommissioning and Velerity gets first access to that certified hardware. That is why our lead times are under 5 weeks when OEM lead times are 6–9 months.</div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:14px">Who Is Sprout?</div>
+      <div style="font-size:13px;color:var(--text-dim);line-height:1.65;margin-bottom:16px">Sprout is the specialized AI infrastructure lifecycle company behind Velerity Compute. They operate across the full hardware lifecycle — from sourcing and deployment to managed operations and end-of-life recovery — serving the world's largest AI infrastructure operators. Sprout's Garland, Texas facility handles in-house GPU diagnosis, failure analysis, board-level repair, and re-testing before any unit ships.</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px"><div style="font-size:16px;font-weight:700;color:var(--accent);margin-bottom:4px">5,000+ GPUs Processed</div><div style="font-size:12px;color:var(--text-muted);line-height:1.5">Diagnosed, repaired, certified, and tracked through Sprout's facility to date</div></div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px"><div style="font-size:16px;font-weight:700;color:var(--accent);margin-bottom:4px">500+ AI Servers Processed</div><div style="font-size:12px;color:var(--text-muted);line-height:1.5">Full-system intake, testing, and certification across DGX, HGX, and OEM platforms</div></div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px"><div style="font-size:16px;font-weight:700;color:var(--accent);margin-bottom:4px">80% of Top S&amp;P 500</div><div style="font-size:12px;color:var(--text-muted);line-height:1.5">Sprout customers include 80% of the top S&P 500 — the trust infrastructure is already built</div></div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px"><div style="font-size:16px;font-weight:700;color:var(--accent);margin-bottom:4px">20–40% Above Market</div><div style="font-size:12px;color:var(--text-muted);line-height:1.5">Value recovery on hardware retirement — returned as Sprout credits toward refreshes and new deployments</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:14px">The Sprout AI Infrastructure Lifecycle</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;gap:14px;align-items:flex-start"><div style="min-width:80px;padding:6px 10px;border-radius:6px;background:rgba(74,208,250,.1);border:1px solid rgba(74,208,250,.3);text-align:center;font-size:12px;font-weight:700;color:var(--accent)">Acquire</div><div style="font-size:13px;color:var(--text-dim);line-height:1.65;padding-top:4px">Velerity delivers certified-refurbished AI servers in under five weeks — the supply arm of the Sprout lifecycle. NVIDIA-aligned testing, serialized health reports, and warranty on every unit.</div></div>
+        <div style="display:flex;gap:14px;align-items:flex-start"><div style="min-width:80px;padding:6px 10px;border-radius:6px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);text-align:center;font-size:12px;font-weight:700;color:#22C55E">Deploy</div><div style="font-size:13px;color:var(--text-dim);line-height:1.65;padding-top:4px">Sprout's on-site field teams handle racking, installation, lift-and-shift migrations, and hardware reconciliation. Every system is brought to a deployment-ready state.</div></div>
+        <div style="display:flex;gap:14px;align-items:flex-start"><div style="min-width:80px;padding:6px 10px;border-radius:6px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);text-align:center;font-size:12px;font-weight:700;color:#A78BFA">Extend</div><div style="font-size:13px;color:var(--text-dim);line-height:1.65;padding-top:4px">24/7 remote hands, predictive maintenance, end-to-end RMA management, and certified GPU repair from the Garland TX facility keep fleets running longer.</div></div>
+        <div style="display:flex;gap:14px;align-items:flex-start"><div style="min-width:80px;padding:6px 10px;border-radius:6px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);text-align:center;font-size:12px;font-weight:700;color:#F59E0B">Recover</div><div style="font-size:13px;color:var(--text-dim);line-height:1.65;padding-top:4px">Decommissioning and ITAD with 20–40% above-market value recovery. Recovered value returns as Sprout service credits — redeemable toward hardware refreshes or future deployments.</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:14px">Why Our Sourcing Is Different</div>
+      <div style="font-size:13px;color:var(--text-dim);line-height:1.65;margin-bottom:14px">The hardware Velerity sells does not come from unknown sources. It comes from Sprout's fleet customers — hyperscalers and large enterprises who are retiring or refreshing AI infrastructure that Sprout has been managing and tracking. Chain of custody is documented from first owner to Velerity to your customer.</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="background:var(--surface);border-radius:6px;padding:12px 14px;border:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:4px">Hyperscaler Fleet Refreshes</div><div style="font-size:12px;color:var(--text-muted);line-height:1.6">CoreWeave, SpaceX, and other large GPU fleet operators refresh hardware through Sprout. Velerity gets first-access to certified units from known provenance — not open-market gray stock.</div></div>
+        <div style="background:var(--surface);border-radius:6px;padding:12px 14px;border:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:4px">Unbroken Chain of Custody</div><div style="font-size:12px;color:var(--text-muted);line-height:1.6">Every system is tracked end-to-end in SmartERP with chain of custody documentation. Buyers receive full history: who owned it, when it was processed, what diagnostics it passed.</div></div>
+        <div style="background:var(--surface);border-radius:6px;padding:12px 14px;border:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:4px">Proprietary Rework Capability</div><div style="font-size:12px;color:var(--text-muted);line-height:1.6">Sprout builds in-house rework fixtures for A100 and H100 SXM boards. Units are re-tested after any repair before shipment — not just visually inspected.</div></div>
+        <div style="background:var(--surface);border-radius:6px;padding:12px 14px;border:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:4px">Certifications Back the Claim</div><div style="font-size:12px;color:var(--text-muted);line-height:1.6">NAID AAA &nbsp;&middot;&nbsp; R2v3 &nbsp;&middot;&nbsp; ISO 9001 &nbsp;&middot;&nbsp; ISO 14001 &nbsp;&middot;&nbsp; ISO 27001 &nbsp;&middot;&nbsp; ISO 45001. These validate the data security, environmental, and quality processes behind every unit Velerity ships.</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="font-size:16px;margin-bottom:12px">Sales Talking Points</div>
+      <div style="font-size:13px;font-style:italic;color:var(--text-dim);background:var(--surface);border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:10px">"Velerity is part of Sprout — the company that manages AI infrastructure for 80% of the top S&P 500. This is not a used-hardware reseller. We are plugged into the decommission cycle of the largest fleets in the world."</div>
+      <div style="font-size:13px;font-style:italic;color:var(--text-dim);background:var(--surface);border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:10px">"Our inventory comes from hyperscaler fleet refreshes — CoreWeave, SpaceX, others. When they retire a generation of hardware, it flows through Sprout to Velerity. You know exactly where it came from."</div>
+      <div style="font-size:13px;font-style:italic;color:var(--text-dim);background:var(--surface);border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:10px">"Gray-market hardware has no chain of custody. Our systems ship with full documentation: who owned it, what diagnostics it passed, what firmware it is running. That is the Sprout difference."</div>
+      <div style="font-size:13px;font-style:italic;color:var(--text-dim);background:var(--surface);border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:10px">"Sprout is R2v3 and ISO 27001 certified. The data security and quality controls behind our ITAD process are the same ones trusted by the S&P 500. Your compliance team can audit us."</div>
+      <div style="font-size:13px;font-style:italic;color:var(--text-dim);background:var(--surface);border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:10px">"If you need to retire your current fleet, Sprout handles that too — and returns 20–40% above market average as credits toward your next purchase. It is a full lifecycle relationship, not a one-time transaction."</div>
+    </div>
+
+    <div style="font-size:11px;color:var(--text-muted);text-align:right">Source: <a href="https://www.sproutup.com/solutions/service-offerings/ai-infrastructure-lifecycle" target="_blank" style="color:var(--accent)">sproutup.com — AI Infrastructure Lifecycle</a></div>
+
+  </div>`;
+}
+
 function renderExport() {
   const TABS = [
     { id:'overview', label:'Overview' },
