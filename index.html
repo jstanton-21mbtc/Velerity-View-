@@ -259,9 +259,6 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div class="nav-item" onclick="nav('tools-workload')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Workload Fit
     </div>
-    <div class="nav-item" onclick="nav('tools-tco')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>TCO Calculator
-    </div>
     <div class="nav-item" onclick="nav('tools-dc')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>DC Readiness
     </div>
@@ -320,7 +317,6 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div id="s-academy-prices" class="section"><div class="section-header"><div class="section-title">Market Prices</div><div class="section-sub">Secondary market GPU and system pricing — Stoa Exchange Intelligence · November 2026</div></div><div id="prices-content"></div></div>
 
     <div id="s-tools-workload" class="section"><div class="section-header"><div class="section-title">Workload-Fit Calculator</div><div class="section-sub">Estimate VRAM requirements and get GPU recommendations for any AI workload</div></div><div id="workload-content"></div></div>
-    <div id="s-tools-tco" class="section"><div class="section-header"><div class="section-title">TCO Calculator</div><div class="section-sub">Compare total cost: certified refurbished vs. cloud vs. new OEM</div></div><div id="tco-content"></div></div>
     <div id="s-tools-dc" class="section"><div class="section-header"><div class="section-title">Data Center Readiness</div><div class="section-sub">Qualify whether a buyer's facility can host the gear before the deal closes</div></div><div id="dc-content"></div></div>
     <div id="s-tools-objections" class="section"><div class="section-header"><div class="section-title">Objection Library</div><div class="section-sub">Ready responses to the most common AI server sales objections</div></div><div id="objections-content"></div></div>
     <div id="s-tools-gpaas" class="section"><div class="section-header"><div class="section-title">GPUaaS Deal Calculator</div><div class="section-sub">Model GPU-as-a-Service economics — hardware cost, hosting fees, rev share, and return over term</div></div><div id="gpaas-content"></div></div>
@@ -410,7 +406,6 @@ function render(id) {
     case 'academy-prices':     renderMarketPrices(); break;
     case 'academy-admin':      nav('settings'); return;
     case 'tools-workload':     renderWorkload(); break;
-    case 'tools-tco':          renderTCO(); break;
     case 'tools-dc':           renderDC(); break;
     case 'tools-objections':   renderObjections(); break;
     case 'tools-gpaas':        renderGPUaaS(); break;
@@ -2345,104 +2340,6 @@ function calcUnified() {
 
 function calcPower() { calcUnified(); }
 function calcWorkload() { calcUnified(); }
-// ── TCO Calculator ────────────────────────────────────────────────────────────
-function renderTCO() {
-  document.getElementById('tco-content').innerHTML = `
-  <div style="max-width:900px">
-    <div class="card" style="margin-bottom:24px">
-      <div class="card-title" style="font-size:16px;margin-bottom:18px">Configuration</div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">GPU Count</label><input type="number" class="form-input" id="tco-gpu-count" value="8" min="1" max="512"></div>
-        <div class="form-group"><label class="form-label">GPU Type</label>
-          <select class="form-select" id="tco-gpu-type">
-            <option value="a100-80">A100 80GB SXM4</option>
-            <option value="h100-pcie">H100 80GB PCIe</option>
-            <option value="h100-sxm" selected>H100 80GB SXM5</option>
-            <option value="h200-sxm">H200 141GB SXM</option>
-          </select>
-        </div>
-        <div class="form-group"><label class="form-label">Utilization %</label><input type="number" class="form-input" id="tco-util" value="70" min="1" max="100"></div>
-        <div class="form-group"><label class="form-label">Power Cost ($/kWh)</label><input type="number" class="form-input" id="tco-power" value="0.08" step="0.01"></div>
-        <div class="form-group"><label class="form-label">Colocation Cost ($/rack/month)</label><input type="number" class="form-input" id="tco-colo" value="1500"></div>
-        <div class="form-group"><label class="form-label">Depreciation Period (years)</label><input type="number" class="form-input" id="tco-depre" value="3" min="1" max="7"></div>
-      </div>
-      <div class="form-row" style="margin-top:4px">
-        <div class="form-group"><label class="form-label">Certified Refurb Price (per GPU, $)</label><input type="number" class="form-input" id="tco-refurb-price" value="25000"></div>
-        <div class="form-group"><label class="form-label">New OEM Price (per GPU, $)</label><input type="number" class="form-input" id="tco-oem-price" value="40000"></div>
-        <div class="form-group"><label class="form-label">Cloud On-Demand ($/GPU/hr)</label><input type="number" class="form-input" id="tco-cloud-od" value="3.00" step="0.10"></div>
-        <div class="form-group"><label class="form-label">Cloud Reserved 1yr ($/GPU/hr)</label><input type="number" class="form-input" id="tco-cloud-ri" value="2.00" step="0.10"></div>
-      </div>
-      <button class="btn btn-primary" onclick="calcTCO()">Calculate TCO</button>
-    </div>
-    <div id="tco-result"></div>
-  </div>`;
-}
-
-function calcTCO() {
-  const gpuCount = parseInt(document.getElementById('tco-gpu-count').value) || 8;
-  const gpuType = document.getElementById('tco-gpu-type').value;
-  const util = parseInt(document.getElementById('tco-util').value) / 100;
-  const powerCost = parseFloat(document.getElementById('tco-power').value);
-  const coloCost = parseFloat(document.getElementById('tco-colo').value);
-  const depreYears = parseInt(document.getElementById('tco-depre').value);
-  const refurbPrice = parseFloat(document.getElementById('tco-refurb-price').value);
-  const oemPrice = parseFloat(document.getElementById('tco-oem-price').value);
-  const cloudOD = parseFloat(document.getElementById('tco-cloud-od').value);
-  const cloudRI = parseFloat(document.getElementById('tco-cloud-ri').value);
-
-  const tdpMap = { 'a100-80':400, 'h100-pcie':350, 'h100-sxm':700, 'h200-sxm':700 };
-  const tdpW = tdpMap[gpuType] || 700;
-  const totalPowerKW = (tdpW * gpuCount) / 1000;
-  const racksNeeded = Math.ceil(gpuCount / 8);
-  const hoursPerMonth = 730;
-
-  // Monthly power cost
-  const powerMonthly = totalPowerKW * hoursPerMonth * powerCost;
-  // Monthly colo
-  const coloMonthly = coloCost * racksNeeded;
-  // Amortized hardware per month
-  const refurbAmortized = (refurbPrice * gpuCount) / (depreYears * 12);
-  const oemAmortized = (oemPrice * gpuCount) / (depreYears * 12);
-  // Cloud costs (hourly × util × hours × GPUs)
-  const cloudODMonthly = cloudOD * util * hoursPerMonth * gpuCount;
-  const cloudRIMonthly = cloudRI * util * hoursPerMonth * gpuCount;
-
-  const scenarios = [
-    { label:'Certified Refurbished', color:'var(--success)', monthly: refurbAmortized + powerMonthly + coloMonthly, hw: refurbPrice * gpuCount, note:'Amortized hardware + power + colo' },
-    { label:'Cloud On-Demand', color:'var(--warning)', monthly: cloudODMonthly, hw:0, note:`${util*100}% utilization × $${cloudOD}/GPU/hr` },
-    { label:'Cloud Reserved (1yr)', color:'var(--accent)', monthly: cloudRIMonthly, hw:0, note:`${util*100}% utilization × $${cloudRI}/GPU/hr` },
-    { label:'New OEM', color:'var(--text-dim)', monthly: oemAmortized + powerMonthly + coloMonthly, hw: oemPrice * gpuCount, note:'Amortized hardware + power + colo' },
-  ];
-
-  const fmt = n => '$' + Math.round(n).toLocaleString();
-  const years = [1,2,3];
-
-  const cols = scenarios.map(s => {
-    const annual = s.monthly * 12;
-    return `<th style="color:${s.color};font-size:13px">${s.label}<br><span style="font-size:11px;color:var(--text-muted);font-weight:400">${s.note}</span></th>`;
-  }).join('');
-
-  const monthRow = `<tr><td><b>Monthly Cost</b></td>${scenarios.map(s=>`<td style="font-weight:700;font-size:15px">${fmt(s.monthly)}</td>`).join('')}</tr>`;
-  const hwRow = `<tr><td>Hardware Investment</td>${scenarios.map(s=>`<td>${s.hw>0?fmt(s.hw):'—'}</td>`).join('')}</tr>`;
-  const yearRows = years.map(y => `<tr><td>${y}-Year Total</td>${scenarios.map(s=>`<td>${fmt(s.monthly*12*y + (y===1?s.hw:0))}</td>`).join('')}</tr>`).join('');
-  const savingsVsOD = scenarios.map(s => {
-    const odMonthly = scenarios[1].monthly;
-    if (s.monthly === odMonthly) return '<td>Baseline</td>';
-    const pct = ((odMonthly - s.monthly) / odMonthly * 100).toFixed(0);
-    const better = s.monthly < odMonthly;
-    return `<td style="color:${better?'var(--success)':'var(--danger)'}">${better?'':'+'}${better?pct+'% cheaper':Math.abs(pct)+'% more expensive'}</td>`;
-  }).join('');
-
-  document.getElementById('tco-result').innerHTML = `
-    <div class="card">
-      <div class="card-title" style="font-size:16px;margin-bottom:18px">TCO Comparison — ${gpuCount} GPU${gpuCount>1?'s':''} (${util*100}% utilization)</div>
-      <div style="overflow-x:auto"><table class="tbl" style="min-width:600px">
-        <thead><tr><th></th>${cols}</tr></thead>
-        <tbody>${monthRow}${hwRow}${yearRows}<tr style="background:rgba(74,208,250,.04)"><td><b>vs. Cloud On-Demand</b></td>${savingsVsOD}</tr></tbody>
-      </table></div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:14px">Assumptions: ${totalPowerKW.toFixed(1)} kW total draw, ${racksNeeded} rack${racksNeeded>1?'s':''}, $${powerCost}/kWh, $${coloCost.toLocaleString()}/rack/mo colo, ${depreYears}-yr depreciation. Cloud costs use stated $/GPU/hr at ${util*100}% utilization. Figures are estimates — actual costs vary by provider, region, and contract terms.</div>
-    </div>`;
-}
 
 // ── DC Readiness ──────────────────────────────────────────────────────────────
 const DC_CHECKS = [
