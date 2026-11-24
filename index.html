@@ -247,9 +247,6 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div class="nav-item" onclick="nav('academy-export')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Export Control
     </div>
-    <div class="nav-item" onclick="nav('academy-admin')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Spec Admin
-    </div>
     <div class="nav-item" onclick="nav('academy-prices')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Market Prices
     </div>
@@ -317,7 +314,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div id="s-academy-cert" class="section"><div class="section-header"><div class="section-title">Certification &amp; Refurbishment</div><div class="section-sub">How Velerity certifies and warranties AI hardware</div></div><div id="cert-content"></div></div>
     <div id="s-academy-export" class="section"><div class="section-header"><div class="section-title">Export Control Primer</div><div class="section-sub">EAR/BIS overview for sales reps — not legal advice. Always escalate edge cases.</div></div><div id="export-content"></div></div>
     <div id="s-academy-prices" class="section"><div class="section-header"><div class="section-title">Market Prices</div><div class="section-sub">Secondary market GPU and system pricing — Stoa Exchange Intelligence · November 2026</div></div><div id="prices-content"></div></div>
-    <div id="s-academy-admin" class="section"><div class="section-header"><div class="section-title">Spec Admin</div><div class="section-sub">Review, edit, and verify GPU and platform specifications</div></div><div id="admin-content"><p style="color:var(--text-muted)">Initializing...</p></div></div>
+
     <div id="s-tools-workload" class="section"><div class="section-header"><div class="section-title">Workload-Fit Calculator</div><div class="section-sub">Estimate VRAM requirements and get GPU recommendations for any AI workload</div></div><div id="workload-content"></div></div>
     <div id="s-tools-tco" class="section"><div class="section-header"><div class="section-title">TCO Calculator</div><div class="section-sub">Compare total cost: certified refurbished vs. cloud vs. new OEM</div></div><div id="tco-content"></div></div>
     <div id="s-tools-dc" class="section"><div class="section-header"><div class="section-title">Data Center Readiness</div><div class="section-sub">Qualify whether a buyer's facility can host the gear before the deal closes</div></div><div id="dc-content"></div></div>
@@ -406,7 +403,7 @@ function render(id) {
     case 'academy-cert':       renderCert(); break;
     case 'academy-export':     renderExport(); break;
     case 'academy-prices':     renderMarketPrices(); break;
-    case 'academy-admin':      renderAdmin(); break;
+    case 'academy-admin':      nav('settings'); return;
     case 'tools-workload':     renderWorkload(); break;
     case 'tools-tco':          renderTCO(); break;
     case 'tools-dc':           renderDC(); break;
@@ -457,21 +454,31 @@ function addMsg(role, text) {
 // ── Settings ──────────────────────────────────────────────────────────────────
 function renderSettings() {
   document.getElementById('settings-content').innerHTML = `
-  <div style="max-width:500px;display:flex;flex-direction:column;gap:20px">
-    <div class="card">
-      <div class="card-title">Anthropic API Key</div>
-      <div class="card-sub" style="margin-bottom:16px">Required for Rep Copilot. Your key is stored locally and never sent anywhere except Anthropic.</div>
-      <div class="form-group">
-        <label class="form-label">API Key</label>
-        <input type="password" class="form-input" id="inp-api-key" value="${S.apiKey}" placeholder="sk-ant-...">
+  <div style="display:flex;flex-direction:column;gap:28px">
+    <div style="max-width:500px;display:flex;flex-direction:column;gap:20px">
+      <div class="card">
+        <div class="card-title">Anthropic API Key</div>
+        <div class="card-sub" style="margin-bottom:16px">Required for Rep Copilot. Your key is stored locally and never sent anywhere except Anthropic.</div>
+        <div class="form-group">
+          <label class="form-label">API Key</label>
+          <input type="password" class="form-input" id="inp-api-key" value="${S.apiKey}" placeholder="sk-ant-...">
+        </div>
+        <button class="btn btn-primary" onclick="saveKey()">Save Key</button>
       </div>
-      <button class="btn btn-primary" onclick="saveKey()">Save Key</button>
+      <div class="card">
+        <div class="card-title">About</div>
+        <div class="card-sub">Velerity View &mdash; GPU Server Sales Enablement Platform<br>Built for Velerity Compute, a Sprout Company.<br><br><span style="color:var(--text-muted);font-size:11px">All data stored locally in your browser. No cloud sync.</span></div>
+      </div>
     </div>
-    <div class="card">
-      <div class="card-title">About</div>
-      <div class="card-sub">Velerity View &mdash; GPU Server Sales Enablement Platform<br>Built for Velerity Compute, a Sprout Company.<br><br><span style="color:var(--text-muted);font-size:11px">All data stored locally in your browser. No cloud sync.</span></div>
+    <div>
+      <div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        <div style="font-size:18px;font-weight:600;margin-bottom:4px">Spec Admin</div>
+        <div style="font-size:13px;color:var(--text-muted)">Review, edit, and verify GPU and platform specifications</div>
+      </div>
+      <div id="admin-content"></div>
     </div>
   </div>`;
+  renderAdmin();
 }
 
 function saveKey() {
