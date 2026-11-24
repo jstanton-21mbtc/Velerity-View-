@@ -456,7 +456,44 @@ WHAT VELERITY SELLS: Certified-refurbished A100, H100, H200, B200, DGX and HGX s
 
 FOUR COMPETITIVE PATHS reps must navigate: (1) New from OEM, (2) Cloud GPU rental, (3) Uncertified gray-market, (4) Velerity certified refurbished
 
-Help reps with: GPU specs and comparisons, workload recommendations, objection handling, competitive positioning, export control red flags, email drafts, deal coaching, and explaining the Sprout sourcing story. Be concise, confident, and sales-focused. When quoting specs be specific (e.g., H100 SXM5 = 80GB HBM3, 3.35 TB/s, 700W TDP).`;
+WORKLOAD SIZING — VRAM ESTIMATES:
+VRAM needed = model_params_B × bytes_per_param × overhead_multiplier × context_overhead
+- Bytes/param: FP32=4, BF16=2, FP16=2, FP8=1, INT4=0.5
+- Overhead multiplier: Inference=1.2×, Fine-tuning (LoRA)=2.5×, Full Training=4.0×
+- Context overhead: >8K tokens adds proportional KV cache (e.g. 32K ≈ 1.75×, 128K ≈ 4.9×)
+Examples: 70B @ BF16 inference = 70×2×1.2 = 168 GB → 2× H100 SXM5 (80GB each = 160 GB, tight) or 1× H200 (141 GB, tight) or 2× H200 (282 GB, comfortable). 70B @ BF16 fine-tuning = 70×2×2.5 = 350 GB → 3× H200 or 2× B200 (192 GB each = 384 GB). 405B @ BF16 full training = 405×2×4 = 3,240 GB → ~23× H200 or ~17× B200.
+
+GPU OPTIONS (VRAM, TDP/node, GPUs/node):
+- A100 40GB PCIe: 40 GB, 0.6 kW/node, 1 GPU/node
+- A100 80GB SXM4: 80 GB, 7.2 kW/node, 8 GPUs/node
+- H100 80GB PCIe: 80 GB, 0.8 kW/node, 1 GPU/node
+- H100 80GB SXM5: 80 GB, 12.0 kW/node, 8 GPUs/node
+- H100 NVL 94GB: 94 GB, 0.85 kW/node, 1 GPU/node
+- H200 141GB SXM: 141 GB, 12.0 kW/node, 8 GPUs/node
+- B200 192GB SXM6: 192 GB, 14.4 kW/node, 8 GPUs/node
+- B300 288GB SXM7: 288 GB, 16.0 kW/node, 8 GPUs/node
+
+POWER / MW SIZING:
+Total IT load (kW) = (nodes × kW/node) + networking + storage + mgmt
+Total facility load (kW) = IT load × PUE
+Total facility load (MW) = facility kW ÷ 1000
+PUE benchmarks: 1.10 = hyperscale best-in-class, 1.20 = modern colo, 1.30 = typical enterprise DC, 1.40+ = older facility
+Networking: ~10 kW per InfiniBand switch (1 switch/rack typical)
+Storage/mgmt: ~2 kW per storage server, ~0.5 kW per mgmt server
+NEC 125% rule: electrical capacity must be sized at 1.25× actual load
+Generator: NEC capacity ÷ 0.9 power factor
+480V 3-phase amps: total watts ÷ 831
+
+POWER EXAMPLES (8 nodes, PUE 1.20, 1 switch/rack, 2 storage + 2 mgmt):
+- 8× H100 SXM5 nodes: 8×12=96 kW GPU + 10 kW net + 4 kW storage + 1 kW mgmt = 111 kW IT → 133.2 kW facility → 0.133 MW
+- 8× H200 SXM nodes: same cooling profile as H100 → 0.133 MW
+- 8× B200 SXM6 nodes: 8×14.4=115.2 kW GPU + 10+4+1 = 130.2 kW IT → 156.2 kW → 0.156 MW
+- 32× H100 SXM5 nodes: 32×12=384 kW + 40 kW net (4 racks) + 4+1 = 429 kW IT → 515 kW → 0.515 MW
+- 1 GB200 NVL72 rack: ~120 kW IT → 144 kW facility → 0.144 MW (liquid cooling, CDU required)
+
+DC READINESS FLAGS to raise with customers: liquid cooling required for B200/B300/NVL72, floor load rating (DGX H100 ~320 kg), 480V 3-phase power, CDU for direct liquid cooling, standard racks rated 10-20 kW (B300 nodes need 20-25 kW/rack).
+
+Help reps with: GPU specs, workload sizing, power/MW estimates, DC readiness, objection handling, competitive positioning, export control, email drafts, deal coaching, and the Sprout sourcing story. Be concise, confident, and sales-focused. When quoting specs be specific (e.g., H100 SXM5 = 80GB HBM3, 3.35 TB/s, 700W TDP, 12 kW/8-GPU node).`;
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST', headers:{'Content-Type':'application/json','x-api-key':S.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1024, system:sys, messages:[{role:'user',content:msg}] })
