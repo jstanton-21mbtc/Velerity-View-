@@ -4681,6 +4681,22 @@ const TARGET_MARKETS = [
         dealSize: '4–24 cards ($74K–$504K)',
         competitive: 'vs. HGX H100 node: RTX Pro 6000 Server is a fraction of total system cost ($21K/card vs. $217K for a full H100 node) while delivering 70B inference capability. MIG-4 partitioning enables 4 isolated revenue-generating tenants per card — a compelling unit economics story for regional AI cloud operators. No liquid cooling required.',
       },
+      {
+        industry: 'Automotive & Autonomous Vehicle Development',
+        useCases: ['Synthetic data generation pipelines for AV perception model training — 96 GB handles multi-sensor fusion datasets without memory overflow', 'Simulation-based validation: running CARLA, SUMO, and custom environments locally without cloud GPU queues', 'Sensor fusion and perception model development workstations for LiDAR, radar, and camera fusion', 'In-cabin AI development — gesture recognition, driver monitoring, voice AI on local high-VRAM workstations'],
+        buyers: 'VP Perception Engineering, Head of AV AI, Principal ML Engineer, Head of Simulation, VP Product (AV startup)',
+        signals: 'AV program restart or expansion announcements, robotaxi fleet launch preparations, Tier 1 supplier AI lab buildouts, autonomous trucking Series B–D funding, ADAS ML engineering hiring sprees, sensor fusion platform RFPs',
+        dealSize: '10–100 cards ($145K–$2.1M fleet)',
+        competitive: 'vs. H100 PCIe: RTX Pro 6000 has 96 GB GDDR7 ECC vs. 80 GB — fits multi-sensor synthetic data models without quantization. vs. cloud GPU: AV companies cannot ship confidential sensor data, internal road test footage, or proprietary simulation assets to public cloud. vs. consumer RTX: ECC memory eliminates silent data corruption in long-running simulation jobs; MIG support (Server Edition) enables multi-team parallelism on a single card.',
+      },
+      {
+        industry: 'Scientific Computing & Academic Research',
+        useCases: ['Computational chemistry and molecular dynamics — AlphaFold, GROMACS, NAMD with large system sizes at full precision', 'Physics simulation and numerical methods at scales that overflow 80 GB GPU memory', 'Bioinformatics pipeline workstations — RNA-seq, variant calling, pangenome assembly with large intermediate models', 'University AI lab local inference for 70B research models without cloud GPU queues or data egress'],
+        buyers: 'Principal Investigator, Research Computing Director, Postdoctoral Researcher, Head of Computational Science, University IT (HPC fleet buyer)',
+        signals: 'NSF CAREER and DOE Early Career award recipients (GPU procurement follows grant award), NIH bioinformatics infrastructure grants, university GPU workstation refresh RFPs, computational biology lab expansions, national lab workstation fleet procurement cycles (3–5 years)',
+        dealSize: '2–30 cards ($28K–$630K)',
+        competitive: 'vs. A100 PCIe: RTX Pro 6000 Blackwell has 96 GB vs. 80 GB VRAM, full Blackwell Tensor Core generation (FP8/FP4), and lower cost per GB — a generational upgrade at a comparable or lower price point for university procurement. vs. Cloud: NSF-funded data, genomic PHI, and DOE security-sensitive simulation cannot leave the institutional network; on-prem is required. vs. older Quadro: researchers running AlphaFold at scale report GPU memory as the primary bottleneck — 96 GB ECC removes that ceiling.',
+      },
     ]
   },
   {
@@ -4720,6 +4736,22 @@ const TARGET_MARKETS = [
         dealSize: '16–64 nodes ($11M–$44M)',
         competitive: 'vs. B200: governments building a 5–10 year national AI platform want the latest frontier architecture to avoid near-term refresh cycles. 288 GB per GPU is the floor for sovereign 1T-parameter model training. COMPLIANCE NOTE: Export control review is MANDATORY for all government/defense B300 opportunities — B300 is a maximum-restricted product. Coordinate with compliance team before advancing past Discovery for any non-Group-A buyer.',
       },
+      {
+        industry: 'Large Enterprise AI (Fortune 500)',
+        useCases: ['Private LLM deployment at >100B scale on proprietary financial, legal, and clinical data — 288 GB VRAM handles frontier models without model parallelism across nodes', 'Agentic AI automation infrastructure requiring maximum single-node throughput for multi-step reasoning workflows', 'Enterprise AI platform serving hundreds of internal business units off a small, dense fleet rather than a sprawling H100 cluster', 'High-throughput RAG and document intelligence infrastructure where response latency and throughput both matter'],
+        buyers: 'VP AI/ML, Head of AI Infrastructure, CDO, CTO, Head of Enterprise Architecture',
+        signals: 'B200 upgrade discussions at Fortune 500 AI Centers of Excellence, CDO-level AI CapEx disclosures in earnings calls, "AI factory" initiative announcements, enterprise AI platform vendor consolidation programs, private LLM RFPs specifying frontier architecture',
+        dealSize: '8–32 nodes ($5M–$22M)',
+        competitive: 'vs. B200: for enterprises already qualified on liquid cooling, B300 is the right single buy — same CDU infrastructure carries forward, 50% more VRAM per GPU, future-proofed for the 2027 model generation. vs. OEM: 12–18 month lead times on frontier hardware force enterprises to delay AI initiatives by over a year; Velerity early access is a strategic unlocker. FACILITY GATE: Liquid cooling qualification is mandatory before quoting B300 — do not advance without confirming CDU capacity.',
+      },
+      {
+        industry: 'Research Universities & National Labs',
+        useCases: ['Frontier AI research at the AI–HPC convergence — training large scientific foundation models for materials science, climate, and drug discovery', 'DOE Leadership Computing Facility workloads requiring maximum VRAM density for multi-billion-atom molecular dynamics and climate simulations', 'University AI supercomputer clusters supporting 50–200 concurrent research groups running large-context experiments', 'NSF-funded national AI research infrastructure projects (National AI Research Resource — NAIRR)'],
+        buyers: 'HPC Center Director, NSF/DOE Program Officer, VP Research Computing, Director of Computational Science, System Integrator PM (Cray/HPE, Dell)',
+        signals: 'NSF ACCESS program procurement cycles, DOE Leadership Computing Facility RFPs, university AI supercomputer announcements (Columbia, CMU, Georgia Tech, UT Austin), NAIRR pilot expansion, DOE Office of Science AI initiative grants, national lab compute refresh cycles (Argonne ALCF, ORNL OLCF, LLNL)',
+        dealSize: '16–128 nodes ($11M–$87M)',
+        competitive: 'vs. B200: research institutions building 5–7 year compute infrastructure want the highest available tier; B300's 288 GB VRAM minimizes model sharding overhead on scientific simulations. vs. OEM: federal procurement cycles are long — research institutions that engage Velerity now can get B300 operational while OEM orders are still in backlog. vs. waiting: scientific compute time is funded by grant cycles — delays directly cost research output and renewal prospects.',
+      },
     ]
   },
   {
@@ -4750,6 +4782,22 @@ const TARGET_MARKETS = [
         signals: 'Multi-year AI CapEx commitments, board-level AI strategy announcements, enterprise AI factory RFPs, private AI cloud buildouts, CEO-level commitment to AI as core infrastructure',
         dealSize: '4–32 nodes ($4M–$35M)',
         competitive: 'vs. B300: enterprises building 5-year strategic AI infrastructure benefit from Rubin\'s generational leap in bandwidth — NVLink 6.0 halves cross-GPU communication latency for large-model inference. vs. OEM: Velerity early-access supply is the differentiator. vs. waiting: every quarter of delay is a quarter of competitor advantage on frontier AI capability. COMPLIANCE NOTE: Rubin deals with any government, defense, or non-Group-A buyer require immediate compliance escalation before any further engagement.',
+      },
+      {
+        industry: 'Frontier AI Companies (Series C+)',
+        useCases: ['Post-Blackwell foundation model training for 2027+ model releases — labs racing to stay at the frontier need Rubin architecture now for 18-month infrastructure lead times', 'Next-generation reasoning model development requiring NVLink 6.0 (3,600 GB/s — 2× B300) for ultra-fast gradient synchronization across nodes', '15,000 GB/s HBM4 bandwidth unlocks workloads bottlenecked by B300 memory bandwidth — MoE routing, sparse attention, speculative decoding at scale', 'Multi-modal frontier research — text, vision, audio, robotics combined at scales not feasible on Blackwell-era hardware'],
+        buyers: 'Head of AI Infrastructure, VP Engineering, CTO, CEO (Series C–E AI-native companies)',
+        signals: 'Public commentary on 2027 infrastructure planning in AI blogs or earnings calls, Rubin or NVLink 6.0 mentioned in infrastructure architecture job postings, Series D+ funding rounds exceeding $500M with disclosed compute spend, partnerships with NVIDIA for GR200 NVL72 early access, researchers publishing on training efficiency bottlenecks that NVLink 6.0 would address',
+        dealSize: '8–64 nodes ($9M–$70M)',
+        competitive: 'vs. B300: frontier labs whose training jobs are limited by inter-GPU bandwidth get a 2× NVLink improvement with Rubin — this is not incremental, it changes the feasible training topology for multi-node runs. vs. waiting: labs that build Rubin infrastructure in early access have a 12–18 month head start on model capabilities vs. competitors on B300. COMPLIANCE NOTE: Rubin with any government, defense, or D/E-group buyer requires immediate compliance escalation before any engagement.',
+      },
+      {
+        industry: 'National Supercomputing Centers',
+        useCases: ['AI-HPC convergence workloads at national scale — climate earth-system models, materials discovery, plasma physics, genomics requiring both FLOPS and extreme memory bandwidth', 'GR200 NVL72 rack deployments: 36 Vera CPUs + 72 R100 dies per rack — 20,736 GB GPU memory supports workloads too large for any existing supercomputer', 'Government-funded scientific AI infrastructure: DOE Office of Science, NSF National AI Research Resource, international equivalents (RIKEN, Jülich, CINECA)', 'Sovereign national AI infrastructure — Japan announced 27,500 Rubin GPUs + 13,750 Vera CPUs via Noetra for national AI compute'],
+        buyers: 'Center Director (Argonne ALCF, ORNL OLCF, LLNL, NERSC), NSF/DOE Program Officer, System Integrator PM (Cray/HPE, Dell), National AI Office Director',
+        signals: 'DOE Leadership Computing Facility next-generation procurement RFPs, NSF ACCESS Phase 2 compute allocations, national AI strategy announcements specifying compute infrastructure targets, NAIRR expansion grants, international AI supercomputer buildout announcements, government AI CapEx disclosures in the $1B+ range',
+        dealSize: '32–512+ nodes ($35M–$560M+)',
+        competitive: 'vs. B300: national labs and supercomputing centers build infrastructure on 5–8 year cycles — they cannot afford to buy the second-best tier when Rubin is available, as the refresh cost would be enormous. HBM4 and NVLink 6.0 set the performance benchmark for the decade. vs. OEM: federal procurement timelines (12–24 months from RFP to delivery) mean supercomputing centers that engage Velerity during the RFP process can be online before OEM-sourced deployments. COMPLIANCE NOTE: Any national lab or government supercomputing procurement involving Rubin requires mandatory compliance review — coordinate with compliance team at first contact.',
       },
     ]
   },
